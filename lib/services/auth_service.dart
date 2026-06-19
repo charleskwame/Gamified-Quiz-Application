@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'database_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -19,8 +20,13 @@ class AuthService {
       UserCredential userCredential = await _auth
           .createUserWithEmailAndPassword(email: email, password: password);
 
-      // Set display name
-      await userCredential.user?.updateDisplayName(displayName);
+      final user = userCredential.user;
+      if (user != null) {
+        // Set display name
+        await user.updateDisplayName(displayName);
+        // Create Firestore user document with default stats & progress tracking
+        await DatabaseService().initializeUserStats(user.uid, displayName, email);
+      }
 
       return userCredential;
     } on FirebaseAuthException {
@@ -39,6 +45,37 @@ class AuthService {
         password: password,
       );
       return userCredential;
+    } on FirebaseAuthException {
+      rethrow;
+    }
+  }
+
+  // Update profile info
+  Future<void> updateProfile({
+    String? displayName,
+    String? email,
+    String? password,
+  }) async {
+    try {
+      User? user = _auth.currentUser;
+      if (user == null) {
+        throw Exception('No user is currently logged in.');
+      }
+
+      if (displayName != null && displayName.isNotEmpty) {
+        await user.updateDisplayName(displayName);
+      }
+
+      if (email != null && email.isNotEmpty && email != user.email) {
+        // ignore: deprecated_member_use
+        await user.updateEmail(email);
+      }
+
+      if (password != null && password.isNotEmpty) {
+        await user.updatePassword(password);
+      }
+
+      await user.reload();
     } on FirebaseAuthException {
       rethrow;
     }

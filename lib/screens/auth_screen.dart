@@ -3,7 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
 
 class AuthScreen extends StatefulWidget {
-  const AuthScreen({super.key});
+  final VoidCallback? onBypass;
+
+  const AuthScreen({super.key, this.onBypass});
 
   @override
   State<AuthScreen> createState() => _AuthScreenState();
@@ -70,6 +72,10 @@ class _AuthScreenState extends State<AuthScreen> {
           password: _passwordController.text,
         );
       }
+
+      if (mounted && Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
     } on FirebaseAuthException catch (e) {
       _handleAuthError(e);
     } catch (e) {
@@ -81,8 +87,25 @@ class _AuthScreenState extends State<AuthScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final canPop = Navigator.canPop(context);
+    final showBackButton = canPop || widget.onBypass != null;
+
     return Scaffold(
-      appBar: AppBar(title: Text(_isSignUp ? 'Create Account' : 'Log In')),
+      appBar: AppBar(
+        title: Text(_isSignUp ? 'Create Account' : 'Log In'),
+        leading: showBackButton
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back_rounded),
+                onPressed: () {
+                  if (canPop) {
+                    Navigator.pop(context);
+                  } else if (widget.onBypass != null) {
+                    widget.onBypass!();
+                  }
+                },
+              )
+            : null,
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
