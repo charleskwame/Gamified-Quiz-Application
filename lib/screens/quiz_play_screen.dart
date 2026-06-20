@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:http/http.dart' as http;
 import '../models/question.dart';
 import '../models/badge.dart';
 import '../services/database_service.dart';
@@ -22,8 +24,12 @@ class QuizPlayScreen extends StatefulWidget {
   State<QuizPlayScreen> createState() => _QuizPlayScreenState();
 }
 
-class _QuizPlayScreenState extends State<QuizPlayScreen> {
+class _QuizPlayScreenState extends State<QuizPlayScreen> with TickerProviderStateMixin {
   final DatabaseService _db = DatabaseService();
+  
+  int _consecutiveIncorrect = 0;
+  AnimationController? _aiButtonAnimationController;
+  final List<Question> _incorrectQuestions = [];
   
   // Fisher-Yates Shuffle Algorithm to ensure uniform random distribution
   void _fisherYatesShuffle<T>(List<T> list) {
@@ -54,11 +60,16 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> {
   void initState() {
     super.initState();
     _loadQuizQuestions();
+    _aiButtonAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat(reverse: true);
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _aiButtonAnimationController?.dispose();
     super.dispose();
   }
 
@@ -114,9 +125,12 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> {
   }
 
   void _handleTimeOut() {
+    final currentQuestion = _questions[_currentIndex];
     setState(() {
       _isAnswered = true;
       _selectedOption = ''; // Mark unanswered
+      _consecutiveIncorrect++;
+      _incorrectQuestions.add(currentQuestion);
     });
   }
 
@@ -135,6 +149,10 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> {
       if (isCorrect) {
         _correctAnswers++;
         _score += widget.isTimed ? 3 : 1;
+        _consecutiveIncorrect = 0;
+      } else {
+        _consecutiveIncorrect++;
+        _incorrectQuestions.add(currentQuestion);
       }
     });
   }
@@ -543,6 +561,12 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> {
     final question = _questions[_currentIndex];
 
     return Scaffold(
+      floatingActionButton: (!widget.isTimed &&
+              !widget.isOffline &&
+              _consecutiveIncorrect >= 2 &&
+              _currentIndex < _questions.length)
+          ? _buildAiFloatingButton()
+          : null,
       appBar: AppBar(
         title: Text(widget.category, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
         centerTitle: true,
@@ -811,6 +835,85 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> {
       ),
     );
   }
+
+  Widget _buildAiFloatingButton() {
+    return AnimatedBuilder(
+      animation: _aiButtonAnimationController!,
+      builder: (context, child) {
+        final double scale = 1.0 + (_aiButtonAnimationController!.value * 0.1);
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            // Floating bubble hint
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              margin: const EdgeInsets.only(right: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E293B),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.15),
+                    blurRadius: 6,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.auto_awesome, color: Color(0xFFFFD700), size: 14),
+                  SizedBox(width: 6),
+                  Text(
+                    'Need assistance?',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Pulsing Floating Action Button
+            Transform.scale(
+              scale: scale,
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF6366F1).withValues(alpha: 0.4),
+                      blurRadius: 10 * _aiButtonAnimationController!.value,
+                      spreadRadius: 3 * _aiButtonAnimationController!.value,
+                    ),
+                  ],
+                ),
+                child: FloatingActionButton(
+                  onPressed: _showAiChatInterface,
+                  backgroundColor: const Color(0xFF6366F1),
+                  mini: false,
+                  child: const Icon(Icons.psychology_rounded, color: Colors.white, size: 28),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showAiChatInterface() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _AiChatBottomSheet(
+        category: widget.category,
+        incorrectQuestions: _incorrectQuestions,
+      ),
+    );
+  }
 }
 
 class _TopToastWidget extends StatefulWidget {
@@ -945,3 +1048,385 @@ class _TopToastWidgetState extends State<_TopToastWidget> with SingleTickerProvi
     );
   }
 }
+
+class _ChatMessage {
+  final String text;
+  final bool isUser;
+  _ChatMessage({required this.text, required this.isUser});
+}
+
+class _AiChatBottomSheet extends StatefulWidget {
+  final String category;
+  final List<Question> incorrectQuestions;
+
+  const _AiChatBottomSheet({
+    required this.category,
+    required this.incorrectQuestions,
+  });
+
+  @override
+  State<_AiChatBottomSheet> createState() => _AiChatBottomSheetState();
+}
+
+class _AiChatBottomSheetState extends State<_AiChatBottomSheet> {
+  final List<_ChatMessage> _messages = [];
+  final TextEditingController _textController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  bool _isTyping = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchInitialStudyGuide();
+  }
+
+  Future<void> _fetchInitialStudyGuide() async {
+    if (!mounted) return;
+    setState(() {
+      _isTyping = true;
+    });
+
+    final category = widget.category;
+    final wrongQuestionsDetails = widget.incorrectQuestions.map((q) =>
+        "- Question: ${q.questionText}\n  Correct Option: ${q.correctAnswer}"
+    ).join("\n\n");
+
+    final systemPrompt = """
+You are a friendly and expert AI study tutor inside a gamified quiz application. 
+The user is currently taking a quiz on "$category" and has answered multiple questions incorrectly in a row. 
+
+Here are the questions they got wrong so far:
+$wrongQuestionsDetails
+
+Please provide:
+1. An encouraging message.
+2. A clear, easy-to-understand explanation of the concepts related to these questions.
+3. Suggest 2-3 specific topics/areas they should focus on in $category to improve their knowledge.
+
+Keep your response concise (around 150-200 words), formatted with bullet points/markdown, and highly encouraging.
+""";
+
+    try {
+      final response = await http.post(
+        Uri.parse("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AQ.Ab8RN6L4NuCi_0duAklCjTIUM6HksnMhNUD11fE6MJd118XcJw"),
+        headers: {"Content-Type": "application/json"},
+        body: json.encode({
+          "contents": [
+            {
+              "parts": [{"text": systemPrompt}]
+            }
+          ]
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final text = data['candidates'][0]['content']['parts'][0]['text'] as String;
+        if (mounted) {
+          setState(() {
+            _messages.add(_ChatMessage(text: text.trim(), isUser: false));
+          });
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            _messages.add(_ChatMessage(
+              text: "Sorry, I'm having trouble connecting to the network right now. Please try again in a bit!",
+              isUser: false,
+            ));
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _messages.add(_ChatMessage(
+            text: "An error occurred while connecting to the AI helper. Please check your internet connection.",
+            isUser: false,
+          ));
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isTyping = false;
+        });
+        _scrollToBottom();
+      }
+    }
+  }
+
+  Future<void> _sendMessage(String userMessage) async {
+    if (userMessage.trim().isEmpty) return;
+
+    setState(() {
+      _messages.add(_ChatMessage(text: userMessage, isUser: true));
+      _isTyping = true;
+    });
+    _textController.clear();
+    _scrollToBottom();
+
+    final category = widget.category;
+    final wrongQuestionsDetails = widget.incorrectQuestions.map((q) =>
+        "- Question: ${q.questionText}\n  Correct Option: ${q.correctAnswer}"
+    ).join("\n\n");
+
+    final systemPrompt = """
+You are a friendly and expert AI study tutor inside a gamified quiz application. 
+The user is currently taking a quiz on "$category".
+Here are the questions they got wrong so far:
+$wrongQuestionsDetails
+""";
+
+    // Build history conversation array
+    final List<Map<String, dynamic>> contents = [
+      {
+        "role": "user",
+        "parts": [{"text": systemPrompt}]
+      }
+    ];
+
+    for (var msg in _messages) {
+      contents.add({
+        "role": msg.isUser ? "user" : "model",
+        "parts": [{"text": msg.text}]
+      });
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AQ.Ab8RN6L4NuCi_0duAklCjTIUM6HksnMhNUD11fE6MJd118XcJw"),
+        headers: {"Content-Type": "application/json"},
+        body: json.encode({"contents": contents}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final text = data['candidates'][0]['content']['parts'][0]['text'] as String;
+        if (mounted) {
+          setState(() {
+            _messages.add(_ChatMessage(text: text.trim(), isUser: false));
+          });
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            _messages.add(_ChatMessage(
+              text: "I couldn't process that message. Please try again.",
+              isUser: false,
+            ));
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _messages.add(_ChatMessage(
+            text: "Network error occurred. Please try again.",
+            isUser: false,
+          ));
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isTyping = false;
+        });
+        _scrollToBottom();
+      }
+    }
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.75,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Column(
+        children: [
+          // Drag handle and header
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+            ),
+            child: Column(
+              children: [
+                Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.auto_awesome, color: Color(0xFF6366F1), size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Gemini AI Study Guide',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey.shade800,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          
+          // Message List
+          Expanded(
+            child: ListView.builder(
+              controller: _scrollController,
+              padding: const EdgeInsets.all(16),
+              itemCount: _messages.length + (_isTyping ? 1 : 0),
+              itemBuilder: (context, index) {
+                if (index == _messages.length) {
+                  return Align(
+                    alignment: Alignment.centerLeft,
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox(
+                            width: 12,
+                            height: 12,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation(Color(0xFF6366F1)),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            'Gemini is thinking...',
+                            style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                final message = _messages[index];
+                return Align(
+                  alignment: message.isUser ? Alignment.centerRight : Alignment.centerLeft,
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    constraints: BoxConstraints(
+                      maxWidth: MediaQuery.of(context).size.width * 0.75,
+                    ),
+                    decoration: BoxDecoration(
+                      gradient: message.isUser
+                          ? const LinearGradient(
+                              colors: [Color(0xFF6366F1), Color(0xFF4F46E5)],
+                            )
+                          : null,
+                      color: message.isUser ? null : Colors.grey.shade100,
+                      borderRadius: BorderRadius.only(
+                        topLeft: const Radius.circular(16),
+                        topRight: const Radius.circular(16),
+                        bottomLeft: Radius.circular(message.isUser ? 16 : 4),
+                        bottomRight: Radius.circular(message.isUser ? 4 : 16),
+                      ),
+                    ),
+                    child: Text(
+                      message.text,
+                      style: TextStyle(
+                        color: message.isUser ? Colors.white : Colors.grey.shade800,
+                        fontSize: 14,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+
+          // Input field
+          Container(
+            padding: EdgeInsets.only(
+              left: 16,
+              right: 16,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+              top: 12,
+            ),
+            decoration: BoxDecoration(
+              border: Border(top: BorderSide(color: Colors.grey.shade200)),
+              color: Colors.white,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _textController,
+                    textInputAction: TextInputAction.send,
+                    onSubmitted: _sendMessage,
+                    decoration: InputDecoration(
+                      hintText: 'Ask Gemini a follow-up question...',
+                      hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      filled: true,
+                      fillColor: Colors.grey.shade100,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF6366F1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.send_rounded, color: Colors.white),
+                    onPressed: () => _sendMessage(_textController.text),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
