@@ -73,6 +73,7 @@ flutter:
     - lib/assets/computer_architecture_parsed_questions.json
     - lib/assets/computer_networking_parsed_questions.json
     - lib/assets/software_engineering_parsed_questions.json
+    - lib/assets/config.json
 
   # To add assets to your application, add an assets section, like this:
   # assets:
