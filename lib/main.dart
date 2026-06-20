@@ -23,8 +23,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.black,
-    statusBarIconBrightness: Brightness.light,
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.dark,
   ));
   
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
@@ -54,6 +54,10 @@ class MyApp extends StatelessWidget {
           foregroundColor: Color(0xFF121826),
           centerTitle: false,
           elevation: 0,
+          systemOverlayStyle: SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness: Brightness.dark,
+          ),
         ),
         filledButtonTheme: FilledButtonThemeData(
           style: FilledButton.styleFrom(
@@ -1357,13 +1361,14 @@ class _ProfilePageState extends State<ProfilePage> {
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton.icon(
-                    onPressed: () {
-                      Navigator.push(
+                    onPressed: () async {
+                      await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => const AuthScreen(),
                         ),
                       );
+                      setState(() {});
                     },
                     icon: const Icon(Icons.login_rounded),
                     label: const Text('Log In / Sign Up'),
