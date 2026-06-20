@@ -5,8 +5,11 @@ import 'firebase_options.dart';
 import 'screens/auth_screen.dart';
 import 'services/auth_service.dart';
 import 'services/database_service.dart';
-import 'models/user_rank.dart';
 import 'screens/challenge_select_screen.dart';
+import 'models/badge.dart';
+import 'screens/earned_badges_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'models/user_rank.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,7 +28,9 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF5B5FEF),
+          seedColor: const Color(0xFF111C4A),
+          primary: const Color(0xFF111C4A),
+          error: const Color(0xFF931716),
           brightness: Brightness.light,
         ),
         scaffoldBackgroundColor: const Color(0xFFF4F6FB),
@@ -34,6 +39,23 @@ class MyApp extends StatelessWidget {
           foregroundColor: Color(0xFF121826),
           centerTitle: false,
           elevation: 0,
+        ),
+        filledButtonTheme: FilledButtonThemeData(
+          style: FilledButton.styleFrom(
+            backgroundColor: const Color(0xFF111C4A),
+            foregroundColor: Colors.white,
+          ),
+        ),
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(
+            foregroundColor: const Color(0xFF111C4A),
+          ),
+        ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: const Color(0xFF111C4A),
+            side: const BorderSide(color: Color(0xFF111C4A)),
+          ),
         ),
         textTheme: const TextTheme(
           headlineLarge: TextStyle(
@@ -150,6 +172,67 @@ class QuizHomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      return _buildHomeContent(
+        context: context,
+        displayName: 'Guest',
+        questionsAnswered: 0,
+        accuracyPercent: 0,
+        streakNumber: 0,
+        totalScore: 0,
+      );
+    }
+
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance.collection('users').doc(user.uid).snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        String displayName = user.displayName ?? 'Scholar';
+        int questionsAnswered = 0;
+        int questionsCorrect = 0;
+        int streakNumber = 0;
+        int totalScore = 0;
+
+        if (snapshot.hasData && snapshot.data!.exists) {
+          final data = snapshot.data!.data() as Map<String, dynamic>;
+          displayName = data['displayName'] ?? displayName;
+          questionsAnswered = data['questionsAnswered'] ?? 0;
+          questionsCorrect = data['questionsCorrect'] ?? 0;
+          streakNumber = data['streakNumber'] ?? 0;
+          totalScore = data['score'] ?? 0;
+        }
+
+        final accuracyPercent = questionsAnswered > 0
+            ? ((questionsCorrect / questionsAnswered) * 100).round()
+            : 0;
+
+        return _buildHomeContent(
+          context: context,
+          displayName: displayName,
+          questionsAnswered: questionsAnswered,
+          accuracyPercent: accuracyPercent,
+          streakNumber: streakNumber,
+          totalScore: totalScore,
+        );
+      },
+    );
+  }
+
+  Widget _buildHomeContent({
+    required BuildContext context,
+    required String displayName,
+    required int questionsAnswered,
+    required int accuracyPercent,
+    required int streakNumber,
+    required int totalScore,
+  }) {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -157,39 +240,128 @@ class QuizHomePage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Welcome, ${FirebaseAuth.instance.currentUser?.displayName ?? "Guest"}',
-                style: Theme.of(context).textTheme.headlineLarge,
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'Your quiz journey starts here.',
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-              const SizedBox(height: 24),
-              const SizedBox(height: 24),
-              Text(
-                'Quick overview',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 12),
+              // Header Row
               Row(
-                children: const [
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
                   Expanded(
-                    child: _StatCard(label: 'Questions answered', value: '248'),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Welcome, $displayName!',
+                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                fontWeight: FontWeight.w900,
+                                color: const Color(0xFF121826),
+                              ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'Your quiz journey starts here.',
+                          style: TextStyle(
+                            color: Color(0xFF6B7280),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: _StatCard(label: 'Accuracy', value: '91%'),
-                  ),
+                  if (streakNumber > 0)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFFFF2EC), Color(0xFFFFECEB)],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: const Color(0xFFFFD5D0), width: 1.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFFF5722).withValues(alpha: 0.1),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          )
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.local_fire_department_rounded,
+                            color: Color(0xFFFF5722),
+                            size: 20,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '$streakNumber Days',
+                            style: const TextStyle(
+                              color: Color(0xFFFF5722),
+                              fontWeight: FontWeight.w900,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                 ],
               ),
               const SizedBox(height: 28),
-              Text('Courses', style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 12),
-              _CourseButton(
-                label: 'Computer Architecture',
+
+              // Dynamic Analytics Dashboard
+              Text(
+                'Your Activity Analytics',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: const Color(0xFF121826),
+                    ),
+              ),
+              const SizedBox(height: 14),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: _AnalyticsCard(
+                      title: 'Attempted',
+                      value: '$questionsAnswered',
+                      subtitle: 'Questions',
+                      icon: Icons.forum_rounded,
+                      color: const Color(0xFF5B5FEF),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: _AnalyticsCard(
+                      title: 'Accuracy',
+                      value: '$accuracyPercent%',
+                      subtitle: 'Correct Rate',
+                      icon: Icons.track_changes_rounded,
+                      color: const Color(0xFF4CAF50),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              _ScoreDashboardCard(totalScore: totalScore),
+
+              const SizedBox(height: 32),
+
+              Text(
+                'Select Subject Category',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: const Color(0xFF121826),
+                    ),
+              ),
+              const SizedBox(height: 16),
+
+              _ModernCourseCard(
+                category: 'Computer Architecture',
+                description: 'Dive into pipelines, processor architectures, ALU designs, and instruction execution dynamics.',
                 icon: Icons.memory_rounded,
+                color1: const Color(0xFF8C52FF),
+                color2: const Color(0xFF5B5FEF),
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -202,10 +374,13 @@ class QuizHomePage extends StatelessWidget {
                   );
                 },
               ),
-              const SizedBox(height: 12),
-              _CourseButton(
-                label: 'Software Engineering',
-                icon: Icons.laptop_mac_rounded,
+              const SizedBox(height: 16),
+              _ModernCourseCard(
+                category: 'Software Engineering',
+                description: 'Master agile methods, object-oriented designs, UML diagrams, requirements patterns, and testing.',
+                icon: Icons.terminal_rounded,
+                color1: const Color(0xFF37474F),
+                color2: const Color(0xFF5A738E),
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -218,10 +393,13 @@ class QuizHomePage extends StatelessWidget {
                   );
                 },
               ),
-              const SizedBox(height: 12),
-              _CourseButton(
-                label: 'Computer Networking',
-                icon: Icons.router_rounded,
+              const SizedBox(height: 16),
+              _ModernCourseCard(
+                category: 'Computer Networking',
+                description: 'Explore packets, routing rules, network layers, sockets, HTTP requests, and TCP/UDP connections.',
+                icon: Icons.lan_rounded,
+                color1: const Color(0xFF0091EA),
+                color2: const Color(0xFF00E5FF),
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -242,12 +420,39 @@ class QuizHomePage extends StatelessWidget {
   }
 }
 
-class RankingsPage extends StatelessWidget {
+class RankingsPage extends StatefulWidget {
   const RankingsPage({super.key});
+
+  @override
+  State<RankingsPage> createState() => _RankingsPageState();
+}
+
+class _RankingsPageState extends State<RankingsPage> {
+  String _selectedCategory = 'All';
+  bool _descending = true;
+
+  int _getUserPoints(UserRank rank) {
+    switch (_selectedCategory) {
+      case 'Computer Architecture':
+        return rank.computerArchitecturePoints;
+      case 'Software Engineering':
+        return rank.softwareEngineeringPoints;
+      case 'Computer Networking':
+        return rank.computerNetworkingPoints;
+      default:
+        return rank.score;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final dbService = DatabaseService();
+    final categories = [
+      'All',
+      'Computer Architecture',
+      'Software Engineering',
+      'Computer Networking',
+    ];
 
     return Scaffold(
       body: SafeArea(
@@ -264,22 +469,100 @@ class RankingsPage extends StatelessWidget {
 
             final rankings = snapshot.data ?? [];
 
+            // Sort rankings based on selected points category and sorting direction
+            final sortedRankings = List<UserRank>.from(rankings);
+            sortedRankings.sort((a, b) {
+              final ptsA = _getUserPoints(a);
+              final ptsB = _getUserPoints(b);
+              return _descending ? ptsB.compareTo(ptsA) : ptsA.compareTo(ptsB);
+            });
+
             return SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Rankings',
-                    style: Theme.of(context).textTheme.headlineLarge,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Rankings',
+                            style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                                  fontWeight: FontWeight.w900,
+                                ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'See how you compare with others',
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
+                        ],
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF111C4A).withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: IconButton(
+                          icon: Icon(
+                            _descending ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
+                            color: const Color(0xFF111C4A),
+                          ),
+                          tooltip: _descending ? 'Sort Ascending' : 'Sort Descending',
+                          onPressed: () {
+                            setState(() {
+                              _descending = !_descending;
+                            });
+                          },
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'See how you compare with others',
-                    style: Theme.of(context).textTheme.bodyLarge,
+                  const SizedBox(height: 24),
+
+                  // Horizontal Filter Scroll Row
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: categories.map((cat) {
+                        final isSelected = _selectedCategory == cat;
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: FilterChip(
+                            label: Text(
+                              cat,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: isSelected ? Colors.white : const Color(0xFF111C4A),
+                                fontSize: 13,
+                              ),
+                            ),
+                            selected: isSelected,
+                            onSelected: (selected) {
+                              setState(() {
+                                _selectedCategory = cat;
+                              });
+                            },
+                            selectedColor: const Color(0xFF111C4A),
+                            checkmarkColor: Colors.white,
+                            backgroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              side: BorderSide(
+                                color: isSelected ? Colors.transparent : const Color(0xFF111C4A).withValues(alpha: 0.3),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
                   ),
-                  const SizedBox(height: 32),
-                  if (rankings.isEmpty)
+                  const SizedBox(height: 24),
+
+                  if (sortedRankings.isEmpty)
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(24),
@@ -304,16 +587,17 @@ class RankingsPage extends StatelessWidget {
                     ListView.separated(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      itemCount: rankings.length,
+                      itemCount: sortedRankings.length,
                       separatorBuilder: (context, index) => const SizedBox(height: 12),
                       itemBuilder: (context, index) {
-                        final rank = rankings[index];
+                        final rank = sortedRankings[index];
                         final isTopThree = index < 3;
                         final colorsMap = [
                           const Color(0xFFFFD700), // Gold
                           const Color(0xFFC0C0C0), // Silver
                           const Color(0xCD853F3A), // Bronze
                         ];
+                        final userPoints = _getUserPoints(rank);
 
                         return Container(
                           padding: const EdgeInsets.all(16),
@@ -351,17 +635,41 @@ class RankingsPage extends StatelessWidget {
                               ),
                               const SizedBox(width: 16),
                               Expanded(
-                                child: Text(
-                                  rank.name,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                    color: Color(0xFF121826),
-                                  ),
+                                child: Row(
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        rank.name,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w700,
+                                          color: Color(0xFF121826),
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    if (rank.selectedBadges.isNotEmpty) ...[
+                                      const SizedBox(width: 8),
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: rank.selectedBadges.map((badgeId) {
+                                          final badge = allBadges.firstWhere((b) => b.id == badgeId);
+                                          return Padding(
+                                            padding: const EdgeInsets.only(right: 4.0),
+                                            child: Icon(
+                                              badge.icon,
+                                              color: badge.color,
+                                              size: 16,
+                                            ),
+                                          );
+                                        }).toList(),
+                                      ),
+                                    ],
+                                  ],
                                 ),
                               ),
                               Text(
-                                '${rank.score} pts',
+                                '$userPoints pts',
                                 style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w800,
@@ -463,6 +771,66 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     final user = _authService.currentUser;
 
+    if (user == null) {
+      return _buildProfileContent(
+        context: context,
+        user: null,
+        displayName: 'Guest User',
+        email: 'Sign in to sync progress',
+        streakNumber: 0,
+        unlockedBadgeIds: [],
+        selectedBadges: [],
+      );
+    }
+
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance.collection('users').doc(user.uid).snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        String displayName = user.displayName ?? 'Guest User';
+        String email = user.email ?? '';
+        int streakNumber = 0;
+        List<String> unlockedBadgeIds = [];
+        List<String> selectedBadges = [];
+
+        if (snapshot.hasData && snapshot.data!.exists) {
+          final data = snapshot.data!.data() as Map<String, dynamic>;
+          displayName = data['displayName'] ?? displayName;
+          email = data['email'] ?? email;
+          streakNumber = data['streakNumber'] ?? 0;
+          unlockedBadgeIds = List<String>.from(data['badges'] ?? []);
+          selectedBadges = List<String>.from(data['selectedBadges'] ?? []);
+        }
+
+        return _buildProfileContent(
+          context: context,
+          user: user,
+          displayName: displayName,
+          email: email,
+          streakNumber: streakNumber,
+          unlockedBadgeIds: unlockedBadgeIds,
+          selectedBadges: selectedBadges,
+        );
+      },
+    );
+  }
+
+  Widget _buildProfileContent({
+    required BuildContext context,
+    required User? user,
+    required String displayName,
+    required String email,
+    required int streakNumber,
+    required List<String> unlockedBadgeIds,
+    required List<String> selectedBadges,
+  }) {
+    final previewBadges = allBadges.take(4).toList();
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -511,14 +879,52 @@ class _ProfilePageState extends State<ProfilePage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                user?.displayName ?? 'Guest User',
-                                style: Theme.of(context).textTheme.titleLarge,
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      displayName,
+                                      style: Theme.of(context).textTheme.titleLarge,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  if (streakNumber > 0) ...[
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFFFECEB),
+                                        borderRadius: BorderRadius.circular(16),
+                                        border: Border.all(color: const Color(0xFFFFD5D0)),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(
+                                            Icons.local_fire_department_rounded,
+                                            color: Color(0xFFFF5722),
+                                            size: 16,
+                                          ),
+                                          const SizedBox(width: 2),
+                                          Text(
+                                            '$streakNumber',
+                                            style: const TextStyle(
+                                              color: Color(0xFFFF5722),
+                                              fontWeight: FontWeight.w800,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ],
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                user?.email ?? 'Sign in to sync progress',
+                                email,
                                 style: Theme.of(context).textTheme.bodyLarge,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),
@@ -530,10 +936,31 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               const SizedBox(height: 32),
 
-              // Badges Section
-              Text(
-                'Earned Badges',
-                style: Theme.of(context).textTheme.titleLarge,
+              // Badges Section Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Earned Badges (${unlockedBadgeIds.length}/${allBadges.length})',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  if (user != null)
+                    TextButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => EarnedBadgesScreen(
+                              unlockedBadgeIds: unlockedBadgeIds,
+                              initialSelectedBadges: selectedBadges,
+                            ),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.arrow_forward_rounded, size: 16),
+                      label: const Text('See all'),
+                    ),
+                ],
               ),
               const SizedBox(height: 12),
               if (user == null) ...[
@@ -555,19 +982,11 @@ class _ProfilePageState extends State<ProfilePage> {
                   mainAxisSpacing: 12,
                   childAspectRatio: 1.1,
                 ),
-                itemCount: _sampleBadges.length,
+                itemCount: previewBadges.length,
                 itemBuilder: (context, index) {
-                  final badge = _sampleBadges[index];
-                  final displayBadge = user == null
-                      ? BadgeItem(
-                          name: badge.name,
-                          description: badge.description,
-                          icon: badge.icon,
-                          color: badge.color,
-                          isUnlocked: false,
-                        )
-                      : badge;
-                  return _BadgeCard(badge: displayBadge);
+                  final badge = previewBadges[index];
+                  final isUnlocked = unlockedBadgeIds.contains(badge.id);
+                  return _BadgeCard(badge: badge, isUnlocked: isUnlocked);
                 },
               ),
               if (user != null) ...[
@@ -693,7 +1112,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                 ),
               ],
-              // Developer Seeding Button (Only for logged in users)
+              // Delete Account Button (Only for logged in users)
               if (user != null) ...[
                 const SizedBox(height: 16),
                 SizedBox(
@@ -702,34 +1121,65 @@ class _ProfilePageState extends State<ProfilePage> {
                     onPressed: _isLoading
                         ? null
                         : () async {
-                            setState(() {
-                              _isLoading = true;
-                              _errorMessage = null;
-                              _successMessage = null;
-                            });
-                            try {
-                              final result = await DatabaseService().seedAllQuestions();
-                              setState(() {
-                                _successMessage = result;
-                              });
-                            } catch (e) {
-                              setState(() {
-                                _errorMessage = 'Seeding failed: $e';
-                              });
-                            } finally {
-                              setState(() {
-                                _isLoading = false;
-                              });
-                            }
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text(
+                                  'Delete Account?',
+                                  style: TextStyle(color: Color(0xFF931716), fontWeight: FontWeight.bold),
+                                ),
+                                content: const Text(
+                                  'Warning: This action is irreversible. Your entire progress, achievements, points, earned badges, and offline saved questions will be permanently deleted from the system.',
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text('Cancel'),
+                                  ),
+                                  FilledButton(
+                                    onPressed: () async {
+                                      Navigator.pop(context); // Close dialog
+                                      setState(() {
+                                        _isLoading = true;
+                                        _errorMessage = null;
+                                        _successMessage = null;
+                                      });
+                                      try {
+                                        final uid = user.uid;
+                                        // 1. Delete Firestore data & SharedPreferences offline questions
+                                        await DatabaseService().deleteUserAccount(uid);
+                                        // 2. Delete user authenticated account from Firebase Auth
+                                        await user.delete();
+                                        // 3. Perform logout
+                                        await _authService.logOut();
+                                      } catch (e) {
+                                        setState(() {
+                                          _errorMessage = 'Failed to delete account: $e. For security, please log out, log back in, and try again.';
+                                        });
+                                      } finally {
+                                        setState(() {
+                                          _isLoading = false;
+                                        });
+                                      }
+                                    },
+                                    style: FilledButton.styleFrom(
+                                      backgroundColor: const Color(0xFF931716),
+                                      foregroundColor: Colors.white,
+                                    ),
+                                    child: const Text('Delete Permanently'),
+                                  ),
+                                ],
+                              ),
+                            );
                           },
-                    icon: const Icon(Icons.cloud_upload_rounded),
-                    label: const Text('Seed Questions Database'),
+                    icon: const Icon(Icons.delete_forever_rounded, color: Color(0xFF931716)),
+                    label: const Text('Delete Account', style: TextStyle(color: Color(0xFF931716))),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      side: BorderSide(color: Theme.of(context).colorScheme.primary),
+                      side: const BorderSide(color: Color(0xFF931716)),
                     ),
                   ),
                 ),
@@ -804,47 +1254,78 @@ class _ProfilePageState extends State<ProfilePage> {
 }
 
 
-class _StatCard extends StatelessWidget {
-  const _StatCard({required this.label, required this.value});
-
-  final String label;
+class _AnalyticsCard extends StatelessWidget {
+  final String title;
   final String value;
+  final String subtitle;
+  final IconData icon;
+  final Color color;
+
+  const _AnalyticsCard({
+    required this.title,
+    required this.value,
+    required this.subtitle,
+    required this.icon,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: const Color(0xFFE6EAF2)),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x0F121826),
-            blurRadius: 18,
-            offset: Offset(0, 8),
+            color: Color(0x08121826),
+            blurRadius: 16,
+            offset: Offset(0, 6),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF6B7280),
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF6B7280),
+                  letterSpacing: 0.5,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: color, size: 18),
+              ),
+            ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Text(
             value,
             style: const TextStyle(
               fontSize: 26,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w900,
               color: Color(0xFF121826),
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            subtitle,
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF9CA3AF),
             ),
           ),
         ],
@@ -853,88 +1334,204 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-class _CourseButton extends StatelessWidget {
-  const _CourseButton({
-    required this.label,
-    required this.icon,
-    required this.onPressed,
-  });
+class _ScoreDashboardCard extends StatelessWidget {
+  final int totalScore;
 
-  final String label;
-  final IconData icon;
-  final VoidCallback onPressed;
+  const _ScoreDashboardCard({required this.totalScore});
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    return Container(
       width: double.infinity,
-      child: FilledButton.tonalIcon(
-        onPressed: onPressed,
-        icon: Icon(icon),
-        label: Text(label),
-        style: FilledButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x1F000000),
+            blurRadius: 18,
+            offset: Offset(0, 8),
           ),
-          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFD700).withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.stars_rounded,
+              color: Color(0xFFFFD700),
+              size: 28,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'CUMULATIVE SCORE',
+                  style: TextStyle(
+                    color: Colors.white60,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '$totalScore Points',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Icon(
+            Icons.chevron_right_rounded,
+            color: Colors.white30,
+            size: 24,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ModernCourseCard extends StatelessWidget {
+  final String category;
+  final String description;
+  final IconData icon;
+  final Color color1;
+  final Color color2;
+  final VoidCallback onPressed;
+
+  const _ModernCourseCard({
+    required this.category,
+    required this.description,
+    required this.icon,
+    required this.color1,
+    required this.color2,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        gradient: LinearGradient(
+          colors: [color1, color2],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: color1.withValues(alpha: 0.25),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(24),
+          child: Padding(
+            padding: const EdgeInsets.all(22),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.18),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        icon,
+                        color: Colors.white,
+                        size: 26,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Text(
+                            'Play Challenge',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          SizedBox(width: 4),
+                          Icon(
+                            Icons.play_arrow_rounded,
+                            color: Colors.white,
+                            size: 14,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 18),
+                Text(
+                  category,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  description,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.8),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
   }
 }
 
-class BadgeItem {
-  final String name;
-  final String description;
-  final IconData icon;
-  final Color color;
-  final bool isUnlocked;
-
-  const BadgeItem({
-    required this.name,
-    required this.description,
-    required this.icon,
-    required this.color,
-    required this.isUnlocked,
-  });
-}
-
-const List<BadgeItem> _sampleBadges = [
-  BadgeItem(
-    name: 'First Steps',
-    description: 'Completed first quiz',
-    icon: Icons.check_circle_rounded,
-    color: Color(0xFF4CAF50),
-    isUnlocked: true,
-  ),
-  BadgeItem(
-    name: 'Speed Demon',
-    description: 'Answered under 30s',
-    icon: Icons.bolt_rounded,
-    color: Color(0xFFFFC107),
-    isUnlocked: true,
-  ),
-  BadgeItem(
-    name: 'Quiz Master',
-    description: 'Completed 50 quizzes',
-    icon: Icons.emoji_events_rounded,
-    color: Color(0xFFFF5722),
-    isUnlocked: false,
-  ),
-  BadgeItem(
-    name: 'Streak King',
-    description: '5-day active streak',
-    icon: Icons.local_fire_department_rounded,
-    color: Color(0xFFE91E63),
-    isUnlocked: false,
-  ),
-];
-
 class _BadgeCard extends StatelessWidget {
-  const _BadgeCard({required this.badge});
+  const _BadgeCard({required this.badge, required this.isUnlocked});
 
-  final BadgeItem badge;
+  final BadgeDefinition badge;
+  final bool isUnlocked;
 
   @override
   Widget build(BuildContext context) {
@@ -953,7 +1550,7 @@ class _BadgeCard extends StatelessWidget {
         ],
       ),
       child: Opacity(
-        opacity: badge.isUnlocked ? 1.0 : 0.5,
+        opacity: isUnlocked ? 1.0 : 0.5,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -964,8 +1561,8 @@ class _BadgeCard extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                badge.isUnlocked ? badge.icon : Icons.lock_rounded,
-                color: badge.isUnlocked ? badge.color : const Color(0xFF6B7280),
+                isUnlocked ? badge.icon : Icons.lock_rounded,
+                color: isUnlocked ? badge.color : const Color(0xFF6B7280),
                 size: 28,
               ),
             ),
@@ -973,6 +1570,8 @@ class _BadgeCard extends StatelessWidget {
             Text(
               badge.name,
               textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
@@ -983,6 +1582,8 @@ class _BadgeCard extends StatelessWidget {
             Text(
               badge.description,
               textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w500,

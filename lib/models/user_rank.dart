@@ -4,11 +4,19 @@ class UserRank {
   final String id;
   final String name;
   final int score;
+  final List<String> selectedBadges;
+  final int computerArchitecturePoints;
+  final int computerNetworkingPoints;
+  final int softwareEngineeringPoints;
 
   UserRank({
     required this.id,
     required this.name,
     required this.score,
+    required this.selectedBadges,
+    required this.computerArchitecturePoints,
+    required this.computerNetworkingPoints,
+    required this.softwareEngineeringPoints,
   });
 
   factory UserRank.fromFirestore(DocumentSnapshot doc) {
@@ -17,6 +25,10 @@ class UserRank {
       id: doc.id,
       name: data['displayName'] ?? 'Guest User',
       score: data['score'] ?? 0,
+      selectedBadges: List<String>.from(data['selectedBadges'] ?? []),
+      computerArchitecturePoints: data['computerArchitecturePoints'] ?? 0,
+      computerNetworkingPoints: data['computerNetworkingPoints'] ?? 0,
+      softwareEngineeringPoints: data['softwareEngineeringPoints'] ?? 0,
     );
   }
 }

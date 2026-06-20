@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/question.dart';
 import '../models/user_rank.dart';
+import '../models/badge.dart';
 
 class DatabaseService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -30,9 +31,25 @@ class DatabaseService {
       'questionsCorrect': 0,
       'questionsAnswered': 0,
       'streakNumber': 0,
+      'lastActiveDate': '',
       'badges': <String>[],
+      'selectedBadges': <String>[],
       'createdAt': FieldValue.serverTimestamp(),
     });
+  }
+
+  // Sync user profile updates to Firestore
+  Future<void> updateUserInfo(String uid, String? displayName, String? email) async {
+    final Map<String, dynamic> data = {};
+    if (displayName != null && displayName.isNotEmpty) {
+      data['displayName'] = displayName;
+    }
+    if (email != null && email.isNotEmpty) {
+      data['email'] = email;
+    }
+    if (data.isNotEmpty) {
+      await _db.collection('users').doc(uid).update(data);
+    }
   }
 
   // Update user stats after a quiz challenge
@@ -67,6 +84,107 @@ class DatabaseService {
     }
 
     await userRef.update(updates);
+  }
+
+  // Processes completion of a quiz challenge using a transaction
+  // Updates stats, calculates streaks, evaluates badges, and returns newly unlocked badge ids
+  Future<List<String>> processQuizCompletion({
+    required String uid,
+    required String category,
+    required int scoreIncrement,
+    required int correctIncrement,
+    required int answeredIncrement,
+    required bool isTimed,
+  }) async {
+    final userRef = _db.collection('users').doc(uid);
+    List<String> newlyUnlocked = [];
+
+    await _db.runTransaction((transaction) async {
+      final userSnap = await transaction.get(userRef);
+      if (!userSnap.exists) {
+        return;
+      }
+
+      final data = userSnap.data() as Map<String, dynamic>;
+
+      // Get current fields
+      int score = data['score'] ?? 0;
+      int computerArchitecturePoints = data['computerArchitecturePoints'] ?? 0;
+      int computerNetworkingPoints = data['computerNetworkingPoints'] ?? 0;
+      int softwareEngineeringPoints = data['softwareEngineeringPoints'] ?? 0;
+      int questionsCorrect = data['questionsCorrect'] ?? 0;
+      int questionsAnswered = data['questionsAnswered'] ?? 0;
+      int streakNumber = data['streakNumber'] ?? 0;
+      String lastActiveDate = data['lastActiveDate'] ?? '';
+      List<String> badges = List<String>.from(data['badges'] ?? []);
+
+      // Apply quiz results
+      score += scoreIncrement;
+      questionsCorrect += correctIncrement;
+      questionsAnswered += answeredIncrement;
+
+      if (category == 'Computer Architecture') {
+        computerArchitecturePoints += scoreIncrement;
+      } else if (category == 'Computer Networking') {
+        computerNetworkingPoints += scoreIncrement;
+      } else if (category == 'Software Engineering') {
+        softwareEngineeringPoints += scoreIncrement;
+      }
+
+      // Calculate streak
+      final DateTime now = DateTime.now();
+      final String todayStr = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+      final DateTime yesterdayDate = now.subtract(const Duration(days: 1));
+      final String yesterdayStr = "${yesterdayDate.year}-${yesterdayDate.month.toString().padLeft(2, '0')}-${yesterdayDate.day.toString().padLeft(2, '0')}";
+
+      if (lastActiveDate.isEmpty) {
+        streakNumber = 1;
+      } else if (lastActiveDate == todayStr) {
+        // Already active today, streak remains same
+      } else if (lastActiveDate == yesterdayStr) {
+        streakNumber += 1;
+      } else {
+        // Broken streak, reset
+        streakNumber = 1;
+      }
+      lastActiveDate = todayStr;
+
+      // Evaluate badges
+      for (var badgeDef in allBadges) {
+        if (!badges.contains(badgeDef.id)) {
+          final isUnlocked = badgeDef.checkUnlock(
+            score: score,
+            computerArchitecturePoints: computerArchitecturePoints,
+            computerNetworkingPoints: computerNetworkingPoints,
+            softwareEngineeringPoints: softwareEngineeringPoints,
+            questionsCorrect: questionsCorrect,
+            questionsAnswered: questionsAnswered,
+            streakNumber: streakNumber,
+            latestCorrect: correctIncrement,
+            isTimed: isTimed,
+          );
+          if (isUnlocked) {
+            badges.add(badgeDef.id);
+            newlyUnlocked.add(badgeDef.id);
+          }
+        }
+      }
+
+      // Update in transaction
+      transaction.update(userRef, {
+        'score': score,
+        'computerArchitecturePoints': computerArchitecturePoints,
+        'computerNetworkingPoints': computerNetworkingPoints,
+        'softwareEngineeringPoints': softwareEngineeringPoints,
+        'questionsCorrect': questionsCorrect,
+        'questionsAnswered': questionsAnswered,
+        'streakNumber': streakNumber,
+        'lastActiveDate': lastActiveDate,
+        'badges': badges,
+      });
+    });
+
+    return newlyUnlocked;
   }
 
   // Download up to 50 questions for a category for offline use
@@ -189,5 +307,25 @@ class DatabaseService {
     }
 
     return 'Seeding Results:\n${details.join('\n')}\nTotal new questions added: $totalAdded';
+  }
+
+  // Deletes user account data from Firestore and SharedPreferences offline questions
+  Future<void> deleteUserAccount(String uid) async {
+    // Delete user document in Firestore
+    await _db.collection('users').doc(uid).delete();
+
+    // Clear local saved offline questions in SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    final keysToClear = prefs.getKeys().where((key) => key.startsWith('offline_')).toList();
+    for (final key in keysToClear) {
+      await prefs.remove(key);
+    }
+  }
+
+  // Updates the list of up to 3 selected badges to display next to user name in rankings
+  Future<void> updateSelectedBadges(String uid, List<String> badgeIds) async {
+    await _db.collection('users').doc(uid).update({
+      'selectedBadges': badgeIds,
+    });
   }
 }

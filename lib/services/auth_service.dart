@@ -75,6 +75,9 @@ class AuthService {
         await user.updatePassword(password);
       }
 
+      // Sync changes to the Firestore database
+      await DatabaseService().updateUserInfo(user.uid, displayName, email);
+
       await user.reload();
     } on FirebaseAuthException {
       rethrow;
