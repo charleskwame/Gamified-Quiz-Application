@@ -26,8 +26,14 @@ class DatabaseService {
       'email': email,
       'score': 0,
       'computerArchitecturePoints': 0,
+      'caAnswered': 0,
+      'caCorrect': 0,
       'computerNetworkingPoints': 0,
+      'cnAnswered': 0,
+      'cnCorrect': 0,
       'softwareEngineeringPoints': 0,
+      'seAnswered': 0,
+      'seCorrect': 0,
       'questionsCorrect': 0,
       'questionsAnswered': 0,
       'streakNumber': 0,
@@ -62,25 +68,24 @@ class DatabaseService {
   }) async {
     final userRef = _db.collection('users').doc(uid);
 
-    final String courseField;
-    if (category == 'Computer Architecture') {
-      courseField = 'computerArchitecturePoints';
-    } else if (category == 'Computer Networking') {
-      courseField = 'computerNetworkingPoints';
-    } else if (category == 'Software Engineering') {
-      courseField = 'softwareEngineeringPoints';
-    } else {
-      courseField = '';
-    }
-
     final Map<String, dynamic> updates = {
       'score': FieldValue.increment(scoreIncrement),
       'questionsCorrect': FieldValue.increment(correctIncrement),
       'questionsAnswered': FieldValue.increment(answeredIncrement),
     };
 
-    if (courseField.isNotEmpty) {
-      updates[courseField] = FieldValue.increment(scoreIncrement);
+    if (category == 'Computer Architecture') {
+      updates['computerArchitecturePoints'] = FieldValue.increment(scoreIncrement);
+      updates['caAnswered'] = FieldValue.increment(answeredIncrement);
+      updates['caCorrect'] = FieldValue.increment(correctIncrement);
+    } else if (category == 'Computer Networking') {
+      updates['computerNetworkingPoints'] = FieldValue.increment(scoreIncrement);
+      updates['cnAnswered'] = FieldValue.increment(answeredIncrement);
+      updates['cnCorrect'] = FieldValue.increment(correctIncrement);
+    } else if (category == 'Software Engineering') {
+      updates['softwareEngineeringPoints'] = FieldValue.increment(scoreIncrement);
+      updates['seAnswered'] = FieldValue.increment(answeredIncrement);
+      updates['seCorrect'] = FieldValue.increment(correctIncrement);
     }
 
     await userRef.update(updates);
@@ -118,6 +123,13 @@ class DatabaseService {
       String lastActiveDate = data['lastActiveDate'] ?? '';
       List<String> badges = List<String>.from(data['badges'] ?? []);
 
+      int caAnswered = data['caAnswered'] ?? 0;
+      int caCorrect = data['caCorrect'] ?? 0;
+      int cnAnswered = data['cnAnswered'] ?? 0;
+      int cnCorrect = data['cnCorrect'] ?? 0;
+      int seAnswered = data['seAnswered'] ?? 0;
+      int seCorrect = data['seCorrect'] ?? 0;
+
       // Apply quiz results
       score += scoreIncrement;
       questionsCorrect += correctIncrement;
@@ -125,10 +137,16 @@ class DatabaseService {
 
       if (category == 'Computer Architecture') {
         computerArchitecturePoints += scoreIncrement;
+        caAnswered += answeredIncrement;
+        caCorrect += correctIncrement;
       } else if (category == 'Computer Networking') {
         computerNetworkingPoints += scoreIncrement;
+        cnAnswered += answeredIncrement;
+        cnCorrect += correctIncrement;
       } else if (category == 'Software Engineering') {
         softwareEngineeringPoints += scoreIncrement;
+        seAnswered += answeredIncrement;
+        seCorrect += correctIncrement;
       }
 
       // Calculate streak
@@ -176,6 +194,12 @@ class DatabaseService {
         'computerArchitecturePoints': computerArchitecturePoints,
         'computerNetworkingPoints': computerNetworkingPoints,
         'softwareEngineeringPoints': softwareEngineeringPoints,
+        'caAnswered': caAnswered,
+        'caCorrect': caCorrect,
+        'cnAnswered': cnAnswered,
+        'cnCorrect': cnCorrect,
+        'seAnswered': seAnswered,
+        'seCorrect': seCorrect,
         'questionsCorrect': questionsCorrect,
         'questionsAnswered': questionsAnswered,
         'streakNumber': streakNumber,

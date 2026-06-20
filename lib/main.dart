@@ -15,6 +15,7 @@ import 'widgets/streak_card_modal.dart';
 import 'services/notification_service.dart';
 import 'dart:io';
 import 'package:permission_handler/permission_handler.dart';
+import 'screens/analytics_screen.dart';
 
 import 'package:flutter/services.dart';
 
@@ -158,7 +159,15 @@ class _MainNavigationState extends State<MainNavigation> {
     return Scaffold(
       body: IndexedStack(
         index: _selectedIndex,
-        children: const [QuizHomePage(), RankingsPage(), ProfilePage()],
+        children: [
+          QuizHomePage(
+            onNavigateToRanks: () {
+              setState(() => _selectedIndex = 1);
+            },
+          ),
+          const RankingsPage(),
+          const ProfilePage(),
+        ],
       ),
       bottomNavigationBar: NavigationBar(
         height: 65,
@@ -183,7 +192,9 @@ class _MainNavigationState extends State<MainNavigation> {
 }
 
 class QuizHomePage extends StatelessWidget {
-  const QuizHomePage({super.key});
+  final VoidCallback onNavigateToRanks;
+
+  const QuizHomePage({super.key, required this.onNavigateToRanks});
 
   @override
   Widget build(BuildContext context) {
@@ -197,6 +208,7 @@ class QuizHomePage extends StatelessWidget {
         accuracyPercent: 0,
         streakNumber: 0,
         totalScore: 0,
+        onNavigateToRanks: onNavigateToRanks,
       );
     }
 
@@ -235,6 +247,7 @@ class QuizHomePage extends StatelessWidget {
           accuracyPercent: accuracyPercent,
           streakNumber: streakNumber,
           totalScore: totalScore,
+          onNavigateToRanks: onNavigateToRanks,
         );
       },
     );
@@ -247,6 +260,7 @@ class QuizHomePage extends StatelessWidget {
     required int accuracyPercent,
     required int streakNumber,
     required int totalScore,
+    required VoidCallback onNavigateToRanks,
   }) {
     return Scaffold(
       body: SafeArea(
@@ -348,6 +362,9 @@ class QuizHomePage extends StatelessWidget {
                       subtitle: 'Questions',
                       icon: Icons.forum_rounded,
                       color: const Color(0xFF5B5FEF),
+                      onPressed: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const AnalyticsScreen()));
+                      },
                     ),
                   ),
                   const SizedBox(width: 14),
@@ -358,12 +375,18 @@ class QuizHomePage extends StatelessWidget {
                       subtitle: 'Correct Rate',
                       icon: Icons.track_changes_rounded,
                       color: const Color(0xFF4CAF50),
+                      onPressed: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const AnalyticsScreen()));
+                      },
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 14),
-              _ScoreDashboardCard(totalScore: totalScore),
+              _ScoreDashboardCard(
+                totalScore: totalScore,
+                onPressed: onNavigateToRanks,
+              ),
 
               const SizedBox(height: 32),
 
@@ -655,31 +678,46 @@ class _RankingsPageState extends State<RankingsPage> {
                               ),
                               const SizedBox(width: 16),
                               Expanded(
-                                child: Row(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Flexible(
-                                      child: Text(
-                                        rank.name,
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w700,
-                                          color: Color(0xFF121826),
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
+                                    Text(
+                                      rank.name,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFF121826),
                                       ),
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                     if (rank.selectedBadges.isNotEmpty) ...[
-                                      const SizedBox(width: 8),
-                                      Row(
-                                        mainAxisSize: MainAxisSize.min,
+                                      const SizedBox(height: 4),
+                                      Wrap(
+                                        spacing: 4.0,
+                                        runSpacing: 4.0,
                                         children: rank.selectedBadges.map((badgeId) {
                                           final badge = allBadges.firstWhere((b) => b.id == badgeId);
-                                          return Padding(
-                                            padding: const EdgeInsets.only(right: 4.0),
-                                            child: Icon(
-                                              badge.icon,
-                                              color: badge.color,
-                                              size: 16,
+                                          return Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: badge.color.withValues(alpha: 0.1),
+                                              borderRadius: BorderRadius.circular(4),
+                                              border: Border.all(color: badge.color.withValues(alpha: 0.3)),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(badge.icon, color: badge.color, size: 10),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  badge.name,
+                                                  style: TextStyle(
+                                                    fontSize: 9,
+                                                    fontWeight: FontWeight.w800,
+                                                    color: badge.color,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           );
                                         }).toList(),
@@ -1015,7 +1053,40 @@ class _ProfilePageState extends State<ProfilePage> {
                                   ],
                                 ],
                               ),
-                              const SizedBox(height: 4),
+                              if (selectedBadges.isNotEmpty) ...[
+                                const SizedBox(height: 6),
+                                Wrap(
+                                  spacing: 4.0,
+                                  runSpacing: 4.0,
+                                  children: selectedBadges.map((badgeId) {
+                                    final badge = allBadges.firstWhere((b) => b.id == badgeId);
+                                    return Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: badge.color.withValues(alpha: 0.1),
+                                        borderRadius: BorderRadius.circular(4),
+                                        border: Border.all(color: badge.color.withValues(alpha: 0.3)),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(badge.icon, color: badge.color, size: 10),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            badge.name,
+                                            style: TextStyle(
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.w800,
+                                              color: badge.color,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ],
+                              const SizedBox(height: 6),
                               Text(
                                 email,
                                 style: Theme.of(context).textTheme.bodyLarge,
@@ -1319,6 +1390,7 @@ class _AnalyticsCard extends StatelessWidget {
   final String subtitle;
   final IconData icon;
   final Color color;
+  final VoidCallback onPressed;
 
   const _AnalyticsCard({
     required this.title,
@@ -1326,11 +1398,14 @@ class _AnalyticsCard extends StatelessWidget {
     required this.subtitle,
     required this.icon,
     required this.color,
+    required this.onPressed,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -1389,18 +1464,24 @@ class _AnalyticsCard extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ));
   }
 }
 
 class _ScoreDashboardCard extends StatelessWidget {
   final int totalScore;
+  final VoidCallback onPressed;
 
-  const _ScoreDashboardCard({required this.totalScore});
+  const _ScoreDashboardCard({
+    required this.totalScore,
+    required this.onPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
@@ -1465,7 +1546,7 @@ class _ScoreDashboardCard extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ));
   }
 }
 
