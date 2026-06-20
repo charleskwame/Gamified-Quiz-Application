@@ -10,10 +10,24 @@ import 'models/badge.dart';
 import 'screens/earned_badges_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'models/user_rank.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'widgets/streak_card_modal.dart';
+import 'services/notification_service.dart';
+import 'dart:io';
+import 'package:permission_handler/permission_handler.dart';
+
+import 'package:flutter/services.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.black,
+    statusBarIconBrightness: Brightness.light,
+  ));
+  
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await NotificationService().init();
   runApp(const MyApp());
 }
 
@@ -94,7 +108,7 @@ class AuthGate extends StatefulWidget {
 }
 
 class _AuthGateState extends State<AuthGate> {
-  bool _bypassAuth = false;
+  bool _bypassAuth = true;
 
   @override
   Widget build(BuildContext context) {
@@ -147,6 +161,7 @@ class _MainNavigationState extends State<MainNavigation> {
         children: const [QuizHomePage(), RankingsPage(), ProfilePage()],
       ),
       bottomNavigationBar: NavigationBar(
+        height: 65,
         selectedIndex: _selectedIndex,
         onDestinationSelected: (index) {
           setState(() => _selectedIndex = index);
@@ -269,8 +284,12 @@ class QuizHomePage extends StatelessWidget {
                     ),
                   ),
                   if (streakNumber > 0)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    GestureDetector(
+                      onTap: () {
+                        StreakCardModal.show(context, streakNumber);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           colors: [Color(0xFFFFF2EC), Color(0xFFFFECEB)],
@@ -305,6 +324,7 @@ class QuizHomePage extends StatelessWidget {
                         ],
                       ),
                     ),
+                  ),
                 ],
               ),
               const SizedBox(height: 28),
@@ -707,13 +727,40 @@ class _ProfilePageState extends State<ProfilePage> {
   bool _isLoading = false;
   String? _errorMessage;
   String? _successMessage;
+  bool _notificationsEnabled = false;
 
   @override
   void initState() {
     super.initState();
+    _loadNotificationPreference();
     final user = _authService.currentUser;
     _displayNameController = TextEditingController(text: user?.displayName ?? '');
     _emailController = TextEditingController(text: user?.email ?? '');
+  }
+
+  Future<void> _loadNotificationPreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _notificationsEnabled = prefs.getBool('notifications_enabled') ?? false;
+    });
+  }
+
+  Future<void> _toggleNotifications() async {
+    final prefs = await SharedPreferences.getInstance();
+    final newValue = !_notificationsEnabled;
+    await prefs.setBool('notifications_enabled', newValue);
+    setState(() {
+      _notificationsEnabled = newValue;
+    });
+    
+    if (newValue) {
+      if (Platform.isAndroid) {
+        await Permission.notification.request();
+      }
+      await NotificationService().scheduleDailyStreakReminder();
+    } else {
+      await NotificationService().cancelStreakReminder();
+    }
   }
 
   @override
@@ -838,7 +885,55 @@ class _ProfilePageState extends State<ProfilePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Profile', style: Theme.of(context).textTheme.headlineLarge),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Profile', style: Theme.of(context).textTheme.headlineLarge),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        onPressed: _toggleNotifications,
+                        icon: Icon(
+                          _notificationsEnabled
+                              ? Icons.notifications_active_rounded
+                              : Icons.notifications_off_rounded,
+                        ),
+                        color: _notificationsEnabled ? const Color(0xFF111C4A) : Colors.grey,
+                      ),
+                      if (user != null)
+                        IconButton(
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Log Out'),
+                                content: const Text('Are you sure you want to log out?'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text('Cancel'),
+                                  ),
+                                  FilledButton(
+                                    onPressed: () async {
+                                      await _authService.logOut();
+                                      if (context.mounted) {
+                                        Navigator.pop(context);
+                                      }
+                                    },
+                                    child: const Text('Log Out'),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.logout_rounded),
+                          color: const Color(0xFF931716),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
               const SizedBox(height: 24),
 
               // Profile card
@@ -1186,65 +1281,29 @@ class _ProfilePageState extends State<ProfilePage> {
               ],
               const SizedBox(height: 32),
 
-              // Logout/Login button
-              SizedBox(
-                width: double.infinity,
-                child: user != null
-                    ? FilledButton.tonalIcon(
-                        onPressed: () async {
-                          showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: const Text('Log Out'),
-                              content: const Text(
-                                'Are you sure you want to log out?',
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text('Cancel'),
-                                ),
-                                FilledButton(
-                                  onPressed: () async {
-                                    await _authService.logOut();
-                                    if (context.mounted) {
-                                      Navigator.pop(context);
-                                    }
-                                  },
-                                  child: const Text('Log Out'),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.logout_rounded),
-                        label: const Text('Log Out'),
-                        style: FilledButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+              // Login button for guests
+              if (user == null)
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AuthScreen(),
                         ),
-                      )
-                    : FilledButton.icon(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const AuthScreen(),
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.login_rounded),
-                        label: const Text('Log In / Sign Up'),
-                        style: FilledButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.login_rounded),
+                    label: const Text('Log In / Sign Up'),
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-              ),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),

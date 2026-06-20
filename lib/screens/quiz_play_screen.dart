@@ -122,7 +122,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> {
       _isAnswered = true;
       if (isCorrect) {
         _correctAnswers++;
-        _score += 5;
+        _score += widget.isTimed ? 3 : 1;
       }
     });
   }

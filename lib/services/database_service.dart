@@ -328,4 +328,45 @@ class DatabaseService {
       'selectedBadges': badgeIds,
     });
   }
+
+  // Get percentage of users who own a specific badge
+  Future<double> getBadgeOwnershipPercentage(String badgeId) async {
+    try {
+      final totalQuery = await _db.collection('users').count().get();
+      final totalUsers = totalQuery.count ?? 1;
+      if (totalUsers == 0) return 0.0;
+
+      final badgeQuery = await _db
+          .collection('users')
+          .where('badges', arrayContains: badgeId)
+          .count()
+          .get();
+      final badgeCount = badgeQuery.count ?? 0;
+
+      return (badgeCount / totalUsers) * 100;
+    } catch (e) {
+      return 0.0;
+    }
+  }
+
+  // Get percentage of users who have a specific streak or higher
+  Future<double> getStreakPercentage(int streakNumber) async {
+    if (streakNumber == 0) return 100.0;
+    try {
+      final totalQuery = await _db.collection('users').count().get();
+      final totalUsers = totalQuery.count ?? 1;
+      if (totalUsers == 0) return 0.0;
+
+      final streakQuery = await _db
+          .collection('users')
+          .where('streakNumber', isGreaterThanOrEqualTo: streakNumber)
+          .count()
+          .get();
+      final streakCount = streakQuery.count ?? 0;
+
+      return (streakCount / totalUsers) * 100;
+    } catch (e) {
+      return 0.0;
+    }
+  }
 }

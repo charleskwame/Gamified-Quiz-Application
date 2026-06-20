@@ -48,7 +48,9 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
           // Show error toast/message using warning color
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('You can select a maximum of 3 badges to display in rankings.'),
+              content: Text(
+                'You can select a maximum of 3 badges to display in rankings.',
+              ),
               backgroundColor: Color(0xFF931716),
             ),
           );
@@ -80,14 +82,17 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
       await Future.delayed(const Duration(milliseconds: 300));
 
       final RenderRepaintBoundary? boundary =
-          _repaintKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+          _repaintKey.currentContext?.findRenderObject()
+              as RenderRepaintBoundary?;
 
       if (boundary == null) {
         throw Exception('Could not capture badge layout.');
       }
 
       final ui.Image image = await boundary.toImage(pixelRatio: 3.0);
-      final ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      final ByteData? byteData = await image.toByteData(
+        format: ui.ImageByteFormat.png,
+      );
 
       if (byteData == null) {
         throw Exception('Failed to generate PNG data.');
@@ -102,17 +107,15 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
         await Permission.storage.request();
         // Also request photos permission for Android 13+
         await Permission.photos.request();
-        
-        directory = Directory('/storage/emulated/0/Pictures/Gamified Quiz App Badges');
+
+        directory = Directory(
+          '/storage/emulated/0/Pictures/Gamified Quiz App Badges',
+        );
         if (!await directory.exists()) {
           await directory.create(recursive: true);
         }
       } else {
         directory = await getApplicationDocumentsDirectory();
-      }
-
-      if (directory == null) {
-        throw Exception('Could not find storage directory.');
       }
 
       final String path =
@@ -130,7 +133,10 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
               children: [
                 const Text(
                   '🎉 Badge Card Saved successfully!',
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
                 Text(
                   'Saved to: $path',
@@ -160,13 +166,28 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
   }
 
   void _showDownloadCardModal(BadgeDefinition badge) {
+    double percentage = 0.0;
+    bool loadingStats = true;
+
     showDialog(
       context: context,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setModalState) {
+            if (loadingStats) {
+              DatabaseService().getBadgeOwnershipPercentage(badge.id).then((val) {
+                if (context.mounted) {
+                  setModalState(() {
+                    percentage = val;
+                    loadingStats = false;
+                  });
+                }
+              });
+            }
             return AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(28),
+              ),
               contentPadding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -242,9 +263,27 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
                             ),
                             textAlign: TextAlign.center,
                           ),
+                          const SizedBox(height: 16),
+                          loadingStats
+                              ? const SizedBox(
+                                  height: 14,
+                                  width: 14,
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white70),
+                                )
+                              : Text(
+                                  'Top ${percentage.toStringAsFixed(1)}% of players have this badge',
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                           const SizedBox(height: 24),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(16),
@@ -252,7 +291,11 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: const [
-                                Icon(Icons.check_circle_outline, color: Colors.greenAccent, size: 14),
+                                Icon(
+                                  Icons.check_circle_outline,
+                                  color: Colors.greenAccent,
+                                  size: 14,
+                                ),
                                 SizedBox(width: 4),
                                 Text(
                                   'OFFICIAL ACHIEVEMENT',
@@ -297,11 +340,15 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
                                   height: 14,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
                                   ),
                                 )
                               : const Icon(Icons.download_rounded, size: 16),
-                          label: Text(_isDownloading ? 'Saving...' : 'Save Card'),
+                          label: Text(
+                            _isDownloading ? 'Saving...' : 'Save Card',
+                          ),
                           style: FilledButton.styleFrom(
                             backgroundColor: const Color(0xFF111C4A),
                             foregroundColor: Colors.white,
@@ -325,7 +372,9 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final unlockedCount = allBadges.where((b) => widget.unlockedBadgeIds.contains(b.id)).length;
+    final unlockedCount = allBadges
+        .where((b) => widget.unlockedBadgeIds.contains(b.id))
+        .length;
     final progress = unlockedCount / allBadges.length;
 
     return Scaffold(
@@ -412,7 +461,9 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
                         value: progress,
                         minHeight: 10,
                         backgroundColor: Colors.white24,
-                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                          Colors.white,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -463,8 +514,8 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
                         color: isSelected
                             ? const Color(0xFF111C4A)
                             : (isUnlocked
-                                ? badge.color.withValues(alpha: 0.25)
-                                : const Color(0xFFE6EAF2)),
+                                  ? badge.color.withValues(alpha: 0.25)
+                                  : const Color(0xFFE6EAF2)),
                         width: isSelected ? 2.5 : 1,
                       ),
                       boxShadow: [
@@ -482,10 +533,17 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
                         Material(
                           color: Colors.transparent,
                           child: InkWell(
-                            onTap: isUnlocked ? () => _toggleBadgeSelection(badge.id) : null,
+                            onTap: isUnlocked
+                                ? () => _toggleBadgeSelection(badge.id)
+                                : null,
                             borderRadius: BorderRadius.circular(24),
                             child: Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
+                              padding: const EdgeInsets.fromLTRB(
+                                16,
+                                20,
+                                16,
+                                12,
+                              ),
                               child: Column(
                                 children: [
                                   Container(
@@ -497,8 +555,12 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
                                       shape: BoxShape.circle,
                                     ),
                                     child: Icon(
-                                      isUnlocked ? badge.icon : Icons.lock_rounded,
-                                      color: isUnlocked ? badge.color : const Color(0xFF9CA3AF),
+                                      isUnlocked
+                                          ? badge.icon
+                                          : Icons.lock_rounded,
+                                      color: isUnlocked
+                                          ? badge.color
+                                          : const Color(0xFF9CA3AF),
                                       size: 32,
                                     ),
                                   ),
@@ -534,13 +596,24 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
                                     SizedBox(
                                       width: double.infinity,
                                       child: OutlinedButton.icon(
-                                        onPressed: () => _showDownloadCardModal(badge),
-                                        icon: const Icon(Icons.share_rounded, size: 12),
-                                        label: const Text('Export Card', style: TextStyle(fontSize: 11)),
+                                        onPressed: () =>
+                                            _showDownloadCardModal(badge),
+                                        icon: const Icon(
+                                          Icons.share_rounded,
+                                          size: 12,
+                                        ),
+                                        label: const Text(
+                                          'Export Card',
+                                          style: TextStyle(fontSize: 11),
+                                        ),
                                         style: OutlinedButton.styleFrom(
-                                          padding: const EdgeInsets.symmetric(vertical: 6),
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 6,
+                                          ),
                                           shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(10),
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
                                           ),
                                         ),
                                       ),
