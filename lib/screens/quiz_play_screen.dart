@@ -1074,15 +1074,7 @@ class _AiChatBottomSheetState extends State<_AiChatBottomSheet> {
   final ScrollController _scrollController = ScrollController();
   bool _isTyping = false;
 
-  Future<String> _getGeminiApiKey() async {
-    try {
-      final configStr = await DefaultAssetBundle.of(context).loadString('lib/assets/config.json');
-      final config = json.decode(configStr);
-      return config['gemini_api_key'] ?? '';
-    } catch (_) {
-      return const String.fromEnvironment('GEMINI_API_KEY');
-    }
-  }
+  static const String _geminiApiKey = String.fromEnvironment('GEMINI_API_KEY');
 
   @override
   void initState() {
@@ -1116,11 +1108,9 @@ Please provide:
 Keep your response concise (around 150-200 words), formatted with bullet points/markdown, and highly encouraging.
 """;
 
-    final apiKey = await _getGeminiApiKey();
-
     try {
       final response = await http.post(
-        Uri.parse("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$apiKey"),
+        Uri.parse("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$_geminiApiKey"),
         headers: {"Content-Type": "application/json"},
         body: json.encode({
           "contents": [
@@ -1205,11 +1195,9 @@ $wrongQuestionsDetails
       });
     }
 
-    final apiKey = await _getGeminiApiKey();
-
     try {
       final response = await http.post(
-        Uri.parse("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$apiKey"),
+        Uri.parse("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$_geminiApiKey"),
         headers: {"Content-Type": "application/json"},
         body: json.encode({"contents": contents}),
       );

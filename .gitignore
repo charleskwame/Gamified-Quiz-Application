@@ -44,5 +44,3 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# API keys and local configs
-/lib/assets/config.json
