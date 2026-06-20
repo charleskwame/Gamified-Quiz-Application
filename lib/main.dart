@@ -803,6 +803,21 @@ class _ProfilePageState extends State<ProfilePage> {
     } else {
       await NotificationService().cancelStreakReminder();
     }
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            newValue ? 'Daily streak notifications turned ON' : 'Daily streak notifications turned OFF',
+            style: const TextStyle(color: Colors.white),
+          ),
+          backgroundColor: newValue ? const Color(0xFF4CAF50) : const Color(0xFF616161),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   @override

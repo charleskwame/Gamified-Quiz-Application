@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/question.dart';
@@ -23,6 +24,17 @@ class QuizPlayScreen extends StatefulWidget {
 
 class _QuizPlayScreenState extends State<QuizPlayScreen> {
   final DatabaseService _db = DatabaseService();
+  
+  // Fisher-Yates Shuffle Algorithm to ensure uniform random distribution
+  void _fisherYatesShuffle<T>(List<T> list) {
+    final random = Random();
+    for (int i = list.length - 1; i > 0; i--) {
+      final j = random.nextInt(i + 1);
+      final temp = list[i];
+      list[i] = list[j];
+      list[j] = temp;
+    }
+  }
   List<Question> _questions = [];
   bool _isLoading = true;
   String? _errorMessage;
@@ -63,8 +75,8 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> {
         throw Exception('No questions available.');
       }
 
-      // Shuffle and take up to 10 questions
-      loadedQuestions.shuffle();
+      // Shuffle and take up to 10 questions using Fisher-Yates algorithm
+      _fisherYatesShuffle(loadedQuestions);
       _questions = loadedQuestions.take(10).toList();
 
       if (!mounted) return;
