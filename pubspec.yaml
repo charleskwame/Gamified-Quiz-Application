@@ -45,7 +45,7 @@ dependencies:
   flutter_timezone: ^5.1.0
   fl_chart: ^1.2.0
   http: ^1.2.1
-
+  firebase_ai: ^2.3.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

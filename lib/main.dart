@@ -16,17 +16,18 @@ import 'services/notification_service.dart';
 import 'dart:io';
 import 'package:permission_handler/permission_handler.dart';
 import 'screens/analytics_screen.dart';
-
 import 'package:flutter/services.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.dark,
-  ));
-  
+
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+    ),
+  );
+
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await NotificationService().init();
   runApp(const MyApp());
@@ -66,9 +67,7 @@ class MyApp extends StatelessWidget {
           ),
         ),
         textButtonTheme: TextButtonThemeData(
-          style: TextButton.styleFrom(
-            foregroundColor: const Color(0xFF111C4A),
-          ),
+          style: TextButton.styleFrom(foregroundColor: const Color(0xFF111C4A)),
         ),
         outlinedButtonTheme: OutlinedButtonThemeData(
           style: OutlinedButton.styleFrom(
@@ -217,7 +216,10 @@ class QuizHomePage extends StatelessWidget {
     }
 
     return StreamBuilder<DocumentSnapshot>(
-      stream: FirebaseFirestore.instance.collection('users').doc(user.uid).snapshots(),
+      stream: FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
@@ -283,7 +285,8 @@ class QuizHomePage extends StatelessWidget {
                       children: [
                         Text(
                           'Welcome, $displayName!',
-                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                          style: Theme.of(context).textTheme.headlineMedium
+                              ?.copyWith(
                                 fontWeight: FontWeight.w900,
                                 color: const Color(0xFF121826),
                               ),
@@ -307,42 +310,50 @@ class QuizHomePage extends StatelessWidget {
                         StreakCardModal.show(context, streakNumber);
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFFFFF2EC), Color(0xFFFFECEB)],
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
                         ),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: const Color(0xFFFFD5D0), width: 1.5),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFFFF5722).withValues(alpha: 0.1),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          )
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.local_fire_department_rounded,
-                            color: Color(0xFFFF5722),
-                            size: 20,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFFFFF2EC), Color(0xFFFFECEB)],
                           ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '$streakNumber Days',
-                            style: const TextStyle(
-                              color: Color(0xFFFF5722),
-                              fontWeight: FontWeight.w900,
-                              fontSize: 13,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: const Color(0xFFFFD5D0),
+                            width: 1.5,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(
+                                0xFFFF5722,
+                              ).withValues(alpha: 0.1),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.local_fire_department_rounded,
+                              color: Color(0xFFFF5722),
+                              size: 20,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '$streakNumber Days',
+                              style: const TextStyle(
+                                color: Color(0xFFFF5722),
+                                fontWeight: FontWeight.w900,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
                 ],
               ),
               const SizedBox(height: 28),
@@ -351,9 +362,9 @@ class QuizHomePage extends StatelessWidget {
               Text(
                 'Your Activity Analytics',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: const Color(0xFF121826),
-                    ),
+                  fontWeight: FontWeight.w800,
+                  color: const Color(0xFF121826),
+                ),
               ),
               const SizedBox(height: 14),
 
@@ -367,7 +378,12 @@ class QuizHomePage extends StatelessWidget {
                       icon: Icons.forum_rounded,
                       color: const Color(0xFF5B5FEF),
                       onPressed: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => const AnalyticsScreen()));
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const AnalyticsScreen(),
+                          ),
+                        );
                       },
                     ),
                   ),
@@ -380,7 +396,12 @@ class QuizHomePage extends StatelessWidget {
                       icon: Icons.track_changes_rounded,
                       color: const Color(0xFF4CAF50),
                       onPressed: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => const AnalyticsScreen()));
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const AnalyticsScreen(),
+                          ),
+                        );
                       },
                     ),
                   ),
@@ -397,15 +418,16 @@ class QuizHomePage extends StatelessWidget {
               Text(
                 'Select Subject Category',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: const Color(0xFF121826),
-                    ),
+                  fontWeight: FontWeight.w800,
+                  color: const Color(0xFF121826),
+                ),
               ),
               const SizedBox(height: 16),
 
               _ModernCourseCard(
                 category: 'Computer Architecture',
-                description: 'Dive into pipelines, processor architectures, ALU designs, and instruction execution dynamics.',
+                description:
+                    'Dive into pipelines, processor architectures, ALU designs, and instruction execution dynamics.',
                 icon: Icons.memory_rounded,
                 color1: const Color(0xFF8C52FF),
                 color2: const Color(0xFF5B5FEF),
@@ -424,7 +446,8 @@ class QuizHomePage extends StatelessWidget {
               const SizedBox(height: 16),
               _ModernCourseCard(
                 category: 'Software Engineering',
-                description: 'Master agile methods, object-oriented designs, UML diagrams, requirements patterns, and testing.',
+                description:
+                    'Master agile methods, object-oriented designs, UML diagrams, requirements patterns, and testing.',
                 icon: Icons.terminal_rounded,
                 color1: const Color(0xFF37474F),
                 color2: const Color(0xFF5A738E),
@@ -443,7 +466,8 @@ class QuizHomePage extends StatelessWidget {
               const SizedBox(height: 16),
               _ModernCourseCard(
                 category: 'Computer Networking',
-                description: 'Explore packets, routing rules, network layers, sockets, HTTP requests, and TCP/UDP connections.',
+                description:
+                    'Explore packets, routing rules, network layers, sockets, HTTP requests, and TCP/UDP connections.',
                 icon: Icons.lan_rounded,
                 color1: const Color(0xFF0091EA),
                 color2: const Color(0xFF00E5FF),
@@ -511,7 +535,9 @@ class _RankingsPageState extends State<RankingsPage> {
             }
 
             if (snapshot.hasError) {
-              return Center(child: Text('Error loading rankings: ${snapshot.error}'));
+              return Center(
+                child: Text('Error loading rankings: ${snapshot.error}'),
+              );
             }
 
             final rankings = snapshot.data ?? [];
@@ -537,9 +563,8 @@ class _RankingsPageState extends State<RankingsPage> {
                         children: [
                           Text(
                             'Rankings',
-                            style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                                  fontWeight: FontWeight.w900,
-                                ),
+                            style: Theme.of(context).textTheme.headlineLarge
+                                ?.copyWith(fontWeight: FontWeight.w900),
                           ),
                           const SizedBox(height: 4),
                           Text(
@@ -550,15 +575,21 @@ class _RankingsPageState extends State<RankingsPage> {
                       ),
                       Container(
                         decoration: BoxDecoration(
-                          color: const Color(0xFF111C4A).withValues(alpha: 0.08),
+                          color: const Color(
+                            0xFF111C4A,
+                          ).withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: IconButton(
                           icon: Icon(
-                            _descending ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
+                            _descending
+                                ? Icons.arrow_downward_rounded
+                                : Icons.arrow_upward_rounded,
                             color: const Color(0xFF111C4A),
                           ),
-                          tooltip: _descending ? 'Sort Ascending' : 'Sort Descending',
+                          tooltip: _descending
+                              ? 'Sort Ascending'
+                              : 'Sort Descending',
                           onPressed: () {
                             setState(() {
                               _descending = !_descending;
@@ -583,7 +614,9 @@ class _RankingsPageState extends State<RankingsPage> {
                               cat,
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: isSelected ? Colors.white : const Color(0xFF111C4A),
+                                color: isSelected
+                                    ? Colors.white
+                                    : const Color(0xFF111C4A),
                                 fontSize: 13,
                               ),
                             ),
@@ -599,7 +632,11 @@ class _RankingsPageState extends State<RankingsPage> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20),
                               side: BorderSide(
-                                color: isSelected ? Colors.transparent : const Color(0xFF111C4A).withValues(alpha: 0.3),
+                                color: isSelected
+                                    ? Colors.transparent
+                                    : const Color(
+                                        0xFF111C4A,
+                                      ).withValues(alpha: 0.3),
                               ),
                             ),
                           ),
@@ -635,7 +672,8 @@ class _RankingsPageState extends State<RankingsPage> {
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: sortedRankings.length,
-                      separatorBuilder: (context, index) => const SizedBox(height: 12),
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 12),
                       itemBuilder: (context, index) {
                         final rank = sortedRankings[index];
                         final isTopThree = index < 3;
@@ -699,19 +737,37 @@ class _RankingsPageState extends State<RankingsPage> {
                                       Wrap(
                                         spacing: 4.0,
                                         runSpacing: 4.0,
-                                        children: rank.selectedBadges.map((badgeId) {
-                                          final badge = allBadges.firstWhere((b) => b.id == badgeId);
+                                        children: rank.selectedBadges.map((
+                                          badgeId,
+                                        ) {
+                                          final badge = allBadges.firstWhere(
+                                            (b) => b.id == badgeId,
+                                          );
                                           return Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 6,
+                                              vertical: 2,
+                                            ),
                                             decoration: BoxDecoration(
-                                              color: badge.color.withValues(alpha: 0.1),
-                                              borderRadius: BorderRadius.circular(4),
-                                              border: Border.all(color: badge.color.withValues(alpha: 0.3)),
+                                              color: badge.color.withValues(
+                                                alpha: 0.1,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(4),
+                                              border: Border.all(
+                                                color: badge.color.withValues(
+                                                  alpha: 0.3,
+                                                ),
+                                              ),
                                             ),
                                             child: Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
-                                                Icon(badge.icon, color: badge.color, size: 10),
+                                                Icon(
+                                                  badge.icon,
+                                                  color: badge.color,
+                                                  size: 10,
+                                                ),
                                                 const SizedBox(width: 4),
                                                 Text(
                                                   badge.name,
@@ -776,7 +832,9 @@ class _ProfilePageState extends State<ProfilePage> {
     super.initState();
     _loadNotificationPreference();
     final user = _authService.currentUser;
-    _displayNameController = TextEditingController(text: user?.displayName ?? '');
+    _displayNameController = TextEditingController(
+      text: user?.displayName ?? '',
+    );
     _emailController = TextEditingController(text: user?.email ?? '');
   }
 
@@ -794,7 +852,7 @@ class _ProfilePageState extends State<ProfilePage> {
     setState(() {
       _notificationsEnabled = newValue;
     });
-    
+
     if (newValue) {
       if (Platform.isAndroid) {
         await Permission.notification.request();
@@ -809,10 +867,14 @@ class _ProfilePageState extends State<ProfilePage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            newValue ? 'Daily streak notifications turned ON' : 'Daily streak notifications turned OFF',
+            newValue
+                ? 'Daily streak notifications turned ON'
+                : 'Daily streak notifications turned OFF',
             style: const TextStyle(color: Colors.white),
           ),
-          backgroundColor: newValue ? const Color(0xFF4CAF50) : const Color(0xFF616161),
+          backgroundColor: newValue
+              ? const Color(0xFF4CAF50)
+              : const Color(0xFF616161),
           behavior: SnackBarBehavior.floating,
           duration: const Duration(seconds: 2),
         ),
@@ -859,13 +921,17 @@ class _ProfilePageState extends State<ProfilePage> {
       });
     } on FirebaseAuthException catch (e) {
       if (e.code == 'requires-recent-login') {
-        setState(() => _errorMessage =
-            'For security reasons, please log out and log back in to change your email or password.');
+        setState(
+          () => _errorMessage =
+              'For security reasons, please log out and log back in to change your email or password.',
+        );
       } else {
         setState(() => _errorMessage = e.message ?? 'An error occurred.');
       }
     } catch (e) {
-      setState(() => _errorMessage = e.toString().replaceFirst('Exception: ', ''));
+      setState(
+        () => _errorMessage = e.toString().replaceFirst('Exception: ', ''),
+      );
     } finally {
       setState(() => _isLoading = false);
     }
@@ -888,7 +954,10 @@ class _ProfilePageState extends State<ProfilePage> {
     }
 
     return StreamBuilder<DocumentSnapshot>(
-      stream: FirebaseFirestore.instance.collection('users').doc(user.uid).snapshots(),
+      stream: FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
@@ -945,7 +1014,10 @@ class _ProfilePageState extends State<ProfilePage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Profile', style: Theme.of(context).textTheme.headlineLarge),
+                  Text(
+                    'Profile',
+                    style: Theme.of(context).textTheme.headlineLarge,
+                  ),
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -956,7 +1028,9 @@ class _ProfilePageState extends State<ProfilePage> {
                               ? Icons.notifications_active_rounded
                               : Icons.notifications_off_rounded,
                         ),
-                        color: _notificationsEnabled ? const Color(0xFF111C4A) : Colors.grey,
+                        color: _notificationsEnabled
+                            ? const Color(0xFF111C4A)
+                            : Colors.grey,
                       ),
                       if (user != null)
                         IconButton(
@@ -965,7 +1039,9 @@ class _ProfilePageState extends State<ProfilePage> {
                               context: context,
                               builder: (context) => AlertDialog(
                                 title: const Text('Log Out'),
-                                content: const Text('Are you sure you want to log out?'),
+                                content: const Text(
+                                  'Are you sure you want to log out?',
+                                ),
                                 actions: [
                                   TextButton(
                                     onPressed: () => Navigator.pop(context),
@@ -1036,18 +1112,25 @@ class _ProfilePageState extends State<ProfilePage> {
                                   Expanded(
                                     child: Text(
                                       displayName,
-                                      style: Theme.of(context).textTheme.titleLarge,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleLarge,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                   if (streakNumber > 0) ...[
                                     const SizedBox(width: 8),
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 6,
+                                      ),
                                       decoration: BoxDecoration(
                                         color: const Color(0xFFFFECEB),
                                         borderRadius: BorderRadius.circular(16),
-                                        border: Border.all(color: const Color(0xFFFFD5D0)),
+                                        border: Border.all(
+                                          color: const Color(0xFFFFD5D0),
+                                        ),
                                       ),
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
@@ -1078,18 +1161,33 @@ class _ProfilePageState extends State<ProfilePage> {
                                   spacing: 4.0,
                                   runSpacing: 4.0,
                                   children: selectedBadges.map((badgeId) {
-                                    final badge = allBadges.firstWhere((b) => b.id == badgeId);
+                                    final badge = allBadges.firstWhere(
+                                      (b) => b.id == badgeId,
+                                    );
                                     return Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 2,
+                                      ),
                                       decoration: BoxDecoration(
-                                        color: badge.color.withValues(alpha: 0.1),
+                                        color: badge.color.withValues(
+                                          alpha: 0.1,
+                                        ),
                                         borderRadius: BorderRadius.circular(4),
-                                        border: Border.all(color: badge.color.withValues(alpha: 0.3)),
+                                        border: Border.all(
+                                          color: badge.color.withValues(
+                                            alpha: 0.3,
+                                          ),
+                                        ),
                                       ),
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          Icon(badge.icon, color: badge.color, size: 10),
+                                          Icon(
+                                            badge.icon,
+                                            color: badge.color,
+                                            size: 10,
+                                          ),
                                           const SizedBox(width: 4),
                                           Text(
                                             badge.name,
@@ -1152,9 +1250,9 @@ class _ProfilePageState extends State<ProfilePage> {
                 Text(
                   'Sign in or create an account to start earning badges!',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        fontStyle: FontStyle.italic,
-                        fontSize: 14,
-                      ),
+                    fontStyle: FontStyle.italic,
+                    fontSize: 14,
+                  ),
                 ),
                 const SizedBox(height: 16),
               ],
@@ -1311,7 +1409,10 @@ class _ProfilePageState extends State<ProfilePage> {
                               builder: (context) => AlertDialog(
                                 title: const Text(
                                   'Delete Account?',
-                                  style: TextStyle(color: Color(0xFF931716), fontWeight: FontWeight.bold),
+                                  style: TextStyle(
+                                    color: Color(0xFF931716),
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                                 content: const Text(
                                   'Warning: This action is irreversible. Your entire progress, achievements, points, earned badges, and offline saved questions will be permanently deleted from the system.',
@@ -1332,14 +1433,16 @@ class _ProfilePageState extends State<ProfilePage> {
                                       try {
                                         final uid = user.uid;
                                         // 1. Delete Firestore data & SharedPreferences offline questions
-                                        await DatabaseService().deleteUserAccount(uid);
+                                        await DatabaseService()
+                                            .deleteUserAccount(uid);
                                         // 2. Delete user authenticated account from Firebase Auth
                                         await user.delete();
                                         // 3. Perform logout
                                         await _authService.logOut();
                                       } catch (e) {
                                         setState(() {
-                                          _errorMessage = 'Failed to delete account: $e. For security, please log out, log back in, and try again.';
+                                          _errorMessage =
+                                              'Failed to delete account: $e. For security, please log out, log back in, and try again.';
                                         });
                                       } finally {
                                         setState(() {
@@ -1357,8 +1460,14 @@ class _ProfilePageState extends State<ProfilePage> {
                               ),
                             );
                           },
-                    icon: const Icon(Icons.delete_forever_rounded, color: Color(0xFF931716)),
-                    label: const Text('Delete Account', style: TextStyle(color: Color(0xFF931716))),
+                    icon: const Icon(
+                      Icons.delete_forever_rounded,
+                      color: Color(0xFF931716),
+                    ),
+                    label: const Text(
+                      'Delete Account',
+                      style: TextStyle(color: Color(0xFF931716)),
+                    ),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
@@ -1403,7 +1512,6 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 }
 
-
 class _AnalyticsCard extends StatelessWidget {
   final String title;
   final String value;
@@ -1426,65 +1534,66 @@ class _AnalyticsCard extends StatelessWidget {
     return GestureDetector(
       onTap: onPressed,
       child: Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFE6EAF2)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x08121826),
-            blurRadius: 16,
-            offset: Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF6B7280),
-                  letterSpacing: 0.5,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, color: color, size: 18),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.w900,
-              color: Color(0xFF121826),
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: const Color(0xFFE6EAF2)),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x08121826),
+              blurRadius: 16,
+              offset: Offset(0, 6),
             ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            subtitle,
-            style: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              color: Color(0xFF9CA3AF),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF6B7280),
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(icon, color: color, size: 18),
+                ),
+              ],
             ),
-          ),
-        ],
+            const SizedBox(height: 12),
+            Text(
+              value,
+              style: const TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.w900,
+                color: Color(0xFF121826),
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              subtitle,
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF9CA3AF),
+              ),
+            ),
+          ],
+        ),
       ),
-    ));
+    );
   }
 }
 
@@ -1502,71 +1611,72 @@ class _ScoreDashboardCard extends StatelessWidget {
     return GestureDetector(
       onTap: onPressed,
       child: Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x1F000000),
+              blurRadius: 18,
+              offset: Offset(0, 8),
+            ),
+          ],
         ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x1F000000),
-            blurRadius: 18,
-            offset: Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFD700).withValues(alpha: 0.15),
-              shape: BoxShape.circle,
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFD700).withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.stars_rounded,
+                color: Color(0xFFFFD700),
+                size: 28,
+              ),
             ),
-            child: const Icon(
-              Icons.stars_rounded,
-              color: Color(0xFFFFD700),
-              size: 28,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'CUMULATIVE SCORE',
-                  style: TextStyle(
-                    color: Colors.white60,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.2,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'CUMULATIVE SCORE',
+                    style: TextStyle(
+                      color: Colors.white60,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '$totalScore Points',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
+                  const SizedBox(height: 4),
+                  Text(
+                    '$totalScore Points',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          const Icon(
-            Icons.chevron_right_rounded,
-            color: Colors.white30,
-            size: 24,
-          ),
-        ],
+            const Icon(
+              Icons.chevron_right_rounded,
+              color: Colors.white30,
+              size: 24,
+            ),
+          ],
+        ),
       ),
-    ));
+    );
   }
 }
 
@@ -1625,14 +1735,13 @@ class _ModernCourseCard extends StatelessWidget {
                         color: Colors.white.withValues(alpha: 0.18),
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(
-                        icon,
-                        color: Colors.white,
-                        size: 26,
-                      ),
+                      child: Icon(icon, color: Colors.white, size: 26),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(16),

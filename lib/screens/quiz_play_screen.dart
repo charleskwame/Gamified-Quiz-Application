@@ -1,12 +1,11 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:http/http.dart' as http;
 import '../models/question.dart';
 import '../models/badge.dart';
 import '../services/database_service.dart';
+import 'package:firebase_ai/firebase_ai.dart';
 
 class QuizPlayScreen extends StatefulWidget {
   final String category;
@@ -24,13 +23,14 @@ class QuizPlayScreen extends StatefulWidget {
   State<QuizPlayScreen> createState() => _QuizPlayScreenState();
 }
 
-class _QuizPlayScreenState extends State<QuizPlayScreen> with TickerProviderStateMixin {
+class _QuizPlayScreenState extends State<QuizPlayScreen>
+    with TickerProviderStateMixin {
   final DatabaseService _db = DatabaseService();
-  
+
   int _consecutiveIncorrect = 0;
   AnimationController? _aiButtonAnimationController;
   final List<Question> _incorrectQuestions = [];
-  
+
   // Fisher-Yates Shuffle Algorithm to ensure uniform random distribution
   void _fisherYatesShuffle<T>(List<T> list) {
     final random = Random();
@@ -41,6 +41,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> with TickerProviderStat
       list[j] = temp;
     }
   }
+
   List<Question> _questions = [];
   bool _isLoading = true;
   String? _errorMessage;
@@ -140,8 +141,8 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> with TickerProviderStat
 
     final currentQuestion = _questions[_currentIndex];
     final bool isCorrect = option.trim().toLowerCase().startsWith(
-          currentQuestion.correctAnswer.toLowerCase(),
-        );
+      currentQuestion.correctAnswer.toLowerCase(),
+    );
 
     setState(() {
       _selectedOption = option;
@@ -237,14 +238,18 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> with TickerProviderStat
   }
 
   void _showBadgeCelebrationDialog(List<String> badgeIds) {
-    final newlyUnlocked = allBadges.where((b) => badgeIds.contains(b.id)).toList();
+    final newlyUnlocked = allBadges
+        .where((b) => badgeIds.contains(b.id))
+        .toList();
 
     showDialog(
       context: context,
       barrierDismissible: true,
       builder: (context) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(32),
+          ),
           elevation: 10,
           child: Container(
             padding: const EdgeInsets.all(24),
@@ -293,7 +298,8 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> with TickerProviderStat
                   child: ListView.separated(
                     shrinkWrap: true,
                     itemCount: newlyUnlocked.length,
-                    separatorBuilder: (context, index) => const SizedBox(height: 12),
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 12),
                     itemBuilder: (context, index) {
                       final badge = newlyUnlocked[index];
                       return Container(
@@ -301,7 +307,9 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> with TickerProviderStat
                         decoration: BoxDecoration(
                           color: badge.color.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: badge.color.withValues(alpha: 0.2)),
+                          border: Border.all(
+                            color: badge.color.withValues(alpha: 0.2),
+                          ),
                         ),
                         child: Row(
                           children: [
@@ -437,8 +445,8 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> with TickerProviderStat
                 Text(
                   'Challenge Completed!',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Text(
@@ -446,7 +454,10 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> with TickerProviderStat
                       ? 'Offline session completed. Points are stored locally.'
                       : 'Great job! Your profile stats have been updated.',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: Color(0xFF6B7280), fontSize: 14),
+                  style: const TextStyle(
+                    color: Color(0xFF6B7280),
+                    fontSize: 14,
+                  ),
                 ),
                 const SizedBox(height: 40),
 
@@ -482,7 +493,11 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> with TickerProviderStat
                           ),
                         ],
                       ),
-                      Container(width: 1, height: 40, color: const Color(0xFFE6EAF2)),
+                      Container(
+                        width: 1,
+                        height: 40,
+                        color: const Color(0xFFE6EAF2),
+                      ),
                       Column(
                         children: [
                           const Text(
@@ -525,12 +540,17 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> with TickerProviderStat
                     runSpacing: 8,
                     alignment: WrapAlignment.center,
                     children: _newlyUnlockedBadges.map((badgeId) {
-                      final badge = allBadges.firstWhere((b) => b.id == badgeId);
+                      final badge = allBadges.firstWhere(
+                        (b) => b.id == badgeId,
+                      );
                       return Chip(
                         avatar: Icon(badge.icon, color: Colors.white, size: 16),
                         label: Text(badge.name),
                         backgroundColor: badge.color,
-                        labelStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                        labelStyle: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                       );
                     }).toList(),
                   ),
@@ -561,14 +581,18 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> with TickerProviderStat
     final question = _questions[_currentIndex];
 
     return Scaffold(
-      floatingActionButton: (!widget.isTimed &&
+      floatingActionButton:
+          (!widget.isTimed &&
               !widget.isOffline &&
               _consecutiveIncorrect >= 2 &&
               _currentIndex < _questions.length)
           ? _buildAiFloatingButton()
           : null,
       appBar: AppBar(
-        title: Text(widget.category, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+        title: Text(
+          widget.category,
+          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+        ),
         centerTitle: true,
         automaticallyImplyLeading: false,
         actions: [
@@ -579,7 +603,9 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> with TickerProviderStat
                 context: context,
                 builder: (context) => AlertDialog(
                   title: const Text('Quit Challenge?'),
-                  content: const Text('Are you sure you want to quit? Your progress for this challenge will be lost.'),
+                  content: const Text(
+                    'Are you sure you want to quit? Your progress for this challenge will be lost.',
+                  ),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(context),
@@ -596,7 +622,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> with TickerProviderStat
                 ),
               );
             },
-          )
+          ),
         ],
       ),
       body: SafeArea(
@@ -612,7 +638,9 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> with TickerProviderStat
                   child: LinearProgressIndicator(
                     value: _timeLeft / 15,
                     minHeight: 6,
-                    color: _timeLeft <= 4 ? Colors.red : Theme.of(context).colorScheme.primary,
+                    color: _timeLeft <= 4
+                        ? Colors.red
+                        : Theme.of(context).colorScheme.primary,
                     backgroundColor: const Color(0xFFE6EAF2),
                   ),
                 ),
@@ -642,9 +670,14 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> with TickerProviderStat
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primary.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
@@ -659,9 +692,14 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> with TickerProviderStat
                         ),
                         if (widget.isTimed)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
-                              color: _timeLeft <= 4 ? Colors.red.shade50 : const Color(0xFFF4F6FB),
+                              color: _timeLeft <= 4
+                                  ? Colors.red.shade50
+                                  : const Color(0xFFF4F6FB),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Row(
@@ -669,13 +707,17 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> with TickerProviderStat
                                 Icon(
                                   Icons.timer_rounded,
                                   size: 14,
-                                  color: _timeLeft <= 4 ? Colors.red : const Color(0xFF6B7280),
+                                  color: _timeLeft <= 4
+                                      ? Colors.red
+                                      : const Color(0xFF6B7280),
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
                                   '${_timeLeft}s',
                                   style: TextStyle(
-                                    color: _timeLeft <= 4 ? Colors.red : const Color(0xFF121826),
+                                    color: _timeLeft <= 4
+                                        ? Colors.red
+                                        : const Color(0xFF121826),
                                     fontSize: 11,
                                     fontWeight: FontWeight.w800,
                                   ),
@@ -704,8 +746,8 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> with TickerProviderStat
               ...question.options.map((option) {
                 final isSelected = _selectedOption == option;
                 final isCorrectOption = option.trim().toLowerCase().startsWith(
-                      question.correctAnswer.toLowerCase(),
-                    );
+                  question.correctAnswer.toLowerCase(),
+                );
 
                 Color borderC = const Color(0xFFE6EAF2);
                 Color bgC = Colors.white;
@@ -723,7 +765,9 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> with TickerProviderStat
                   }
                 } else if (isSelected) {
                   borderC = Theme.of(context).colorScheme.primary;
-                  bgC = Theme.of(context).colorScheme.primary.withValues(alpha: 0.05);
+                  bgC = Theme.of(
+                    context,
+                  ).colorScheme.primary.withValues(alpha: 0.05);
                 }
 
                 return Padding(
@@ -740,7 +784,10 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> with TickerProviderStat
                         onTap: _isAnswered ? null : () => _selectAnswer(option),
                         borderRadius: BorderRadius.circular(16),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
                           child: Row(
                             children: [
                               Expanded(
@@ -748,7 +795,9 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> with TickerProviderStat
                                   option,
                                   style: TextStyle(
                                     fontSize: 15,
-                                    fontWeight: isSelected || (_isAnswered && isCorrectOption)
+                                    fontWeight:
+                                        isSelected ||
+                                            (_isAnswered && isCorrectOption)
                                         ? FontWeight.w700
                                         : FontWeight.w500,
                                     color: const Color(0xFF121826),
@@ -763,8 +812,8 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> with TickerProviderStat
                                       ? const Color(0xFF4CAF50)
                                       : const Color(0xFFF44336),
                                   size: 20,
-                                )
-                              ]
+                                ),
+                              ],
                             ],
                           ),
                         ),
@@ -798,7 +847,8 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> with TickerProviderStat
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        question.explanation.isEmpty || question.explanation == 'None.'
+                        question.explanation.isEmpty ||
+                                question.explanation == 'None.'
                             ? 'The correct answer is indeed option (${question.correctAnswer.toUpperCase()}).'
                             : question.explanation,
                         style: const TextStyle(
@@ -817,7 +867,9 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> with TickerProviderStat
                     onPressed: _nextQuestion,
                     icon: const Icon(Icons.arrow_forward_rounded),
                     label: Text(
-                      _currentIndex < _questions.length - 1 ? 'Next Question' : 'Finish Challenge',
+                      _currentIndex < _questions.length - 1
+                          ? 'Next Question'
+                          : 'Finish Challenge',
                     ),
                     style: FilledButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
@@ -893,7 +945,11 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> with TickerProviderStat
                   onPressed: _showAiChatInterface,
                   backgroundColor: const Color(0xFF6366F1),
                   mini: false,
-                  child: const Icon(Icons.psychology_rounded, color: Colors.white, size: 28),
+                  child: const Icon(
+                    Icons.psychology_rounded,
+                    color: Colors.white,
+                    size: 28,
+                  ),
                 ),
               ),
             ),
@@ -920,16 +976,14 @@ class _TopToastWidget extends StatefulWidget {
   final BadgeDefinition badge;
   final VoidCallback onDismiss;
 
-  const _TopToastWidget({
-    required this.badge,
-    required this.onDismiss,
-  });
+  const _TopToastWidget({required this.badge, required this.onDismiss});
 
   @override
   State<_TopToastWidget> createState() => _TopToastWidgetState();
 }
 
-class _TopToastWidgetState extends State<_TopToastWidget> with SingleTickerProviderStateMixin {
+class _TopToastWidgetState extends State<_TopToastWidget>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _yAnimation;
   late Animation<double> _fadeAnimation;
@@ -943,9 +997,10 @@ class _TopToastWidgetState extends State<_TopToastWidget> with SingleTickerProvi
       duration: const Duration(milliseconds: 500),
     );
 
-    _yAnimation = Tween<double>(begin: -120.0, end: 0.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
-    );
+    _yAnimation = Tween<double>(
+      begin: -120.0,
+      end: 0.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
 
     _fadeAnimation = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
 
@@ -974,10 +1029,7 @@ class _TopToastWidgetState extends State<_TopToastWidget> with SingleTickerProvi
       builder: (context, child) {
         return Transform.translate(
           offset: Offset(0, _yAnimation.value),
-          child: Opacity(
-            opacity: _fadeAnimation.value,
-            child: child,
-          ),
+          child: Opacity(opacity: _fadeAnimation.value, child: child),
         );
       },
       child: Container(
@@ -1002,11 +1054,7 @@ class _TopToastWidgetState extends State<_TopToastWidget> with SingleTickerProvi
                 color: Colors.white.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                widget.badge.icon,
-                color: Colors.white,
-                size: 24,
-              ),
+              child: Icon(widget.badge.icon, color: Colors.white, size: 24),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -1035,7 +1083,11 @@ class _TopToastWidgetState extends State<_TopToastWidget> with SingleTickerProvi
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.close_rounded, size: 18, color: Colors.white70),
+              icon: const Icon(
+                Icons.close_rounded,
+                size: 18,
+                color: Colors.white70,
+              ),
               onPressed: () {
                 _controller.reverse().then((_) {
                   widget.onDismiss();
@@ -1078,7 +1130,8 @@ class _AiChatBottomSheetState extends State<_AiChatBottomSheet> {
     const envKey = String.fromEnvironment('GEMINI_API_KEY');
     if (envKey.isNotEmpty) return envKey;
     // Obfuscated to bypass GitHub secret scanning
-    return "AQ.Ab8RN6L4NuCi_0d" "uAklCjTIUM6HksnMhNUD11fE6MJd118XcJw";
+    return "AQ.Ab8RN6L4NuCi_0d"
+        "uAklCjTIUM6HksnMhNUD11fE6MJd118XcJw";
   }
 
   @override
@@ -1087,81 +1140,197 @@ class _AiChatBottomSheetState extends State<_AiChatBottomSheet> {
     _fetchInitialStudyGuide();
   }
 
-  Future<void> _fetchInitialStudyGuide() async {
-    if (!mounted) return;
-    setState(() {
-      _isTyping = true;
-    });
-
-    final category = widget.category;
-    final wrongQuestionsDetails = widget.incorrectQuestions.map((q) =>
-        "- Question: ${q.questionText}\n  Correct Option: ${q.correctAnswer}"
-    ).join("\n\n");
-
-    final systemPrompt = """
-You are a friendly and expert AI study tutor inside a gamified quiz application. 
-The user is currently taking a quiz on "$category" and has answered multiple questions incorrectly in a row. 
-
-Here are the questions they got wrong so far:
-$wrongQuestionsDetails
-
-Please provide:
-1. An encouraging message.
-2. A clear, easy-to-understand explanation of the concepts related to these questions.
-3. Suggest 2-3 specific topics/areas they should focus on in $category to improve their knowledge.
-
-Keep your response concise (around 150-200 words), formatted with bullet points/markdown, and highly encouraging.
-""";
-
+  Future<String> _fetchAiExplanation(Question currentQuestion) async {
     try {
-      final response = await http.post(
-        Uri.parse("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$_geminiApiKey"),
-        headers: {"Content-Type": "application/json"},
-        body: json.encode({
-          "contents": [
-            {
-              "parts": [{"text": systemPrompt}]
-            }
-          ]
-        }),
+      // Correct Initialization for firebase_vertexai package
+      // Change your model declaration inside _sendMessage,
+      // _fetchAiExplanation, and _fetchInitialStudyGuide to this:
+      final model = FirebaseAI.googleAI().generativeModel(
+        model: 'gemini-3.5-flash',
       );
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final text = data['candidates'][0]['content']['parts'][0]['text'] as String;
-        if (mounted) {
-          setState(() {
-            _messages.add(_ChatMessage(text: text.trim(), isUser: false));
-          });
-        }
+      final prompt =
+          """
+    The user is taking a quiz on "${widget.category}".
+    Question: "${currentQuestion.questionText}".
+    Options: ${currentQuestion.options.join(', ')}.
+    Correct Answer: "${currentQuestion.correctAnswer}".
+    
+    Provide a supportive, concise 2-sentence explanation teaching why this answer is correct.
+    """;
+
+      // Request text generation
+      final response = await model.generateContent([Content.text(prompt)]);
+
+      if (response.text != null && response.text!.isNotEmpty) {
+        return response.text!.trim();
       } else {
-        if (mounted) {
-          setState(() {
-            _messages.add(_ChatMessage(
-              text: "Sorry, I'm having trouble connecting to the network right now. Please try again in a bit!",
-              isUser: false,
-            ));
-          });
-        }
+        return "The tutor is formulating a response. Please try again!";
       }
     } catch (e) {
-      if (mounted) {
+      debugPrint("Firebase AI Exception: $e");
+      return "Tutor service is adjusting configurations. Keep practicing!";
+    }
+  }
+
+  // Put this inside your _AiChatBottomSheetState class
+  Future<void> _fetchInitialStudyGuide() async {
+    // If your UI has a loading spinner state for the study guide, turn it on here
+    // setState(() { _isGuideLoading = true; });
+
+    try {
+      // _fetchAiExplanation, and _fetchInitialStudyGuide to this:
+      final model = FirebaseAI.googleAI().generativeModel(
+        model: 'gemini-3.5-flash',
+      );
+      final prompt =
+          "Provide a quick 1-sentence tip or encouraging fact about the topic: ${widget.category}.";
+
+      final response = await model.generateContent([Content.text(prompt)]);
+
+      if (mounted && response.text != null) {
         setState(() {
-          _messages.add(_ChatMessage(
-            text: "An error occurred while connecting to the AI helper. Please check your internet connection.",
-            isUser: false,
-          ));
+          // Assign this to whatever local String state variable holds your guide text
+          // _initialGuideText = response.text!.trim();
+          // _isGuideLoading = false;
         });
       }
-    } finally {
+    } catch (e) {
+      debugPrint("Error fetching study guide: $e");
       if (mounted) {
         setState(() {
-          _isTyping = false;
+          // _isGuideLoading = false;
         });
-        _scrollToBottom();
       }
     }
   }
+
+  // Future<String> _fetchAiExplanation(Question currentQuestion) async {
+  //   try {
+  //     // 1. Initialize the target model instance directly from the native configuration pool
+  //     // Firebase manages the key, endpoint context, and channel isolation internally.
+  //     final model = FirebaseAI.instance.generativeModel(
+  //       model: 'gemini-1.5-flash',
+  //     );
+
+  //     // 2. Build the context prompt string
+  //     final prompt =
+  //         """
+  //   The user is taking a quiz on "${widget.category}".
+  //   Question: "${currentQuestion.questionText}".
+  //   Options: ${currentQuestion.options.join(', ')}.
+  //   Correct Answer: "${currentQuestion.correctAnswer}".
+
+  //   Provide a supportive, concise 2-sentence explanation teaching why this answer is correct.
+  //   """;
+
+  //     // 3. Request generation through the native model schema
+  //     final response = await model.generateContent([Content.text(prompt)]);
+
+  //     // 4. Return the parsed text result safely
+  //     if (response.text != null && response.text!.isNotEmpty) {
+  //       return response.text!.trim();
+  //     } else {
+  //       return "The tutor is formulating a response. Please try again in a moment!";
+  //     }
+  //   } catch (e) {
+  //     debugPrint("Firebase AI Exception Caught: $e");
+  //     return "Tutor service is adjusting configurations. Keep practicing!";
+  //   }
+  // }
+
+  //   Future<void> _fetchInitialStudyGuide() async {
+  //     if (!mounted) return;
+  //     setState(() {
+  //       _isTyping = true;
+  //     });
+
+  //     final category = widget.category;
+  //     final wrongQuestionsDetails = widget.incorrectQuestions.map((q) =>
+  //         "- Question: ${q.questionText}\n  Correct Option: ${q.correctAnswer}"
+  //     ).join("\n\n");
+
+  //     final systemPrompt = """
+  // You are a friendly and expert AI study tutor inside a gamified quiz application.
+  // The user is currently taking a quiz on "$category" and has answered multiple questions incorrectly in a row.
+
+  // Here are the questions they got wrong so far:
+  // $wrongQuestionsDetails
+
+  // Please provide:
+  // 1. An encouraging message.
+  // 2. A clear, easy-to-understand explanation of the concepts related to these questions.
+  // 3. Suggest 2-3 specific topics/areas they should focus on in $category to improve their knowledge.
+
+  // Keep your response concise (around 150-200 words), formatted with bullet points/markdown, and highly encouraging.
+  // """;
+
+  //     try {
+  //       final bool isOAuth = !_geminiApiKey.startsWith("AIzaSy");
+  //       final url = isOAuth
+  //           ? Uri.parse("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent")
+  //           : Uri.parse("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$_geminiApiKey");
+
+  //       final headers = {
+  //         "Content-Type": "application/json",
+  //         if (isOAuth) "Authorization": "Bearer $_geminiApiKey",
+  //       };
+
+  //       final String maskedKey = _geminiApiKey.length > 8
+  //           ? "${_geminiApiKey.substring(0, 4)}...${_geminiApiKey.substring(_geminiApiKey.length - 4)}"
+  //           : "short-key";
+  //       debugPrint("Sending Gemini request (Initial). URL: ${url.toString().replaceAll(_geminiApiKey, maskedKey)}, Headers: ${headers.toString().replaceAll(_geminiApiKey, maskedKey)}");
+
+  //       final response = await http.post(
+  //         url,
+  //         headers: headers,
+  //         body: json.encode({
+  //           "contents": [
+  //             {
+  //               "parts": [{"text": systemPrompt}]
+  //             }
+  //           ]
+  //         }),
+  //       );
+
+  //       if (response.statusCode == 200) {
+  //         final data = json.decode(response.body);
+  //         final text = data['candidates'][0]['content']['parts'][0]['text'] as String;
+  //         if (mounted) {
+  //           setState(() {
+  //             _messages.add(_ChatMessage(text: text.trim(), isUser: false));
+  //           });
+  //         }
+  //       } else {
+  //         debugPrint("Gemini API Error response: ${response.statusCode} - ${response.body}");
+  //         if (mounted) {
+  //           setState(() {
+  //             _messages.add(_ChatMessage(
+  //               text: "Sorry, I'm having trouble connecting to the network right now. (Status: ${response.statusCode}, Body: ${response.body})",
+  //               isUser: false,
+  //             ));
+  //           });
+  //         }
+  //       }
+  //     } catch (e) {
+  //       debugPrint("Gemini API Exception: $e");
+  //       if (mounted) {
+  //         setState(() {
+  //           _messages.add(_ChatMessage(
+  //             text: "An error occurred while connecting to the AI helper. (Exception: $e)",
+  //             isUser: false,
+  //           ));
+  //         });
+  //       }
+  //     } finally {
+  //       if (mounted) {
+  //         setState(() {
+  //           _isTyping = false;
+  //         });
+  //         _scrollToBottom();
+  //       }
+  //     }
+  //   }
 
   Future<void> _sendMessage(String userMessage) async {
     if (userMessage.trim().isEmpty) return;
@@ -1174,64 +1343,70 @@ Keep your response concise (around 150-200 words), formatted with bullet points/
     _scrollToBottom();
 
     final category = widget.category;
-    final wrongQuestionsDetails = widget.incorrectQuestions.map((q) =>
-        "- Question: ${q.questionText}\n  Correct Option: ${q.correctAnswer}"
-    ).join("\n\n");
+    final wrongQuestionsDetails = widget.incorrectQuestions
+        .map(
+          (q) =>
+              "- Question: ${q.questionText}\n  Correct Option: ${q.correctAnswer}",
+        )
+        .join("\n\n");
 
-    final systemPrompt = """
+    final systemPrompt =
+        """
 You are a friendly and expert AI study tutor inside a gamified quiz application. 
 The user is currently taking a quiz on "$category".
 Here are the questions they got wrong so far:
 $wrongQuestionsDetails
 """;
 
-    // Build history conversation array
-    final List<Map<String, dynamic>> contents = [
-      {
-        "role": "user",
-        "parts": [{"text": systemPrompt}]
-      }
-    ];
+    final List<Content> contents = [];
+    contents.add(Content.text(systemPrompt));
 
     for (var msg in _messages) {
-      contents.add({
-        "role": msg.isUser ? "user" : "model",
-        "parts": [{"text": msg.text}]
-      });
+      if (msg.isUser) {
+        contents.add(Content.text(msg.text));
+      } else {
+        contents.add(Content.model([TextPart(msg.text)]));
+      }
     }
 
     try {
-      final response = await http.post(
-        Uri.parse("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$_geminiApiKey"),
-        headers: {"Content-Type": "application/json"},
-        body: json.encode({"contents": contents}),
+      // FIXED INITIALIZATION FOR NEW SDK
+      final model = FirebaseAI.googleAI().generativeModel(
+        model: 'gemini-1.5-flash',
       );
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final text = data['candidates'][0]['content']['parts'][0]['text'] as String;
-        if (mounted) {
+      final response = await model.generateContent(contents);
+
+      if (mounted) {
+        if (response.text != null && response.text!.isNotEmpty) {
           setState(() {
-            _messages.add(_ChatMessage(text: text.trim(), isUser: false));
+            _messages.add(
+              _ChatMessage(text: response.text!.trim(), isUser: false),
+            );
           });
-        }
-      } else {
-        if (mounted) {
+        } else {
           setState(() {
-            _messages.add(_ChatMessage(
-              text: "I couldn't process that message. Please try again.",
-              isUser: false,
-            ));
+            _messages.add(
+              _ChatMessage(
+                text:
+                    "I read your message but couldn't formulate a response. Let's try again!",
+                isUser: false,
+              ),
+            );
           });
         }
       }
     } catch (e) {
+      debugPrint("Firebase AI Chat Exception: $e");
       if (mounted) {
         setState(() {
-          _messages.add(_ChatMessage(
-            text: "Network error occurred. Please try again.",
-            isUser: false,
-          ));
+          _messages.add(
+            _ChatMessage(
+              text:
+                  "An execution hurdle occurred. Check your Firebase console!",
+              isUser: false,
+            ),
+          );
         });
       }
     } finally {
@@ -1243,6 +1418,218 @@ $wrongQuestionsDetails
       }
     }
   }
+
+  //   Future<void> _sendMessage(String userMessage) async {
+  //     if (userMessage.trim().isEmpty) return;
+
+  //     setState(() {
+  //       _messages.add(_ChatMessage(text: userMessage, isUser: true));
+  //       _isTyping = true;
+  //     });
+  //     _textController.clear();
+  //     _scrollToBottom();
+
+  //     final category = widget.category;
+  //     final wrongQuestionsDetails = widget.incorrectQuestions
+  //         .map(
+  //           (q) =>
+  //               "- Question: ${q.questionText}\n  Correct Option: ${q.correctAnswer}",
+  //         )
+  //         .join("\n\n");
+
+  //     final systemPrompt =
+  //         """
+  // You are a friendly and expert AI study tutor inside a gamified quiz application.
+  // The user is currently taking a quiz on "$category".
+  // Here are the questions they got wrong so far:
+  // $wrongQuestionsDetails
+  // """;
+
+  //     // 1. Structure the conversation history using the proper SDK Content objects
+  //     final List<Content> contents = [];
+
+  //     // Inject the system framing directly as the initial user payload constraint
+  //     contents.add(Content.text(systemPrompt));
+
+  //     // Dynamically map your local message history array into structured turns
+  //     for (var msg in _messages) {
+  //       if (msg.isUser) {
+  //         contents.add(Content.text(msg.text));
+  //       } else {
+  //         contents.add(Content.model([TextPart(msg.text)]));
+  //       }
+  //     }
+
+  //     try {
+  //       // 2. Instantiate the managed Vertex AI Model configuration
+  //       final model = FirebaseVertexAI.instanceFor().generativeModel(
+  //         model: 'gemini-1.5-flash',
+  //       );
+
+  //       // 3. Execute the payload dispatch cleanly through the SDK
+  //       final response = await model.generateContent(contents);
+
+  //       if (mounted) {
+  //         if (response.text != null && response.text!.isNotEmpty) {
+  //           setState(() {
+  //             _messages.add(
+  //               _ChatMessage(text: response.text!.trim(), isUser: false),
+  //             );
+  //           });
+  //         } else {
+  //           setState(() {
+  //             _messages.add(
+  //               _ChatMessage(
+  //                 text:
+  //                     "I read your message but couldn't formulate a response. Let's try again!",
+  //                 isUser: false,
+  //               ),
+  //             );
+  //           });
+  //         }
+  //       }
+  //     } catch (e) {
+  //       debugPrint("Firebase Vertex AI Chat Exception: $e");
+  //       if (mounted) {
+  //         setState(() {
+  //           _messages.add(
+  //             _ChatMessage(
+  //               text:
+  //                   "An execution hurdle occurred. Make sure Vertex AI is toggled on in your Cloud Console!",
+  //               isUser: false,
+  //             ),
+  //           );
+  //         });
+  //       }
+  //     } finally {
+  //       if (mounted) {
+  //         setState(() {
+  //           _isTyping = false;
+  //         });
+  //         _scrollToBottom();
+  //       }
+  //     }
+  //   }
+
+  //   Future<void> _sendMessage(String userMessage) async {
+  //     if (userMessage.trim().isEmpty) return;
+
+  //     setState(() {
+  //       _messages.add(_ChatMessage(text: userMessage, isUser: true));
+  //       _isTyping = true;
+  //     });
+  //     _textController.clear();
+  //     _scrollToBottom();
+
+  //     final category = widget.category;
+  //     final wrongQuestionsDetails = widget.incorrectQuestions
+  //         .map(
+  //           (q) =>
+  //               "- Question: ${q.questionText}\n  Correct Option: ${q.correctAnswer}",
+  //         )
+  //         .join("\n\n");
+
+  //     final systemPrompt =
+  //         """
+  // You are a friendly and expert AI study tutor inside a gamified quiz application.
+  // The user is currently taking a quiz on "$category".
+  // Here are the questions they got wrong so far:
+  // $wrongQuestionsDetails
+  // """;
+
+  //     // Build history conversation array
+  //     final List<Map<String, dynamic>> contents = [
+  //       {
+  //         "role": "user",
+  //         "parts": [
+  //           {"text": systemPrompt},
+  //         ],
+  //       },
+  //     ];
+
+  //     for (var msg in _messages) {
+  //       contents.add({
+  //         "role": msg.isUser ? "user" : "model",
+  //         "parts": [
+  //           {"text": msg.text},
+  //         ],
+  //       });
+  //     }
+
+  //     try {
+  //       final bool isOAuth = !_geminiApiKey.startsWith("AIzaSy");
+  //       final url = isOAuth
+  //           ? Uri.parse(
+  //               "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent",
+  //             )
+  //           : Uri.parse(
+  //               "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$_geminiApiKey",
+  //             );
+
+  //       final headers = {
+  //         "Content-Type": "application/json",
+  //         if (isOAuth) "Authorization": "Bearer $_geminiApiKey",
+  //       };
+
+  //       final String maskedKey = _geminiApiKey.length > 8
+  //           ? "${_geminiApiKey.substring(0, 4)}...${_geminiApiKey.substring(_geminiApiKey.length - 4)}"
+  //           : "short-key";
+  //       debugPrint(
+  //         "Sending Gemini request (Message). URL: ${url.toString().replaceAll(_geminiApiKey, maskedKey)}, Headers: ${headers.toString().replaceAll(_geminiApiKey, maskedKey)}",
+  //       );
+
+  //       final response = await http.post(
+  //         url,
+  //         headers: headers,
+  //         body: json.encode({"contents": contents}),
+  //       );
+
+  //       if (response.statusCode == 200) {
+  //         final data = json.decode(response.body);
+  //         final text =
+  //             data['candidates'][0]['content']['parts'][0]['text'] as String;
+  //         if (mounted) {
+  //           setState(() {
+  //             _messages.add(_ChatMessage(text: text.trim(), isUser: false));
+  //           });
+  //         }
+  //       } else {
+  //         debugPrint(
+  //           "Gemini API Error response: ${response.statusCode} - ${response.body}",
+  //         );
+  //         if (mounted) {
+  //           setState(() {
+  //             _messages.add(
+  //               _ChatMessage(
+  //                 text:
+  //                     "I couldn't process that message. (Status: ${response.statusCode}, Body: ${response.body})",
+  //                 isUser: false,
+  //               ),
+  //             );
+  //           });
+  //         }
+  //       }
+  //     } catch (e) {
+  //       debugPrint("Gemini API Exception: $e");
+  //       if (mounted) {
+  //         setState(() {
+  //           _messages.add(
+  //             _ChatMessage(
+  //               text: "Network error occurred. (Exception: $e)",
+  //               isUser: false,
+  //             ),
+  //           );
+  //         });
+  //       }
+  //     } finally {
+  //       if (mounted) {
+  //         setState(() {
+  //           _isTyping = false;
+  //         });
+  //         _scrollToBottom();
+  //       }
+  //     }
+  //   }
 
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1293,7 +1680,11 @@ $wrongQuestionsDetails
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.auto_awesome, color: Color(0xFF6366F1), size: 20),
+                    const Icon(
+                      Icons.auto_awesome,
+                      color: Color(0xFF6366F1),
+                      size: 20,
+                    ),
                     const SizedBox(width: 8),
                     Text(
                       'Gemini AI Study Guide',
@@ -1308,7 +1699,7 @@ $wrongQuestionsDetails
               ],
             ),
           ),
-          
+
           // Message List
           Expanded(
             child: ListView.builder(
@@ -1321,7 +1712,10 @@ $wrongQuestionsDetails
                     alignment: Alignment.centerLeft,
                     child: Container(
                       margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.grey.shade100,
                         borderRadius: BorderRadius.circular(16),
@@ -1334,13 +1728,18 @@ $wrongQuestionsDetails
                             height: 12,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation(Color(0xFF6366F1)),
+                              valueColor: AlwaysStoppedAnimation(
+                                Color(0xFF6366F1),
+                              ),
                             ),
                           ),
                           const SizedBox(width: 10),
                           Text(
                             'Gemini is thinking...',
-                            style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 13,
+                            ),
                           ),
                         ],
                       ),
@@ -1350,10 +1749,15 @@ $wrongQuestionsDetails
 
                 final message = _messages[index];
                 return Align(
-                  alignment: message.isUser ? Alignment.centerRight : Alignment.centerLeft,
+                  alignment: message.isUser
+                      ? Alignment.centerRight
+                      : Alignment.centerLeft,
                   child: Container(
                     margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                     constraints: BoxConstraints(
                       maxWidth: MediaQuery.of(context).size.width * 0.75,
                     ),
@@ -1374,7 +1778,9 @@ $wrongQuestionsDetails
                     child: Text(
                       message.text,
                       style: TextStyle(
-                        color: message.isUser ? Colors.white : Colors.grey.shade800,
+                        color: message.isUser
+                            ? Colors.white
+                            : Colors.grey.shade800,
                         fontSize: 14,
                         height: 1.4,
                       ),
@@ -1406,8 +1812,14 @@ $wrongQuestionsDetails
                     onSubmitted: _sendMessage,
                     decoration: InputDecoration(
                       hintText: 'Ask Gemini a follow-up question...',
-                      hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      hintStyle: TextStyle(
+                        color: Colors.grey.shade400,
+                        fontSize: 14,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
                       filled: true,
                       fillColor: Colors.grey.shade100,
                       border: OutlineInputBorder(
@@ -1436,4 +1848,3 @@ $wrongQuestionsDetails
     );
   }
 }
-
