@@ -9,14 +9,19 @@ import '../models/badge.dart';
 class DatabaseService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  // Stream of user rankings sorted by score descending
+  // Stream of user rankings sorted by score descending (excludes lecturers)
   Stream<List<UserRank>> getRankingsStream() {
     return _db
         .collection('users')
         .orderBy('score', descending: true)
         .snapshots()
-        .map((snapshot) =>
-            snapshot.docs.map((doc) => UserRank.fromFirestore(doc)).toList());
+        .map((snapshot) => snapshot.docs
+            .where((doc) {
+              final data = doc.data();
+              return data['role'] != 'lecturer';
+            })
+            .map((doc) => UserRank.fromFirestore(doc))
+            .toList());
   }
 
   // Initialize user profile and stats tracking document in Firestore
@@ -364,7 +369,11 @@ class DatabaseService {
   // Get percentage of users who own a specific badge
   Future<double> getBadgeOwnershipPercentage(String badgeId) async {
     try {
-      final totalQuery = await _db.collection('users').count().get();
+      final totalQuery = await _db
+          .collection('users')
+          .where('role', isNotEqualTo: 'lecturer')
+          .count()
+          .get();
       final totalUsers = totalQuery.count ?? 1;
       if (totalUsers == 0) return 0.0;
 
@@ -385,7 +394,11 @@ class DatabaseService {
   Future<double> getStreakPercentage(int streakNumber) async {
     if (streakNumber == 0) return 100.0;
     try {
-      final totalQuery = await _db.collection('users').count().get();
+      final totalQuery = await _db
+          .collection('users')
+          .where('role', isNotEqualTo: 'lecturer')
+          .count()
+          .get();
       final totalUsers = totalQuery.count ?? 1;
       if (totalUsers == 0) return 0.0;
 
