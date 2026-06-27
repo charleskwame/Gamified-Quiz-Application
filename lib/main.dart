@@ -704,29 +704,25 @@ class _RankingsPageState extends State<RankingsPage> {
                           ),
                           child: Row(
                             children: [
-                              // Rank number
+                              // Rank number or trophy
                               SizedBox(
-                                width: 24,
-                                child: Text(
-                                  '${index + 1}',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w800,
-                                    color: isTopThree ? colorsMap[index] : const Color(0xFF4B5565),
-                                  ),
-                                ),
+                                width: 36,
+                                child: isTopThree
+                                    ? Icon(
+                                        Icons.emoji_events_rounded,
+                                        color: colorsMap[index],
+                                        size: 24,
+                                      )
+                                    : Text(
+                                        '${index + 1}',
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w800,
+                                          color: Color(0xFF4B5565),
+                                        ),
+                                      ),
                               ),
-                              // Trophy for top three
-                              if (isTopThree) ...[
-                                Icon(
-                                  Icons.emoji_events_rounded,
-                                  color: colorsMap[index],
-                                  size: 20,
-                                ),
-                                const SizedBox(width: 12),
-                              ] else ...[
-                                const SizedBox(width: 32),
-                              ],
+                              const SizedBox(width: 12),
                               // User Avatar (White background with grey border)
                               Container(
                                 width: 44,
