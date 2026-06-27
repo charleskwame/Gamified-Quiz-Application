@@ -30,6 +30,16 @@ void main() async {
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await NotificationService().init();
+
+  final prefs = await SharedPreferences.getInstance();
+  final notificationsEnabled = prefs.getBool('notifications_enabled') ?? false;
+  if (notificationsEnabled) {
+    final todayStr = DateTime.now().toIso8601String().split('T')[0];
+    final lastActiveDate = prefs.getString('last_active_date') ?? '';
+    final forceTomorrow = lastActiveDate == todayStr;
+    await NotificationService().scheduleDailyStreakReminder(forceTomorrow: forceTomorrow);
+  }
+
   runApp(const MyApp());
 }
 
@@ -857,7 +867,10 @@ class _ProfilePageState extends State<ProfilePage> {
       if (Platform.isAndroid) {
         await Permission.notification.request();
       }
-      await NotificationService().scheduleDailyStreakReminder();
+      final todayStr = DateTime.now().toIso8601String().split('T')[0];
+      final lastActiveDate = prefs.getString('last_active_date') ?? '';
+      final forceTomorrow = lastActiveDate == todayStr;
+      await NotificationService().scheduleDailyStreakReminder(forceTomorrow: forceTomorrow);
     } else {
       await NotificationService().cancelStreakReminder();
     }

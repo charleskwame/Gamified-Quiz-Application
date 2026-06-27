@@ -6,6 +6,9 @@ import '../models/question.dart';
 import '../models/badge.dart';
 import '../services/database_service.dart';
 import 'package:firebase_ai/firebase_ai.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../services/notification_service.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 
 class QuizPlayScreen extends StatefulWidget {
   final String category;
@@ -172,7 +175,6 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
       _finishQuiz();
     }
   }
-
   Future<void> _finishQuiz() async {
     setState(() {
       _isLoading = true;
@@ -193,6 +195,18 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
       } catch (e) {
         // Silently catch network failures or write problems in offline context
       }
+    }
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final todayStr = DateTime.now().toIso8601String().split('T')[0];
+      await prefs.setString('last_active_date', todayStr);
+      final notificationsEnabled = prefs.getBool('notifications_enabled') ?? false;
+      if (notificationsEnabled) {
+        await NotificationService().scheduleDailyStreakReminder(forceTomorrow: true);
+      }
+    } catch (e) {
+      // Ignore preference write/notification scheduling errors
     }
 
     if (mounted) {
@@ -1102,7 +1116,7 @@ class _TopToastWidgetState extends State<_TopToastWidget>
 }
 
 class _ChatMessage {
-  final String text;
+  String text;
   final bool isUser;
   _ChatMessage({required this.text, required this.isUser});
 }
@@ -1126,284 +1140,84 @@ class _AiChatBottomSheetState extends State<_AiChatBottomSheet> {
   final ScrollController _scrollController = ScrollController();
   bool _isTyping = false;
 
-  static String get _geminiApiKey {
-    const envKey = String.fromEnvironment('GEMINI_API_KEY');
-    if (envKey.isNotEmpty) return envKey;
-    // Obfuscated to bypass GitHub secret scanning
-    return "AQ.Ab8RN6L4NuCi_0d"
-        "uAklCjTIUM6HksnMhNUD11fE6MJd118XcJw";
-  }
-
   @override
   void initState() {
     super.initState();
+    _messages.add(
+      _ChatMessage(
+        text:
+            "🤖 **Welcome to Gemini AI Study Assistant!**\n\nI am analyzing your quiz performance to prepare tailored study tips. Please wait for my response before asking any questions.",
+        isUser: false,
+      ),
+    );
     _fetchInitialStudyGuide();
   }
 
-  Future<String> _fetchAiExplanation(Question currentQuestion) async {
-    try {
-      // Correct Initialization for firebase_vertexai package
-      // Change your model declaration inside _sendMessage,
-      // _fetchAiExplanation, and _fetchInitialStudyGuide to this:
-      final model = FirebaseAI.googleAI().generativeModel(
-        model: 'gemini-3.5-flash',
-      );
-
-      final prompt =
-          """
-    The user is taking a quiz on "${widget.category}".
-    Question: "${currentQuestion.questionText}".
-    Options: ${currentQuestion.options.join(', ')}.
-    Correct Answer: "${currentQuestion.correctAnswer}".
-    
-    Provide a supportive, concise 2-sentence explanation teaching why this answer is correct.
-    """;
-
-      // Request text generation
-      final response = await model.generateContent([Content.text(prompt)]);
-
-      if (response.text != null && response.text!.isNotEmpty) {
-        return response.text!.trim();
-      } else {
-        return "The tutor is formulating a response. Please try again!";
-      }
-    } catch (e) {
-      debugPrint("Firebase AI Exception: $e");
-      return "Tutor service is adjusting configurations. Keep practicing!";
-    }
-  }
-
-  // Put this inside your _AiChatBottomSheetState class
   Future<void> _fetchInitialStudyGuide() async {
-    // If your UI has a loading spinner state for the study guide, turn it on here
-    // setState(() { _isGuideLoading = true; });
-
-    try {
-      // _fetchAiExplanation, and _fetchInitialStudyGuide to this:
-      final model = FirebaseAI.googleAI().generativeModel(
-        model: 'gemini-3.5-flash',
-      );
-      final prompt =
-          "Provide a quick 1-sentence tip or encouraging fact about the topic: ${widget.category}.";
-
-      final response = await model.generateContent([Content.text(prompt)]);
-
-      if (mounted && response.text != null) {
-        setState(() {
-          // Assign this to whatever local String state variable holds your guide text
-          // _initialGuideText = response.text!.trim();
-          // _isGuideLoading = false;
-        });
-      }
-    } catch (e) {
-      debugPrint("Error fetching study guide: $e");
-      if (mounted) {
-        setState(() {
-          // _isGuideLoading = false;
-        });
-      }
-    }
-  }
-
-  // Future<String> _fetchAiExplanation(Question currentQuestion) async {
-  //   try {
-  //     // 1. Initialize the target model instance directly from the native configuration pool
-  //     // Firebase manages the key, endpoint context, and channel isolation internally.
-  //     final model = FirebaseAI.instance.generativeModel(
-  //       model: 'gemini-1.5-flash',
-  //     );
-
-  //     // 2. Build the context prompt string
-  //     final prompt =
-  //         """
-  //   The user is taking a quiz on "${widget.category}".
-  //   Question: "${currentQuestion.questionText}".
-  //   Options: ${currentQuestion.options.join(', ')}.
-  //   Correct Answer: "${currentQuestion.correctAnswer}".
-
-  //   Provide a supportive, concise 2-sentence explanation teaching why this answer is correct.
-  //   """;
-
-  //     // 3. Request generation through the native model schema
-  //     final response = await model.generateContent([Content.text(prompt)]);
-
-  //     // 4. Return the parsed text result safely
-  //     if (response.text != null && response.text!.isNotEmpty) {
-  //       return response.text!.trim();
-  //     } else {
-  //       return "The tutor is formulating a response. Please try again in a moment!";
-  //     }
-  //   } catch (e) {
-  //     debugPrint("Firebase AI Exception Caught: $e");
-  //     return "Tutor service is adjusting configurations. Keep practicing!";
-  //   }
-  // }
-
-  //   Future<void> _fetchInitialStudyGuide() async {
-  //     if (!mounted) return;
-  //     setState(() {
-  //       _isTyping = true;
-  //     });
-
-  //     final category = widget.category;
-  //     final wrongQuestionsDetails = widget.incorrectQuestions.map((q) =>
-  //         "- Question: ${q.questionText}\n  Correct Option: ${q.correctAnswer}"
-  //     ).join("\n\n");
-
-  //     final systemPrompt = """
-  // You are a friendly and expert AI study tutor inside a gamified quiz application.
-  // The user is currently taking a quiz on "$category" and has answered multiple questions incorrectly in a row.
-
-  // Here are the questions they got wrong so far:
-  // $wrongQuestionsDetails
-
-  // Please provide:
-  // 1. An encouraging message.
-  // 2. A clear, easy-to-understand explanation of the concepts related to these questions.
-  // 3. Suggest 2-3 specific topics/areas they should focus on in $category to improve their knowledge.
-
-  // Keep your response concise (around 150-200 words), formatted with bullet points/markdown, and highly encouraging.
-  // """;
-
-  //     try {
-  //       final bool isOAuth = !_geminiApiKey.startsWith("AIzaSy");
-  //       final url = isOAuth
-  //           ? Uri.parse("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent")
-  //           : Uri.parse("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$_geminiApiKey");
-
-  //       final headers = {
-  //         "Content-Type": "application/json",
-  //         if (isOAuth) "Authorization": "Bearer $_geminiApiKey",
-  //       };
-
-  //       final String maskedKey = _geminiApiKey.length > 8
-  //           ? "${_geminiApiKey.substring(0, 4)}...${_geminiApiKey.substring(_geminiApiKey.length - 4)}"
-  //           : "short-key";
-  //       debugPrint("Sending Gemini request (Initial). URL: ${url.toString().replaceAll(_geminiApiKey, maskedKey)}, Headers: ${headers.toString().replaceAll(_geminiApiKey, maskedKey)}");
-
-  //       final response = await http.post(
-  //         url,
-  //         headers: headers,
-  //         body: json.encode({
-  //           "contents": [
-  //             {
-  //               "parts": [{"text": systemPrompt}]
-  //             }
-  //           ]
-  //         }),
-  //       );
-
-  //       if (response.statusCode == 200) {
-  //         final data = json.decode(response.body);
-  //         final text = data['candidates'][0]['content']['parts'][0]['text'] as String;
-  //         if (mounted) {
-  //           setState(() {
-  //             _messages.add(_ChatMessage(text: text.trim(), isUser: false));
-  //           });
-  //         }
-  //       } else {
-  //         debugPrint("Gemini API Error response: ${response.statusCode} - ${response.body}");
-  //         if (mounted) {
-  //           setState(() {
-  //             _messages.add(_ChatMessage(
-  //               text: "Sorry, I'm having trouble connecting to the network right now. (Status: ${response.statusCode}, Body: ${response.body})",
-  //               isUser: false,
-  //             ));
-  //           });
-  //         }
-  //       }
-  //     } catch (e) {
-  //       debugPrint("Gemini API Exception: $e");
-  //       if (mounted) {
-  //         setState(() {
-  //           _messages.add(_ChatMessage(
-  //             text: "An error occurred while connecting to the AI helper. (Exception: $e)",
-  //             isUser: false,
-  //           ));
-  //         });
-  //       }
-  //     } finally {
-  //       if (mounted) {
-  //         setState(() {
-  //           _isTyping = false;
-  //         });
-  //         _scrollToBottom();
-  //       }
-  //     }
-  //   }
-
-  Future<void> _sendMessage(String userMessage) async {
-    if (userMessage.trim().isEmpty) return;
-
+    if (!mounted) return;
     setState(() {
-      _messages.add(_ChatMessage(text: userMessage, isUser: true));
       _isTyping = true;
     });
-    _textController.clear();
-    _scrollToBottom();
 
     final category = widget.category;
-    final wrongQuestionsDetails = widget.incorrectQuestions
-        .map(
-          (q) =>
-              "- Question: ${q.questionText}\n  Correct Option: ${q.correctAnswer}",
-        )
-        .join("\n\n");
+    final wrongQuestionsDetails = widget.incorrectQuestions.isEmpty
+        ? "No wrong questions yet. General assistance."
+        : widget.incorrectQuestions
+            .map(
+              (q) =>
+                  "- Question: ${q.questionText}\n  Correct Answer: ${q.correctAnswer}",
+            )
+            .join("\n\n");
 
-    final systemPrompt =
-        """
-You are a friendly and expert AI study tutor inside a gamified quiz application. 
+    final prompt = """
+You are an expert AI study tutor inside a gamified quiz application.
 The user is currently taking a quiz on "$category".
-Here are the questions they got wrong so far:
-$wrongQuestionsDetails
+${widget.incorrectQuestions.isNotEmpty ? "Here are the questions they got wrong so far:\n$wrongQuestionsDetails\n" : ""}
+CRITICAL INSTRUCTION: Be extremely direct and straight to the point. Give 1-2 concise bullet points or sentences with study tips. No intros, greetings, or fluff.
 """;
 
-    final List<Content> contents = [];
-    contents.add(Content.text(systemPrompt));
-
-    for (var msg in _messages) {
-      if (msg.isUser) {
-        contents.add(Content.text(msg.text));
-      } else {
-        contents.add(Content.model([TextPart(msg.text)]));
-      }
-    }
+    final aiMessage = _ChatMessage(text: "", isUser: false);
+    bool addedMessage = false;
 
     try {
-      // FIXED INITIALIZATION FOR NEW SDK
       final model = FirebaseAI.googleAI().generativeModel(
-        model: 'gemini-1.5-flash',
+        model: 'gemini-3.5-flash',
       );
+      final responseStream = model.generateContentStream([Content.text(prompt)]);
 
-      final response = await model.generateContent(contents);
-
-      if (mounted) {
-        if (response.text != null && response.text!.isNotEmpty) {
+      await for (final chunk in responseStream) {
+        if (!mounted) break;
+        if (chunk.text != null && chunk.text!.isNotEmpty) {
+          if (!addedMessage) {
+            _messages.add(aiMessage);
+            addedMessage = true;
+            _isTyping = false;
+          }
           setState(() {
-            _messages.add(
-              _ChatMessage(text: response.text!.trim(), isUser: false),
-            );
+            aiMessage.text += chunk.text!;
           });
-        } else {
-          setState(() {
-            _messages.add(
-              _ChatMessage(
-                text:
-                    "I read your message but couldn't formulate a response. Let's try again!",
-                isUser: false,
-              ),
-            );
-          });
+          _scrollToBottom();
         }
       }
+
+      if (mounted && !addedMessage) {
+        setState(() {
+          _messages.add(
+            _ChatMessage(
+              text: "Welcome! How can I help you with $category today?",
+              isUser: false,
+            ),
+          );
+        });
+      }
     } catch (e) {
-      debugPrint("Firebase AI Chat Exception: $e");
+      debugPrint("Firebase AI Initial Guide Error: $e");
       if (mounted) {
         setState(() {
           _messages.add(
             _ChatMessage(
               text:
-                  "An execution hurdle occurred. Check your Firebase console!",
+                  "Welcome to your AI Study Tutor! How can I help you with $category today?",
               isUser: false,
             ),
           );
@@ -1419,217 +1233,100 @@ $wrongQuestionsDetails
     }
   }
 
-  //   Future<void> _sendMessage(String userMessage) async {
-  //     if (userMessage.trim().isEmpty) return;
+  Future<void> _sendMessage(String userMessage) async {
+    if (userMessage.trim().isEmpty || _isTyping) return;
 
-  //     setState(() {
-  //       _messages.add(_ChatMessage(text: userMessage, isUser: true));
-  //       _isTyping = true;
-  //     });
-  //     _textController.clear();
-  //     _scrollToBottom();
+    final text = userMessage.trim();
+    setState(() {
+      _messages.add(_ChatMessage(text: text, isUser: true));
+      _isTyping = true;
+    });
+    _textController.clear();
+    _scrollToBottom();
 
-  //     final category = widget.category;
-  //     final wrongQuestionsDetails = widget.incorrectQuestions
-  //         .map(
-  //           (q) =>
-  //               "- Question: ${q.questionText}\n  Correct Option: ${q.correctAnswer}",
-  //         )
-  //         .join("\n\n");
+    final category = widget.category;
+    final wrongQuestionsDetails = widget.incorrectQuestions
+        .map(
+          (q) =>
+              "- Question: ${q.questionText}\n  Correct Option: ${q.correctAnswer}",
+        )
+        .join("\n\n");
 
-  //     final systemPrompt =
-  //         """
-  // You are a friendly and expert AI study tutor inside a gamified quiz application.
-  // The user is currently taking a quiz on "$category".
-  // Here are the questions they got wrong so far:
-  // $wrongQuestionsDetails
-  // """;
+    final systemPrompt = """
+You are an expert AI study tutor inside a gamified quiz application.
+The user is currently taking a quiz on "$category".
+${widget.incorrectQuestions.isNotEmpty ? "Questions answered incorrectly so far:\n$wrongQuestionsDetails\n" : ""}
+CRITICAL INSTRUCTION: Be extremely direct and straight to the point. Answer immediately without conversational filler or intros like 'Hello!' or 'Sure!'. Use concise sentences or short bullet points.
+""";
 
-  //     // 1. Structure the conversation history using the proper SDK Content objects
-  //     final List<Content> contents = [];
+    final List<Content> contents = [];
+    contents.add(Content.text(systemPrompt));
 
-  //     // Inject the system framing directly as the initial user payload constraint
-  //     contents.add(Content.text(systemPrompt));
+    for (var msg in _messages) {
+      if (msg.isUser) {
+        contents.add(Content.text(msg.text));
+      } else {
+        contents.add(Content.model([TextPart(msg.text)]));
+      }
+    }
 
-  //     // Dynamically map your local message history array into structured turns
-  //     for (var msg in _messages) {
-  //       if (msg.isUser) {
-  //         contents.add(Content.text(msg.text));
-  //       } else {
-  //         contents.add(Content.model([TextPart(msg.text)]));
-  //       }
-  //     }
+    final aiMessage = _ChatMessage(text: "", isUser: false);
+    bool addedMessage = false;
 
-  //     try {
-  //       // 2. Instantiate the managed Vertex AI Model configuration
-  //       final model = FirebaseVertexAI.instanceFor().generativeModel(
-  //         model: 'gemini-1.5-flash',
-  //       );
+    try {
+      final model = FirebaseAI.googleAI().generativeModel(
+        model: 'gemini-3.5-flash',
+      );
+      final responseStream = model.generateContentStream(contents);
 
-  //       // 3. Execute the payload dispatch cleanly through the SDK
-  //       final response = await model.generateContent(contents);
+      await for (final chunk in responseStream) {
+        if (!mounted) break;
+        if (chunk.text != null && chunk.text!.isNotEmpty) {
+          if (!addedMessage) {
+            _messages.add(aiMessage);
+            addedMessage = true;
+            _isTyping = false;
+          }
+          setState(() {
+            aiMessage.text += chunk.text!;
+          });
+          _scrollToBottom();
+        }
+      }
 
-  //       if (mounted) {
-  //         if (response.text != null && response.text!.isNotEmpty) {
-  //           setState(() {
-  //             _messages.add(
-  //               _ChatMessage(text: response.text!.trim(), isUser: false),
-  //             );
-  //           });
-  //         } else {
-  //           setState(() {
-  //             _messages.add(
-  //               _ChatMessage(
-  //                 text:
-  //                     "I read your message but couldn't formulate a response. Let's try again!",
-  //                 isUser: false,
-  //               ),
-  //             );
-  //           });
-  //         }
-  //       }
-  //     } catch (e) {
-  //       debugPrint("Firebase Vertex AI Chat Exception: $e");
-  //       if (mounted) {
-  //         setState(() {
-  //           _messages.add(
-  //             _ChatMessage(
-  //               text:
-  //                   "An execution hurdle occurred. Make sure Vertex AI is toggled on in your Cloud Console!",
-  //               isUser: false,
-  //             ),
-  //           );
-  //         });
-  //       }
-  //     } finally {
-  //       if (mounted) {
-  //         setState(() {
-  //           _isTyping = false;
-  //         });
-  //         _scrollToBottom();
-  //       }
-  //     }
-  //   }
-
-  //   Future<void> _sendMessage(String userMessage) async {
-  //     if (userMessage.trim().isEmpty) return;
-
-  //     setState(() {
-  //       _messages.add(_ChatMessage(text: userMessage, isUser: true));
-  //       _isTyping = true;
-  //     });
-  //     _textController.clear();
-  //     _scrollToBottom();
-
-  //     final category = widget.category;
-  //     final wrongQuestionsDetails = widget.incorrectQuestions
-  //         .map(
-  //           (q) =>
-  //               "- Question: ${q.questionText}\n  Correct Option: ${q.correctAnswer}",
-  //         )
-  //         .join("\n\n");
-
-  //     final systemPrompt =
-  //         """
-  // You are a friendly and expert AI study tutor inside a gamified quiz application.
-  // The user is currently taking a quiz on "$category".
-  // Here are the questions they got wrong so far:
-  // $wrongQuestionsDetails
-  // """;
-
-  //     // Build history conversation array
-  //     final List<Map<String, dynamic>> contents = [
-  //       {
-  //         "role": "user",
-  //         "parts": [
-  //           {"text": systemPrompt},
-  //         ],
-  //       },
-  //     ];
-
-  //     for (var msg in _messages) {
-  //       contents.add({
-  //         "role": msg.isUser ? "user" : "model",
-  //         "parts": [
-  //           {"text": msg.text},
-  //         ],
-  //       });
-  //     }
-
-  //     try {
-  //       final bool isOAuth = !_geminiApiKey.startsWith("AIzaSy");
-  //       final url = isOAuth
-  //           ? Uri.parse(
-  //               "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent",
-  //             )
-  //           : Uri.parse(
-  //               "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$_geminiApiKey",
-  //             );
-
-  //       final headers = {
-  //         "Content-Type": "application/json",
-  //         if (isOAuth) "Authorization": "Bearer $_geminiApiKey",
-  //       };
-
-  //       final String maskedKey = _geminiApiKey.length > 8
-  //           ? "${_geminiApiKey.substring(0, 4)}...${_geminiApiKey.substring(_geminiApiKey.length - 4)}"
-  //           : "short-key";
-  //       debugPrint(
-  //         "Sending Gemini request (Message). URL: ${url.toString().replaceAll(_geminiApiKey, maskedKey)}, Headers: ${headers.toString().replaceAll(_geminiApiKey, maskedKey)}",
-  //       );
-
-  //       final response = await http.post(
-  //         url,
-  //         headers: headers,
-  //         body: json.encode({"contents": contents}),
-  //       );
-
-  //       if (response.statusCode == 200) {
-  //         final data = json.decode(response.body);
-  //         final text =
-  //             data['candidates'][0]['content']['parts'][0]['text'] as String;
-  //         if (mounted) {
-  //           setState(() {
-  //             _messages.add(_ChatMessage(text: text.trim(), isUser: false));
-  //           });
-  //         }
-  //       } else {
-  //         debugPrint(
-  //           "Gemini API Error response: ${response.statusCode} - ${response.body}",
-  //         );
-  //         if (mounted) {
-  //           setState(() {
-  //             _messages.add(
-  //               _ChatMessage(
-  //                 text:
-  //                     "I couldn't process that message. (Status: ${response.statusCode}, Body: ${response.body})",
-  //                 isUser: false,
-  //               ),
-  //             );
-  //           });
-  //         }
-  //       }
-  //     } catch (e) {
-  //       debugPrint("Gemini API Exception: $e");
-  //       if (mounted) {
-  //         setState(() {
-  //           _messages.add(
-  //             _ChatMessage(
-  //               text: "Network error occurred. (Exception: $e)",
-  //               isUser: false,
-  //             ),
-  //           );
-  //         });
-  //       }
-  //     } finally {
-  //       if (mounted) {
-  //         setState(() {
-  //           _isTyping = false;
-  //         });
-  //         _scrollToBottom();
-  //       }
-  //     }
-  //   }
+      if (mounted && !addedMessage) {
+        setState(() {
+          _messages.add(
+            _ChatMessage(
+              text:
+                  "I read your message but couldn't formulate a response. Let me know if you have another question!",
+              isUser: false,
+            ),
+          );
+        });
+      }
+    } catch (e) {
+      debugPrint("Firebase AI Chat Exception: $e");
+      if (mounted) {
+        setState(() {
+          _messages.add(
+            _ChatMessage(
+              text:
+                  "Sorry, an issue occurred with the AI assistant service. Please check your network or try again later.",
+              isUser: false,
+            ),
+          );
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isTyping = false;
+        });
+        _scrollToBottom();
+      }
+    }
+  }
 
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1775,16 +1472,36 @@ $wrongQuestionsDetails
                         bottomRight: Radius.circular(message.isUser ? 4 : 16),
                       ),
                     ),
-                    child: Text(
-                      message.text,
-                      style: TextStyle(
-                        color: message.isUser
-                            ? Colors.white
-                            : Colors.grey.shade800,
-                        fontSize: 14,
-                        height: 1.4,
-                      ),
-                    ),
+                    child: message.isUser
+                        ? Text(
+                            message.text,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              height: 1.4,
+                            ),
+                          )
+                        : MarkdownBody(
+                            data: message.text,
+                            selectable: true,
+                            styleSheet:
+                                MarkdownStyleSheet.fromTheme(Theme.of(context))
+                                    .copyWith(
+                              p: TextStyle(
+                                color: Colors.grey.shade800,
+                                fontSize: 14,
+                                height: 1.4,
+                              ),
+                              listBullet: TextStyle(
+                                color: Colors.grey.shade800,
+                                fontSize: 14,
+                              ),
+                              strong: TextStyle(
+                                color: Colors.grey.shade900,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
                   ),
                 );
               },
@@ -1808,10 +1525,13 @@ $wrongQuestionsDetails
                 Expanded(
                   child: TextField(
                     controller: _textController,
+                    enabled: !_isTyping,
                     textInputAction: TextInputAction.send,
                     onSubmitted: _sendMessage,
                     decoration: InputDecoration(
-                      hintText: 'Ask Gemini a follow-up question...',
+                      hintText: _isTyping
+                          ? 'Please wait for Gemini to respond...'
+                          : 'Ask Gemini a follow-up question...',
                       hintStyle: TextStyle(
                         color: Colors.grey.shade400,
                         fontSize: 14,
@@ -1831,13 +1551,13 @@ $wrongQuestionsDetails
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF6366F1),
+                  decoration: BoxDecoration(
+                    color: _isTyping ? Colors.grey.shade400 : const Color(0xFF6366F1),
                     shape: BoxShape.circle,
                   ),
                   child: IconButton(
                     icon: const Icon(Icons.send_rounded, color: Colors.white),
-                    onPressed: () => _sendMessage(_textController.text),
+                    onPressed: _isTyping ? null : () => _sendMessage(_textController.text),
                   ),
                 ),
               ],

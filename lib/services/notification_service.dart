@@ -26,7 +26,7 @@ class NotificationService {
     await _notificationsPlugin.initialize(settings: initSettings);
   }
 
-  Future<void> scheduleDailyStreakReminder() async {
+  Future<void> scheduleDailyStreakReminder({bool forceTomorrow = false}) async {
     final random = Random();
     // Schedule randomly between 10 AM and 8 PM
     final hour = 10 + random.nextInt(10);
@@ -42,7 +42,7 @@ class NotificationService {
       minute,
     );
 
-    if (scheduledDate.isBefore(now)) {
+    if (forceTomorrow || scheduledDate.isBefore(now)) {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
 
