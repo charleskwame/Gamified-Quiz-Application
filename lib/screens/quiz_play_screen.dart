@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/question.dart';
 import '../models/badge.dart';
@@ -59,6 +61,10 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
   // Timer fields
   Timer? _timer;
   int _timeLeft = 15;
+
+  // Random quote for completion screen
+  String? _randomQuoteText;
+  String? _randomQuoteAuthor;
 
   @override
   void initState() {
@@ -230,6 +236,32 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
           });
         }
       }
+
+      // Load a random motivational quote for the completion screen
+      _loadRandomQuote();
+    }
+  }
+
+  Future<void> _loadRandomQuote() async {
+    try {
+      final jsonString =
+          await rootBundle.loadString('lib/assets/quotes.json');
+      final Map<String, dynamic> data = jsonDecode(jsonString);
+      final List<dynamic> quotesList = data['quotes'];
+      if (quotesList.isNotEmpty) {
+        final random = Random();
+        final randomQuote = quotesList[random.nextInt(quotesList.length)];
+        final String text = randomQuote['quote'];
+        final String author = randomQuote['author'];
+        if (mounted) {
+          setState(() {
+            _randomQuoteText = text;
+            _randomQuoteAuthor = author;
+          });
+        }
+      }
+    } catch (_) {
+      // Silently fail — quote display is optional
     }
   }
 
@@ -448,12 +480,19 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
       final accuracy = (_correctAnswers / _questions.length * 100).round();
       return Scaffold(
         body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
                 const Icon(
                   Icons.emoji_events_rounded,
                   size: 100,
@@ -589,11 +628,59 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
                     child: const Text('Back to Course Selection'),
                   ),
                 ),
+
+                // Random motivational quote from quotes.json
+                if (_randomQuoteText != null) ...[
+                  const SizedBox(height: 28),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF0F4FF),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xFFDCE3F0)),
+                    ),
+                    child: Column(
+                      children: [
+                        const Icon(
+                          Icons.format_quote_rounded,
+                          color: Color(0xFF9CA3AF),
+                          size: 28,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          _randomQuoteText!,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontStyle: FontStyle.italic,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF374151),
+                            height: 1.5,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          '— $_randomQuoteAuthor',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF6B7280),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
-            ),
-          ),
-        ),
-      );
+            ), // Column
+          ), // Padding
+        )); // ConstrainedBox + SingleChildScrollView return
+      },
+    ),
+  ),
+);
     }
 
     final question = _questions[_currentIndex];
