@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
 import 'screens/auth_screen.dart';
+import 'screens/email_verification_screen.dart';
 import 'services/auth_service.dart';
 import 'services/database_service.dart';
 import 'screens/challenge_select_screen.dart';
@@ -139,7 +140,13 @@ class _AuthGateState extends State<AuthGate> {
         final user = snapshot.data;
         if (user != null) {
           _bypassAuth = false;
-          return const MainNavigation();
+          // Check if email is verified
+          if (user.emailVerified) {
+            return const MainNavigation();
+          } else {
+            // Fresh signup or unverified account — show verification screen
+            return EmailVerificationScreen(email: user.email ?? '');
+          }
         }
 
         if (_bypassAuth) {

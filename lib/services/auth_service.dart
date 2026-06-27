@@ -10,6 +10,9 @@ class AuthService {
   // Get current user
   User? get currentUser => _auth.currentUser;
 
+  // Check if current user's email is verified
+  bool get isEmailVerified => currentUser?.emailVerified ?? false;
+
   // Sign up with email and password
   Future<UserCredential?> signUp({
     required String email,
@@ -24,6 +27,8 @@ class AuthService {
       if (user != null) {
         // Set display name
         await user.updateDisplayName(displayName);
+        // Send email verification
+        await user.sendEmailVerification();
         // Create Firestore user document with default stats & progress tracking
         await DatabaseService().initializeUserStats(user.uid, displayName, email);
       }
@@ -50,6 +55,29 @@ class AuthService {
     }
   }
 
+  // Resend email verification
+  Future<void> resendVerificationEmail() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw Exception('No user is currently logged in.');
+    }
+    await user.sendEmailVerification();
+  }
+
+  // Reload current user to refresh emailVerified status
+  Future<void> reloadUser() async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      await user.reload();
+    }
+  }
+
+  // Check if email is verified by reloading user first
+  Future<bool> checkEmailVerification() async {
+    await reloadUser();
+    return _auth.currentUser?.emailVerified ?? false;
+  }
+
   // Update profile info
   Future<void> updateProfile({
     String? displayName,
@@ -69,6 +97,8 @@ class AuthService {
       if (email != null && email.isNotEmpty && email != user.email) {
         // ignore: deprecated_member_use
         await user.updateEmail(email);
+        // If email changed, re-send verification
+        await user.sendEmailVerification();
       }
 
       if (password != null && password.isNotEmpty) {
@@ -82,6 +112,15 @@ class AuthService {
     } on FirebaseAuthException {
       rethrow;
     }
+  }
+
+  // Delete the current user's Firebase Auth account
+  Future<void> deleteAccount() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw Exception('No user is currently logged in.');
+    }
+    await user.delete();
   }
 
   // Log out

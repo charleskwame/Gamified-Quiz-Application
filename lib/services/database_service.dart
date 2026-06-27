@@ -30,6 +30,7 @@ class DatabaseService {
       'displayName': displayName,
       'email': email,
       'score': 0,
+      'emailVerified': false,
       'computerArchitecturePoints': 0,
       'caAnswered': 0,
       'caCorrect': 0,
@@ -68,6 +69,13 @@ class DatabaseService {
     await _db.collection('users').doc(uid).update({
       'avatarUrl': avatarUrl,
       'avatarDetails': details,
+    });
+  }
+
+  // Update email verification status in Firestore
+  Future<void> updateEmailVerificationStatus(String uid, bool verified) async {
+    await _db.collection('users').doc(uid).update({
+      'emailVerified': verified,
     });
   }
 
