@@ -638,7 +638,7 @@ class _RankingsPageState extends State<RankingsPage> {
                           color: const Color(
                             0xFF111C4A,
                           ).withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(40),
                         ),
                         child: IconButton(
                           icon: Icon(
@@ -712,7 +712,7 @@ class _RankingsPageState extends State<RankingsPage> {
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(24),
+                        borderRadius: BorderRadius.circular(40),
                         border: Border.all(color: const Color(0xFFE6EAF2)),
                       ),
                       child: const Center(
@@ -1111,7 +1111,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(40),
                   border: Border.all(color: const Color(0xFFE6EAF2)),
                   boxShadow: const [
                     BoxShadow(
@@ -1131,12 +1131,12 @@ class _ProfilePageState extends State<ProfilePage> {
                           height: 80,
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(40),
                             border: Border.all(color: const Color(0xFFE6EAF2), width: 1.5),
                           ),
                           child: avatarUrl != null && avatarUrl.isNotEmpty
                               ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(14),
+                                  borderRadius: BorderRadius.circular(40),
                                   child: Image.network(
                                     avatarUrl,
                                     fit: BoxFit.cover,
@@ -1256,12 +1256,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   }).toList(),
                                 ),
                               ],
-                              const SizedBox(height: 6),
-                              Text(
-                                email,
-                                style: Theme.of(context).textTheme.bodyLarge,
-                                overflow: TextOverflow.ellipsis,
-                              ),
+
                             ],
                           ),
                         ),
