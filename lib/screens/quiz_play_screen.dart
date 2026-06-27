@@ -175,6 +175,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
       _finishQuiz();
     }
   }
+
   Future<void> _finishQuiz() async {
     setState(() {
       _isLoading = true;
@@ -201,9 +202,12 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
       final prefs = await SharedPreferences.getInstance();
       final todayStr = DateTime.now().toIso8601String().split('T')[0];
       await prefs.setString('last_active_date', todayStr);
-      final notificationsEnabled = prefs.getBool('notifications_enabled') ?? false;
+      final notificationsEnabled =
+          prefs.getBool('notifications_enabled') ?? false;
       if (notificationsEnabled) {
-        await NotificationService().scheduleDailyStreakReminder(forceTomorrow: true);
+        await NotificationService().scheduleDailyStreakReminder(
+          forceTomorrow: true,
+        );
       }
     } catch (e) {
       // Ignore preference write/notification scheduling errors
@@ -390,7 +394,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
             children: [
               const CircularProgressIndicator(
                 strokeWidth: 3,
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF5B5FEF)),
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF141053)),
               ),
               const SizedBox(height: 24),
               const Text(
@@ -949,7 +953,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF6366F1).withValues(alpha: 0.4),
+                      color: const Color(0xFF141053).withValues(alpha: 0.4),
                       blurRadius: 10 * _aiButtonAnimationController!.value,
                       spreadRadius: 3 * _aiButtonAnimationController!.value,
                     ),
@@ -957,7 +961,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
                 ),
                 child: FloatingActionButton(
                   onPressed: _showAiChatInterface,
-                  backgroundColor: const Color(0xFF6366F1),
+                  backgroundColor: const Color(0xFF141053),
                   mini: false,
                   child: const Icon(
                     Icons.psychology_rounded,
@@ -1163,13 +1167,14 @@ class _AiChatBottomSheetState extends State<_AiChatBottomSheet> {
     final wrongQuestionsDetails = widget.incorrectQuestions.isEmpty
         ? "No wrong questions yet. General assistance."
         : widget.incorrectQuestions
-            .map(
-              (q) =>
-                  "- Question: ${q.questionText}\n  Correct Answer: ${q.correctAnswer}",
-            )
-            .join("\n\n");
+              .map(
+                (q) =>
+                    "- Question: ${q.questionText}\n  Correct Answer: ${q.correctAnswer}",
+              )
+              .join("\n\n");
 
-    final prompt = """
+    final prompt =
+        """
 You are an expert AI study tutor inside a gamified quiz application.
 The user is currently taking a quiz on "$category".
 ${widget.incorrectQuestions.isNotEmpty ? "Here are the questions they got wrong so far:\n$wrongQuestionsDetails\n" : ""}
@@ -1183,7 +1188,9 @@ CRITICAL INSTRUCTION: Be extremely direct and straight to the point. Give 1-2 co
       final model = FirebaseAI.googleAI().generativeModel(
         model: 'gemini-3.5-flash',
       );
-      final responseStream = model.generateContentStream([Content.text(prompt)]);
+      final responseStream = model.generateContentStream([
+        Content.text(prompt),
+      ]);
 
       await for (final chunk in responseStream) {
         if (!mounted) break;
@@ -1252,7 +1259,8 @@ CRITICAL INSTRUCTION: Be extremely direct and straight to the point. Give 1-2 co
         )
         .join("\n\n");
 
-    final systemPrompt = """
+    final systemPrompt =
+        """
 You are an expert AI study tutor inside a gamified quiz application.
 The user is currently taking a quiz on "$category".
 ${widget.incorrectQuestions.isNotEmpty ? "Questions answered incorrectly so far:\n$wrongQuestionsDetails\n" : ""}
@@ -1379,7 +1387,7 @@ CRITICAL INSTRUCTION: Be extremely direct and straight to the point. Answer imme
                   children: [
                     const Icon(
                       Icons.auto_awesome,
-                      color: Color(0xFF6366F1),
+                      color: Color(0xFF141053),
                       size: 20,
                     ),
                     const SizedBox(width: 8),
@@ -1426,7 +1434,7 @@ CRITICAL INSTRUCTION: Be extremely direct and straight to the point. Answer imme
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
                               valueColor: AlwaysStoppedAnimation(
-                                Color(0xFF6366F1),
+                                Color(0xFF141053),
                               ),
                             ),
                           ),
@@ -1461,7 +1469,7 @@ CRITICAL INSTRUCTION: Be extremely direct and straight to the point. Answer imme
                     decoration: BoxDecoration(
                       gradient: message.isUser
                           ? const LinearGradient(
-                              colors: [Color(0xFF6366F1), Color(0xFF4F46E5)],
+                              colors: [Color(0xFF141053), Color(0xFF141053)],
                             )
                           : null,
                       color: message.isUser ? null : Colors.grey.shade100,
@@ -1485,22 +1493,23 @@ CRITICAL INSTRUCTION: Be extremely direct and straight to the point. Answer imme
                             data: message.text,
                             selectable: true,
                             styleSheet:
-                                MarkdownStyleSheet.fromTheme(Theme.of(context))
-                                    .copyWith(
-                              p: TextStyle(
-                                color: Colors.grey.shade800,
-                                fontSize: 14,
-                                height: 1.4,
-                              ),
-                              listBullet: TextStyle(
-                                color: Colors.grey.shade800,
-                                fontSize: 14,
-                              ),
-                              strong: TextStyle(
-                                color: Colors.grey.shade900,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                                MarkdownStyleSheet.fromTheme(
+                                  Theme.of(context),
+                                ).copyWith(
+                                  p: TextStyle(
+                                    color: Colors.grey.shade800,
+                                    fontSize: 14,
+                                    height: 1.4,
+                                  ),
+                                  listBullet: TextStyle(
+                                    color: Colors.grey.shade800,
+                                    fontSize: 14,
+                                  ),
+                                  strong: TextStyle(
+                                    color: Colors.grey.shade900,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                           ),
                   ),
                 );
@@ -1552,12 +1561,16 @@ CRITICAL INSTRUCTION: Be extremely direct and straight to the point. Answer imme
                 const SizedBox(width: 8),
                 Container(
                   decoration: BoxDecoration(
-                    color: _isTyping ? Colors.grey.shade400 : const Color(0xFF6366F1),
+                    color: _isTyping
+                        ? Colors.grey.shade400
+                        : const Color(0xFF141053),
                     shape: BoxShape.circle,
                   ),
                   child: IconButton(
                     icon: const Icon(Icons.send_rounded, color: Colors.white),
-                    onPressed: _isTyping ? null : () => _sendMessage(_textController.text),
+                    onPressed: _isTyping
+                        ? null
+                        : () => _sendMessage(_textController.text),
                   ),
                 ),
               ],

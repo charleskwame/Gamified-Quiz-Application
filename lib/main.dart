@@ -8,6 +8,7 @@ import 'services/database_service.dart';
 import 'screens/challenge_select_screen.dart';
 import 'models/badge.dart';
 import 'screens/earned_badges_screen.dart';
+import 'screens/settings_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'models/user_rank.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -386,7 +387,7 @@ class QuizHomePage extends StatelessWidget {
                       value: '$questionsAnswered',
                       subtitle: 'Questions',
                       icon: Icons.forum_rounded,
-                      color: const Color(0xFF5B5FEF),
+                      color: const Color(0xFF141053),
                       onPressed: () {
                         Navigator.push(
                           context,
@@ -440,7 +441,7 @@ class QuizHomePage extends StatelessWidget {
                     'Dive into pipelines, processor architectures, ALU designs, and instruction execution dynamics.',
                 icon: Icons.memory_rounded,
                 color1: const Color(0xFF8C52FF),
-                color2: const Color(0xFF5B5FEF),
+                color2: const Color(0xFF141053),
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -703,32 +704,59 @@ class _RankingsPageState extends State<RankingsPage> {
                           ),
                           child: Row(
                             children: [
-                              Container(
-                                width: 36,
-                                height: 36,
-                                decoration: BoxDecoration(
-                                  color: isTopThree
-                                      ? colorsMap[index].withValues(alpha: 0.15)
-                                      : const Color(0xFFF4F6FB),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Center(
-                                  child: isTopThree
-                                      ? Icon(
-                                          Icons.emoji_events_rounded,
-                                          color: colorsMap[index],
-                                          size: 18,
-                                        )
-                                      : Text(
-                                          '${index + 1}',
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w700,
-                                            color: Color(0xFF4B5565),
-                                          ),
-                                        ),
+                              // Rank number
+                              SizedBox(
+                                width: 24,
+                                child: Text(
+                                  '${index + 1}',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w800,
+                                    color: isTopThree ? colorsMap[index] : const Color(0xFF4B5565),
+                                  ),
                                 ),
                               ),
-                              const SizedBox(width: 16),
+                              // Trophy for top three
+                              if (isTopThree) ...[
+                                Icon(
+                                  Icons.emoji_events_rounded,
+                                  color: colorsMap[index],
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 12),
+                              ] else ...[
+                                const SizedBox(width: 32),
+                              ],
+                              // User Avatar (White background with grey border)
+                              Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: const Color(0xFFE6EAF2), width: 1.5),
+                                ),
+                                child: rank.avatarUrl != null && rank.avatarUrl!.isNotEmpty
+                                    ? ClipOval(
+                                        child: Image.network(
+                                          rank.avatarUrl!,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error, stackTrace) =>
+                                              const Icon(
+                                                Icons.person_rounded,
+                                                size: 24,
+                                                color: Color(0xFF141053),
+                                              ),
+                                        ),
+                                      )
+                                    : const Icon(
+                                        Icons.person_rounded,
+                                        size: 24,
+                                        color: Color(0xFF141053),
+                                      ),
+                              ),
+                              const SizedBox(width: 12),
+                              // Name and badges
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -798,10 +826,10 @@ class _RankingsPageState extends State<RankingsPage> {
                               ),
                               Text(
                                 '$userPoints pts',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w800,
-                                  color: Theme.of(context).colorScheme.primary,
+                                  color: Color(0xFF141053),
                                 ),
                               ),
                             ],
@@ -828,24 +856,12 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   final AuthService _authService = AuthService();
-  late final TextEditingController _displayNameController;
-  late final TextEditingController _emailController;
-  final _passwordController = TextEditingController();
-
-  bool _isLoading = false;
-  String? _errorMessage;
-  String? _successMessage;
   bool _notificationsEnabled = false;
 
   @override
   void initState() {
     super.initState();
     _loadNotificationPreference();
-    final user = _authService.currentUser;
-    _displayNameController = TextEditingController(
-      text: user?.displayName ?? '',
-    );
-    _emailController = TextEditingController(text: user?.email ?? '');
   }
 
   Future<void> _loadNotificationPreference() async {
@@ -896,61 +912,6 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   @override
-  void dispose() {
-    _displayNameController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _updateAccountInfo() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-      _successMessage = null;
-    });
-
-    try {
-      final name = _displayNameController.text.trim();
-      final email = _emailController.text.trim();
-      final password = _passwordController.text;
-
-      if (name.isEmpty) {
-        throw Exception('Name cannot be empty.');
-      }
-      if (email.isEmpty) {
-        throw Exception('Email cannot be empty.');
-      }
-
-      await _authService.updateProfile(
-        displayName: name,
-        email: email,
-        password: password.isNotEmpty ? password : null,
-      );
-
-      setState(() {
-        _successMessage = 'Account updated successfully!';
-        _passwordController.clear();
-      });
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'requires-recent-login') {
-        setState(
-          () => _errorMessage =
-              'For security reasons, please log out and log back in to change your email or password.',
-        );
-      } else {
-        setState(() => _errorMessage = e.message ?? 'An error occurred.');
-      }
-    } catch (e) {
-      setState(
-        () => _errorMessage = e.toString().replaceFirst('Exception: ', ''),
-      );
-    } finally {
-      setState(() => _isLoading = false);
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     final user = _authService.currentUser;
 
@@ -963,6 +924,7 @@ class _ProfilePageState extends State<ProfilePage> {
         streakNumber: 0,
         unlockedBadgeIds: [],
         selectedBadges: [],
+        avatarUrl: null,
       );
     }
 
@@ -983,6 +945,7 @@ class _ProfilePageState extends State<ProfilePage> {
         int streakNumber = 0;
         List<String> unlockedBadgeIds = [];
         List<String> selectedBadges = [];
+        String? avatarUrl;
 
         if (snapshot.hasData && snapshot.data!.exists) {
           final data = snapshot.data!.data() as Map<String, dynamic>;
@@ -991,6 +954,7 @@ class _ProfilePageState extends State<ProfilePage> {
           streakNumber = data['streakNumber'] ?? 0;
           unlockedBadgeIds = List<String>.from(data['badges'] ?? []);
           selectedBadges = List<String>.from(data['selectedBadges'] ?? []);
+          avatarUrl = data['avatarUrl'] as String?;
         }
 
         return _buildProfileContent(
@@ -1001,6 +965,7 @@ class _ProfilePageState extends State<ProfilePage> {
           streakNumber: streakNumber,
           unlockedBadgeIds: unlockedBadgeIds,
           selectedBadges: selectedBadges,
+          avatarUrl: avatarUrl,
         );
       },
     );
@@ -1014,6 +979,7 @@ class _ProfilePageState extends State<ProfilePage> {
     required int streakNumber,
     required List<String> unlockedBadgeIds,
     required List<String> selectedBadges,
+    required String? avatarUrl,
   }) {
     final previewBadges = allBadges.take(4).toList();
 
@@ -1045,7 +1011,19 @@ class _ProfilePageState extends State<ProfilePage> {
                             ? const Color(0xFF111C4A)
                             : Colors.grey,
                       ),
-                      if (user != null)
+                      if (user != null) ...[
+                        IconButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const SettingsScreen(),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.settings_rounded),
+                          color: const Color(0xFF141053),
+                        ),
                         IconButton(
                           onPressed: () {
                             showDialog(
@@ -1076,6 +1054,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           icon: const Icon(Icons.logout_rounded),
                           color: const Color(0xFF931716),
                         ),
+                      ],
                     ],
                   ),
                 ],
@@ -1106,14 +1085,30 @@ class _ProfilePageState extends State<ProfilePage> {
                           width: 80,
                           height: 80,
                           decoration: BoxDecoration(
-                            color: const Color(0xFF5B5FEF),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: const Icon(
-                            Icons.person_rounded,
-                            size: 40,
                             color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: const Color(0xFFE6EAF2), width: 1.5),
                           ),
+                          child: avatarUrl != null && avatarUrl.isNotEmpty
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(14),
+                                  child: Image.network(
+                                    avatarUrl,
+                                    fit: BoxFit.cover,
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            const Icon(
+                                              Icons.person_rounded,
+                                              size: 40,
+                                              color: Color(0xFF141053),
+                                            ),
+                                  ),
+                                )
+                              : const Icon(
+                                  Icons.person_rounded,
+                                  size: 40,
+                                  color: Color(0xFF141053),
+                                ),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
@@ -1285,212 +1280,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   return _BadgeCard(badge: badge, isUnlocked: isUnlocked);
                 },
               ),
-              if (user != null) ...[
-                const SizedBox(height: 32),
-                Text(
-                  'Update account information',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 16),
 
-                // Error message
-                if (_errorMessage != null) ...[
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.red.shade50,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.red.shade200),
-                    ),
-                    child: Text(
-                      _errorMessage!,
-                      style: TextStyle(color: Colors.red.shade700),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-
-                // Success message
-                if (_successMessage != null) ...[
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.green.shade50,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.green.shade200),
-                    ),
-                    child: Text(
-                      _successMessage!,
-                      style: TextStyle(color: Colors.green.shade700),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-
-                // Name field
-                TextField(
-                  controller: _displayNameController,
-                  decoration: InputDecoration(
-                    labelText: 'Full Name',
-                    hintText: 'Enter your full name',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 14,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Email field
-                TextField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                    labelText: 'Email',
-                    hintText: 'Enter your email',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 14,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Password field
-                TextField(
-                  controller: _passwordController,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    labelText: 'New Password',
-                    hintText: 'Leave blank to keep current',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 14,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Update Button
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    onPressed: _isLoading ? null : _updateAccountInfo,
-                    style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.white,
-                              ),
-                            ),
-                          )
-                        : const Text('Save Changes'),
-                  ),
-                ),
-              ],
-              // Delete Account Button (Only for logged in users)
-              if (user != null) ...[
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: _isLoading
-                        ? null
-                        : () async {
-                            showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: const Text(
-                                  'Delete Account?',
-                                  style: TextStyle(
-                                    color: Color(0xFF931716),
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                content: const Text(
-                                  'Warning: This action is irreversible. Your entire progress, achievements, points, earned badges, and offline saved questions will be permanently deleted from the system.',
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(context),
-                                    child: const Text('Cancel'),
-                                  ),
-                                  FilledButton(
-                                    onPressed: () async {
-                                      Navigator.pop(context); // Close dialog
-                                      setState(() {
-                                        _isLoading = true;
-                                        _errorMessage = null;
-                                        _successMessage = null;
-                                      });
-                                      try {
-                                        final uid = user.uid;
-                                        // 1. Delete Firestore data & SharedPreferences offline questions
-                                        await DatabaseService()
-                                            .deleteUserAccount(uid);
-                                        // 2. Delete user authenticated account from Firebase Auth
-                                        await user.delete();
-                                        // 3. Perform logout
-                                        await _authService.logOut();
-                                      } catch (e) {
-                                        setState(() {
-                                          _errorMessage =
-                                              'Failed to delete account: $e. For security, please log out, log back in, and try again.';
-                                        });
-                                      } finally {
-                                        setState(() {
-                                          _isLoading = false;
-                                        });
-                                      }
-                                    },
-                                    style: FilledButton.styleFrom(
-                                      backgroundColor: const Color(0xFF931716),
-                                      foregroundColor: Colors.white,
-                                    ),
-                                    child: const Text('Delete Permanently'),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                    icon: const Icon(
-                      Icons.delete_forever_rounded,
-                      color: Color(0xFF931716),
-                    ),
-                    label: const Text(
-                      'Delete Account',
-                      style: TextStyle(color: Color(0xFF931716)),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      side: const BorderSide(color: Color(0xFF931716)),
-                    ),
-                  ),
-                ),
-              ],
               const SizedBox(height: 32),
 
               // Login button for guests

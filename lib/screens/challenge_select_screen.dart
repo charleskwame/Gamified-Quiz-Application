@@ -145,7 +145,7 @@ class _ChallengeSelectScreenState extends State<ChallengeSelectScreen> {
                 title: 'Normal Challenge',
                 description: 'Answer quiz questions with no timer limits. Recommended for learning.',
                 icon: Icons.hourglass_disabled_rounded,
-                color: const Color(0xFF5B5FEF),
+                color: const Color(0xFF141053),
                 onTap: () => _startQuiz(isTimed: false, isOffline: false),
               ),
               const SizedBox(height: 16),

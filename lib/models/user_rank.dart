@@ -8,6 +8,7 @@ class UserRank {
   final int computerArchitecturePoints;
   final int computerNetworkingPoints;
   final int softwareEngineeringPoints;
+  final String? avatarUrl;
 
   UserRank({
     required this.id,
@@ -17,6 +18,7 @@ class UserRank {
     required this.computerArchitecturePoints,
     required this.computerNetworkingPoints,
     required this.softwareEngineeringPoints,
+    this.avatarUrl,
   });
 
   factory UserRank.fromFirestore(DocumentSnapshot doc) {
@@ -29,6 +31,7 @@ class UserRank {
       computerArchitecturePoints: data['computerArchitecturePoints'] ?? 0,
       computerNetworkingPoints: data['computerNetworkingPoints'] ?? 0,
       softwareEngineeringPoints: data['softwareEngineeringPoints'] ?? 0,
+      avatarUrl: data['avatarUrl'] as String?,
     );
   }
 }

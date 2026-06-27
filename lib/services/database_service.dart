@@ -58,6 +58,14 @@ class DatabaseService {
     }
   }
 
+  // Update customized avatar URL and options details in Firestore
+  Future<void> updateAvatar(String uid, String avatarUrl, Map<String, dynamic> details) async {
+    await _db.collection('users').doc(uid).update({
+      'avatarUrl': avatarUrl,
+      'avatarDetails': details,
+    });
+  }
+
   // Update user stats after a quiz challenge
   Future<void> updateUserQuizStats({
     required String uid,
