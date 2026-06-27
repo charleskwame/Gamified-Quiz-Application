@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -31,9 +32,24 @@ void main() async {
   );
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await NotificationService().init();
+  // Initialize notification service with tap handler
+  await NotificationService().init(
+    onTap: (payload) {
+      // When user taps the daily streak notification, they'll land on the home
+      // screen where they can start a quiz. The payload is 'open_quiz'.
+      // Navigation is handled implicitly since the app is already open or
+      // will open to MainNavigation (home tab) by default.
+    },
+  );
 
   final prefs = await SharedPreferences.getInstance();
+  final todayStr = DateTime.now().toIso8601String().split('T')[0];
+
+  // Ensure last_active_date is initialized on first run
+  if (!prefs.containsKey('last_active_date')) {
+    await prefs.setString('last_active_date', '');
+  }
+
   final notificationsEnabled = prefs.getBool('notifications_enabled') ?? false;
   if (notificationsEnabled) {
     final todayStr = DateTime.now().toIso8601String().split('T')[0];
@@ -125,6 +141,26 @@ class AuthGate extends StatefulWidget {
 
 class _AuthGateState extends State<AuthGate> {
   bool _bypassAuth = true;
+  Timer? _verificationTimer;
+
+  @override
+  void dispose() {
+    _verificationTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startVerificationPolling() {
+    _verificationTimer?.cancel();
+    _verificationTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+      if (mounted) {
+        final user = FirebaseAuth.instance.currentUser;
+        if (user != null && user.emailVerified) {
+          _verificationTimer?.cancel();
+          setState(() {}); // Trigger rebuild -> MainNavigation
+        }
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -140,14 +176,20 @@ class _AuthGateState extends State<AuthGate> {
         final user = snapshot.data;
         if (user != null) {
           _bypassAuth = false;
-          // Check if email is verified
-          if (user.emailVerified) {
+          // Check if email is verified (live instance, refreshed by verification screen reloads)
+          if (FirebaseAuth.instance.currentUser?.emailVerified == true) {
+            _verificationTimer?.cancel();
             return const MainNavigation();
           } else {
+            // Start polling for verification if not already
+            _startVerificationPolling();
             // Fresh signup or unverified account — show verification screen
             return EmailVerificationScreen(email: user.email ?? '');
           }
         }
+
+        // User logged out — stop polling
+        _verificationTimer?.cancel();
 
         if (_bypassAuth) {
           return const MainNavigation();

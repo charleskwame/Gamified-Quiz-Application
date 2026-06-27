@@ -160,10 +160,9 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
     await _authService.logOut();
   }
 
+  // AuthGate's periodic timer handles the actual navigation to MainNavigation
   void _navigateToApp() {
-    if (mounted && Navigator.canPop(context)) {
-      Navigator.pop(context);
-    }
+    // Verification is detected — AuthGate will transition within 3 seconds
   }
 
   @override

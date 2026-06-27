@@ -4,6 +4,9 @@ import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter_timezone/flutter_timezone.dart';
 
+/// Callback type for when a notification is tapped.
+typedef NotificationTapCallback = void Function(String? payload);
+
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
@@ -12,24 +15,47 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
-  Future<void> init() async {
+  /// Callback invoked when the user taps the daily streak notification.
+  NotificationTapCallback? onNotificationTap;
+
+  Future<void> init({NotificationTapCallback? onTap}) async {
     tz.initializeTimeZones();
     final info = await FlutterTimezone.getLocalTimezone();
     tz.setLocalLocation(tz.getLocation(info.identifier));
 
+    onNotificationTap = onTap;
+
     const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
-    const InitializationSettings initSettings = InitializationSettings(
-      android: androidSettings,
+
+    final DarwinInitializationSettings iosSettings =
+        DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
     );
 
-    await _notificationsPlugin.initialize(settings: initSettings);
+    final InitializationSettings initSettings = InitializationSettings(
+      android: androidSettings,
+      iOS: iosSettings,
+    );
+
+    await _notificationsPlugin.initialize(
+      settings: initSettings,
+      onDidReceiveNotificationResponse:
+          (NotificationResponse response) async {
+        onNotificationTap?.call(response.payload);
+      },
+    );
   }
 
   Future<void> scheduleDailyStreakReminder({bool forceTomorrow = false}) async {
+    // Cancel any existing reminder before scheduling a new one
+    await cancelStreakReminder();
+
     final random = Random();
-    // Schedule randomly between 10 AM and 8 PM
-    final hour = 10 + random.nextInt(10);
+    // Schedule randomly between 6 AM (hour 6) and 10 PM (hour 22)
+    final hour = 6 + random.nextInt(17); // 6..22 inclusive
     final minute = random.nextInt(60);
 
     final now = tz.TZDateTime.now(tz.local);
@@ -67,6 +93,7 @@ class NotificationService {
       notificationDetails: platformDetails,
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       matchDateTimeComponents: DateTimeComponents.time,
+      payload: 'open_quiz',
     );
   }
 
