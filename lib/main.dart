@@ -43,19 +43,24 @@ void main() async {
   );
 
   final prefs = await SharedPreferences.getInstance();
-  final todayStr = DateTime.now().toIso8601String().split('T')[0];
 
   // Ensure last_active_date is initialized on first run
   if (!prefs.containsKey('last_active_date')) {
     await prefs.setString('last_active_date', '');
   }
-
   final notificationsEnabled = prefs.getBool('notifications_enabled') ?? false;
   if (notificationsEnabled) {
-    final todayStr = DateTime.now().toIso8601String().split('T')[0];
-    final lastActiveDate = prefs.getString('last_active_date') ?? '';
-    final forceTomorrow = lastActiveDate == todayStr;
-    await NotificationService().scheduleDailyStreakReminder(forceTomorrow: forceTomorrow);
+    // Don't cancel/reschedule if a repeating notification is already pending.
+    // The matchDateTimeComponents: time flag will keep it firing daily.
+    final alreadyScheduled = await NotificationService().isReminderScheduled();
+    if (!alreadyScheduled) {
+      final todayStr = DateTime.now().toIso8601String().split('T')[0];
+      final lastActiveDate = prefs.getString('last_active_date') ?? '';
+      final forceTomorrow = lastActiveDate == todayStr;
+      await NotificationService().scheduleDailyStreakReminder(
+        forceTomorrow: forceTomorrow,
+      );
+    }
   }
 
   runApp(const MyApp());
@@ -928,10 +933,16 @@ class _ProfilePageState extends State<ProfilePage> {
       if (Platform.isAndroid) {
         await Permission.notification.request();
       }
-      final todayStr = DateTime.now().toIso8601String().split('T')[0];
-      final lastActiveDate = prefs.getString('last_active_date') ?? '';
-      final forceTomorrow = lastActiveDate == todayStr;
-      await NotificationService().scheduleDailyStreakReminder(forceTomorrow: forceTomorrow);
+      // Only schedule if no repeating notification is already pending
+      final alreadyScheduled = await NotificationService().isReminderScheduled();
+      if (!alreadyScheduled) {
+        final todayStr = DateTime.now().toIso8601String().split('T')[0];
+        final lastActiveDate = prefs.getString('last_active_date') ?? '';
+        final forceTomorrow = lastActiveDate == todayStr;
+        await NotificationService().scheduleDailyStreakReminder(
+          forceTomorrow: forceTomorrow,
+        );
+      }
     } else {
       await NotificationService().cancelStreakReminder();
     }

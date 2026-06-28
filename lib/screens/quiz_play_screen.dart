@@ -211,9 +211,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
       final notificationsEnabled =
           prefs.getBool('notifications_enabled') ?? false;
       if (notificationsEnabled) {
-        await NotificationService().scheduleDailyStreakReminder(
-          forceTomorrow: true,
-        );
+        await NotificationService().rescheduleForTomorrow();
       }
     } catch (e) {
       // Ignore preference write/notification scheduling errors
