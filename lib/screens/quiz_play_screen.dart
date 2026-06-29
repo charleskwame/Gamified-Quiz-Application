@@ -33,7 +33,9 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
   final DatabaseService _db = DatabaseService();
 
   int _consecutiveIncorrect = 0;
+  int _consecutiveCorrect = 0;
   AnimationController? _aiButtonAnimationController;
+  AnimationController? _progressAnimationController;
   final List<Question> _incorrectQuestions = [];
 
   // Fisher-Yates Shuffle Algorithm to ensure uniform random distribution
@@ -79,6 +81,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
   @override
   void dispose() {
     _timer?.cancel();
+    _progressAnimationController?.dispose();
     _aiButtonAnimationController?.dispose();
     super.dispose();
   }
@@ -119,18 +122,35 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
 
   void _startTimer() {
     _timer?.cancel();
-    setState(() {
-      _timeLeft = 15;
-    });
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_timeLeft > 0) {
-        setState(() {
-          _timeLeft--;
-        });
-      } else {
-        _timer?.cancel();
+    _progressAnimationController?.dispose();
+    _progressAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 15),
+    );
+
+    _progressAnimationController!.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
         _handleTimeOut();
       }
+    });
+
+    // Start from 1.0 (full) and animate down to 0.0 (empty)
+    _progressAnimationController!.forward(from: 0.0);
+
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      // We use the animation for smooth visual; this periodic timer is only
+      // for the numeric countdown display and timeout safety net.
+      setState(() {
+        _timeLeft =
+            (_progressAnimationController!.duration!.inSeconds *
+                    (1.0 - _progressAnimationController!.value))
+                .round()
+                .clamp(0, 15);
+      });
     });
   }
 
@@ -140,6 +160,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
       _isAnswered = true;
       _selectedOption = ''; // Mark unanswered
       _consecutiveIncorrect++;
+      _consecutiveCorrect = 0;
       _incorrectQuestions.add(currentQuestion);
     });
   }
@@ -147,6 +168,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
   void _selectAnswer(String option) {
     if (_isAnswered) return;
     _timer?.cancel();
+    _progressAnimationController?.stop();
 
     final currentQuestion = _questions[_currentIndex];
     final bool isCorrect = option.trim().toLowerCase().startsWith(
@@ -158,9 +180,20 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
       _isAnswered = true;
       if (isCorrect) {
         _correctAnswers++;
-        _score += widget.isTimed ? 3 : 1;
+        _consecutiveCorrect++;
         _consecutiveIncorrect = 0;
+
+        // Points multiplier in challenge (timed) mode
+        if (widget.isTimed) {
+          // Bonus multiplier: 2nd correct = +0.5, 3rd = +1.0, 4th = +1.5, etc.
+          final double bonusMultiplier = (_consecutiveCorrect - 1) * 0.5;
+          final double totalMultiplier = 1.0 + bonusMultiplier;
+          _score += (3 * totalMultiplier).round();
+        } else {
+          _score += 1;
+        }
       } else {
+        _consecutiveCorrect = 0;
         _consecutiveIncorrect++;
         _incorrectQuestions.add(currentQuestion);
       }
@@ -736,265 +769,338 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
           ),
         ],
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Linear Timer Progress bar (only at top if Timed Mode)
-              if (widget.isTimed) ...[
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: LinearProgressIndicator(
-                    value: _timeLeft / 15,
-                    minHeight: 6,
-                    color: _timeLeft <= 4
-                        ? Colors.red
-                        : Theme.of(context).colorScheme.primary,
-                    backgroundColor: const Color(0xFFE6EAF2),
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
-
-              // Question Text Card (with internal question number and timer)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: const Color(0xFFE6EAF2)),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x05121826),
-                      blurRadius: 10,
-                      offset: Offset(0, 4),
+      body: Stack(
+        children: [
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Linear Timer Progress bar (only at top if Timed Mode)
+                  if (widget.isTimed) ...[
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: AnimatedBuilder(
+                        animation: _progressAnimationController!,
+                        builder: (context, child) {
+                          // Smoothly animate from 1.0 (full) down to 0.0 (empty)
+                          final double progress =
+                              1.0 - _progressAnimationController!.value;
+                          return LinearProgressIndicator(
+                            value: progress,
+                            minHeight: 6,
+                            color: _timeLeft <= 4
+                                ? Colors.red
+                                : Theme.of(context).colorScheme.primary,
+                            backgroundColor: const Color(0xFFE6EAF2),
+                          );
+                        },
+                      ),
                     ),
+                    const SizedBox(height: 16),
                   ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.primary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            'QUESTION ${_currentIndex + 1} OF ${_questions.length}',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.primary,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 1.0,
-                            ),
-                          ),
+
+                  // Question Text Card (with internal question number and timer)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: const Color(0xFFE6EAF2)),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x05121826),
+                          blurRadius: 10,
+                          offset: Offset(0, 4),
                         ),
-                        if (widget.isTimed)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: _timeLeft <= 4
-                                  ? Colors.red.shade50
-                                  : const Color(0xFFF4F6FB),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.timer_rounded,
-                                  size: 14,
-                                  color: _timeLeft <= 4
-                                      ? Colors.red
-                                      : const Color(0xFF6B7280),
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '${_timeLeft}s',
-                                  style: TextStyle(
-                                    color: _timeLeft <= 4
-                                        ? Colors.red
-                                        : const Color(0xFF121826),
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
                       ],
                     ),
-                    const SizedBox(height: 20),
-                    Text(
-                      question.questionText,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF121826),
-                        height: 1.45,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Option Buttons
-              ...question.options.map((option) {
-                final isSelected = _selectedOption == option;
-                final isCorrectOption = option.trim().toLowerCase().startsWith(
-                  question.correctAnswer.toLowerCase(),
-                );
-
-                Color borderC = const Color(0xFFE6EAF2);
-                Color bgC = Colors.white;
-                IconData? stateIcon;
-
-                if (_isAnswered) {
-                  if (isCorrectOption) {
-                    borderC = const Color(0xFF4CAF50);
-                    bgC = const Color(0xFFE8F5E9);
-                    stateIcon = Icons.check_circle_rounded;
-                  } else if (isSelected) {
-                    borderC = const Color(0xFFF44336);
-                    bgC = const Color(0xFFFFEBEE);
-                    stateIcon = Icons.cancel_rounded;
-                  }
-                } else if (isSelected) {
-                  borderC = Theme.of(context).colorScheme.primary;
-                  bgC = Theme.of(
-                    context,
-                  ).colorScheme.primary.withValues(alpha: 0.05);
-                }
-
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: bgC,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: borderC, width: 2),
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: _isAnswered ? null : () => _selectAnswer(option),
-                        borderRadius: BorderRadius.circular(16),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 14,
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  option,
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight:
-                                        isSelected ||
-                                            (_isAnswered && isCorrectOption)
-                                        ? FontWeight.w700
-                                        : FontWeight.w500,
-                                    color: const Color(0xFF121826),
-                                  ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.primary.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                'QUESTION ${_currentIndex + 1} OF ${_questions.length}',
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 1.0,
                                 ),
                               ),
-                              if (stateIcon != null) ...[
-                                const SizedBox(width: 8),
-                                Icon(
-                                  stateIcon,
-                                  color: stateIcon == Icons.check_circle_rounded
-                                      ? const Color(0xFF4CAF50)
-                                      : const Color(0xFFF44336),
-                                  size: 20,
+                            ),
+                            if (widget.isTimed)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 6,
                                 ),
-                              ],
-                            ],
+                                decoration: BoxDecoration(
+                                  color: _timeLeft <= 4
+                                      ? Colors.red.shade50
+                                      : const Color(0xFFF4F6FB),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.timer_rounded,
+                                      size: 14,
+                                      color: _timeLeft <= 4
+                                          ? Colors.red
+                                          : const Color(0xFF6B7280),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '${_timeLeft}s',
+                                      style: TextStyle(
+                                        color: _timeLeft <= 4
+                                            ? Colors.red
+                                            : const Color(0xFF121826),
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          question.questionText,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF121826),
+                            height: 1.45,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Option Buttons
+                  ...question.options.map((option) {
+                    final isSelected = _selectedOption == option;
+                    final isCorrectOption = option
+                        .trim()
+                        .toLowerCase()
+                        .startsWith(question.correctAnswer.toLowerCase());
+
+                    Color borderC = const Color(0xFFE6EAF2);
+                    Color bgC = Colors.white;
+                    IconData? stateIcon;
+
+                    if (_isAnswered) {
+                      if (isCorrectOption) {
+                        borderC = const Color(0xFF4CAF50);
+                        bgC = const Color(0xFFE8F5E9);
+                        stateIcon = Icons.check_circle_rounded;
+                      } else if (isSelected) {
+                        borderC = const Color(0xFFF44336);
+                        bgC = const Color(0xFFFFEBEE);
+                        stateIcon = Icons.cancel_rounded;
+                      }
+                    } else if (isSelected) {
+                      borderC = Theme.of(context).colorScheme.primary;
+                      bgC = Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.05);
+                    }
+
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12.0),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: bgC,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: borderC, width: 2),
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: _isAnswered
+                                ? null
+                                : () => _selectAnswer(option),
+                            borderRadius: BorderRadius.circular(16),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 14,
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      option,
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight:
+                                            isSelected ||
+                                                (_isAnswered && isCorrectOption)
+                                            ? FontWeight.w700
+                                            : FontWeight.w500,
+                                        color: const Color(0xFF121826),
+                                      ),
+                                    ),
+                                  ),
+                                  if (stateIcon != null) ...[
+                                    const SizedBox(width: 8),
+                                    Icon(
+                                      stateIcon,
+                                      color:
+                                          stateIcon ==
+                                              Icons.check_circle_rounded
+                                          ? const Color(0xFF4CAF50)
+                                          : const Color(0xFFF44336),
+                                      size: 20,
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+
+                  // Explanation & Next Button
+                  if (_isAnswered) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF4F6FB),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: const Color(0xFFE6EAF2)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Explanation',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF4B5565),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            question.explanation.isEmpty ||
+                                    question.explanation == 'None.'
+                                ? 'The correct answer is indeed option (${question.correctAnswer.toUpperCase()}).'
+                                : question.explanation,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Color(0xFF4B5565),
+                              height: 1.45,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed: _nextQuestion,
+                        icon: const Icon(Icons.arrow_forward_rounded),
+                        label: Text(
+                          _currentIndex < _questions.length - 1
+                              ? 'Next Question'
+                              : 'Finish Challenge',
+                        ),
+                        style: FilledButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                );
-              }),
-
-              // Explanation & Next Button
-              if (_isAnswered) ...[
-                const SizedBox(height: 16),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF4F6FB),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0xFFE6EAF2)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Explanation',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF4B5565),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        question.explanation.isEmpty ||
-                                question.explanation == 'None.'
-                            ? 'The correct answer is indeed option (${question.correctAnswer.toUpperCase()}).'
-                            : question.explanation,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: Color(0xFF4B5565),
-                          height: 1.45,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
-                    onPressed: _nextQuestion,
-                    icon: const Icon(Icons.arrow_forward_rounded),
-                    label: Text(
-                      _currentIndex < _questions.length - 1
-                          ? 'Next Question'
-                          : 'Finish Challenge',
-                    ),
-                    style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-              ],
-            ],
+                    const SizedBox(height: 20),
+                  ],
+                ],
+              ),
+            ),
           ),
+          // Streak multiplier badge (bottom-left corner, only in challenge mode)
+          if (widget.isTimed && _consecutiveCorrect >= 2)
+            Positioned(
+              left: 16,
+              bottom: MediaQuery.of(context).padding.bottom + 16,
+              child: _buildStreakMultiplierBadge(),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStreakMultiplierBadge() {
+    final double bonusMultiplier = (_consecutiveCorrect - 1) * 0.5;
+    final double totalMultiplier = 1.0 + bonusMultiplier;
+    // Display with one decimal place (e.g. 1.5, 2.0, 2.5)
+    final String multiplierText = totalMultiplier.toStringAsFixed(1);
+
+    return Container(
+      width: 56,
+      height: 56,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFFF6B35), Color(0xFFFF4500)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFFF4500).withValues(alpha: 0.4),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          const Icon(
+            Icons.local_fire_department_rounded,
+            color: Colors.white,
+            size: 32,
+          ),
+          Positioned(
+            bottom: 10,
+            child: Text(
+              multiplierText,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 11,
+                fontWeight: FontWeight.w900,
+                height: 1.0,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
