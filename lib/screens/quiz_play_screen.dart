@@ -7,7 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../models/question.dart';
 import '../models/badge.dart';
 import '../services/database_service.dart';
-import 'package:firebase_ai/firebase_ai.dart';
+import '../services/deepseek_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/notification_service.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -242,8 +242,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
 
   Future<void> _loadRandomQuote() async {
     try {
-      final jsonString =
-          await rootBundle.loadString('lib/assets/quotes.json');
+      final jsonString = await rootBundle.loadString('lib/assets/quotes.json');
       final Map<String, dynamic> data = jsonDecode(jsonString);
       final List<dynamic> quotesList = data['quotes'];
       if (quotesList.isNotEmpty) {
@@ -482,203 +481,212 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
             builder: (context, constraints) {
               return SingleChildScrollView(
                 child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight,
-                  ),
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24.0,
+                      vertical: 40,
+                    ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                const Icon(
-                  Icons.emoji_events_rounded,
-                  size: 100,
-                  color: Color(0xFFFFD700),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  'Challenge Completed!',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  widget.isOffline
-                      ? 'Offline session completed. Points are stored locally.'
-                      : 'Great job! Your profile stats have been updated.',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Color(0xFF6B7280),
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(height: 40),
-
-                // Results card
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: const Color(0xFFE6EAF2)),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      Column(
-                        children: [
-                          const Text(
-                            'SCORE',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF6B7280),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            '+$_score pts',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w800,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Container(
-                        width: 1,
-                        height: 40,
-                        color: const Color(0xFFE6EAF2),
-                      ),
-                      Column(
-                        children: [
-                          const Text(
-                            'ACCURACY',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF6B7280),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            '$accuracy%',
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w800,
-                              color: Color(0xFF121826),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-
-                if (_newlyUnlockedBadges.isNotEmpty) ...[
-                  const SizedBox(height: 24),
-                  const Text(
-                    '🎉 BADGES EARNED! 🎉',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFFFFD700),
-                      letterSpacing: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    alignment: WrapAlignment.center,
-                    children: _newlyUnlockedBadges.map((badgeId) {
-                      final badge = allBadges.firstWhere(
-                        (b) => b.id == badgeId,
-                      );
-                      return Chip(
-                        avatar: Icon(badge.icon, color: Colors.white, size: 16),
-                        label: Text(badge.name),
-                        backgroundColor: badge.color,
-                        labelStyle: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ],
-
-                const SizedBox(height: 48),
-
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text('Back to Course Selection'),
-                  ),
-                ),
-
-                // Random motivational quote from quotes.json
-                if (_randomQuoteText != null) ...[
-                  const SizedBox(height: 28),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF0F4FF),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: const Color(0xFFDCE3F0)),
-                    ),
-                    child: Column(
-                      children: [
                         const Icon(
-                          Icons.format_quote_rounded,
-                          color: Color(0xFF9CA3AF),
-                          size: 28,
+                          Icons.emoji_events_rounded,
+                          size: 100,
+                          color: Color(0xFFFFD700),
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          'Challenge Completed!',
+                          style: Theme.of(context).textTheme.headlineMedium
+                              ?.copyWith(fontWeight: FontWeight.w800),
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          _randomQuoteText!,
+                          widget.isOffline
+                              ? 'Offline session completed. Points are stored locally.'
+                              : 'Great job! Your profile stats have been updated.',
                           textAlign: TextAlign.center,
                           style: const TextStyle(
-                            fontSize: 15,
-                            fontStyle: FontStyle.italic,
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xFF374151),
-                            height: 1.5,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          '— $_randomQuoteAuthor',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
                             color: Color(0xFF6B7280),
+                            fontSize: 14,
                           ),
                         ),
+                        const SizedBox(height: 40),
+
+                        // Results card
+                        Container(
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(color: const Color(0xFFE6EAF2)),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              Column(
+                                children: [
+                                  const Text(
+                                    'SCORE',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFF6B7280),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    '+$_score pts',
+                                    style: TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.w800,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Container(
+                                width: 1,
+                                height: 40,
+                                color: const Color(0xFFE6EAF2),
+                              ),
+                              Column(
+                                children: [
+                                  const Text(
+                                    'ACCURACY',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFF6B7280),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    '$accuracy%',
+                                    style: const TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.w800,
+                                      color: Color(0xFF121826),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        if (_newlyUnlockedBadges.isNotEmpty) ...[
+                          const SizedBox(height: 24),
+                          const Text(
+                            '🎉 BADGES EARNED! 🎉',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFFFD700),
+                              letterSpacing: 1.5,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            alignment: WrapAlignment.center,
+                            children: _newlyUnlockedBadges.map((badgeId) {
+                              final badge = allBadges.firstWhere(
+                                (b) => b.id == badgeId,
+                              );
+                              return Chip(
+                                avatar: Icon(
+                                  badge.icon,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
+                                label: Text(badge.name),
+                                backgroundColor: badge.color,
+                                labelStyle: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ],
+
+                        const SizedBox(height: 48),
+
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton(
+                            onPressed: () => Navigator.pop(context),
+                            style: FilledButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text('Back to Course Selection'),
+                          ),
+                        ),
+
+                        // Random motivational quote from quotes.json
+                        if (_randomQuoteText != null) ...[
+                          const SizedBox(height: 28),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF0F4FF),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: const Color(0xFFDCE3F0),
+                              ),
+                            ),
+                            child: Column(
+                              children: [
+                                const Icon(
+                                  Icons.format_quote_rounded,
+                                  color: Color(0xFF9CA3AF),
+                                  size: 28,
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  _randomQuoteText!,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontStyle: FontStyle.italic,
+                                    fontWeight: FontWeight.w500,
+                                    color: Color(0xFF374151),
+                                    height: 1.5,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Text(
+                                  '— $_randomQuoteAuthor',
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF6B7280),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ],
-                    ),
-                  ),
-                ],
-              ],
-            ), // Column
-          ), // Padding
-        )); // ConstrainedBox + SingleChildScrollView return
-      },
-    ),
-  ),
-);
+                    ), // Column
+                  ), // Padding
+                ),
+              ); // ConstrainedBox + SingleChildScrollView return
+            },
+          ),
+        ),
+      );
     }
 
     final question = _questions[_currentIndex];
@@ -1235,7 +1243,7 @@ class _AiChatBottomSheetState extends State<_AiChatBottomSheet> {
     _messages.add(
       _ChatMessage(
         text:
-            "🤖 **Welcome to Gemini AI Study Assistant!**\n\nI am analyzing your quiz performance to prepare tailored study tips. Please wait for my response before asking any questions.",
+            "🤖 **Welcome to DeepSeek AI Study Assistant!**\n\nI am analyzing your quiz performance to prepare tailored study tips. Please wait for my response before asking any questions.",
         isUser: false,
       ),
     );
@@ -1270,23 +1278,21 @@ CRITICAL INSTRUCTION: Be extremely direct and straight to the point. Give 1-2 co
     bool addedMessage = false;
 
     try {
-      final model = FirebaseAI.googleAI().generativeModel(
-        model: 'gemini-3.5-flash',
+      final stream = DeepseekService.sendMessageStream(
+        systemPrompt: prompt,
+        messages: [],
       );
-      final responseStream = model.generateContentStream([
-        Content.text(prompt),
-      ]);
 
-      await for (final chunk in responseStream) {
+      await for (final chunk in stream) {
         if (!mounted) break;
-        if (chunk.text != null && chunk.text!.isNotEmpty) {
+        if (chunk.isNotEmpty) {
           if (!addedMessage) {
             _messages.add(aiMessage);
             addedMessage = true;
             _isTyping = false;
           }
           setState(() {
-            aiMessage.text += chunk.text!;
+            aiMessage.text += chunk;
           });
           _scrollToBottom();
         }
@@ -1303,7 +1309,7 @@ CRITICAL INSTRUCTION: Be extremely direct and straight to the point. Give 1-2 co
         });
       }
     } catch (e) {
-      debugPrint("Firebase AI Initial Guide Error: $e");
+      debugPrint("DeepSeek Initial Guide Error: $e");
       if (mounted) {
         setState(() {
           _messages.add(
@@ -1352,36 +1358,34 @@ ${widget.incorrectQuestions.isNotEmpty ? "Questions answered incorrectly so far:
 CRITICAL INSTRUCTION: Be extremely direct and straight to the point. Answer immediately without conversational filler or intros like 'Hello!' or 'Sure!'. Use concise sentences or short bullet points.
 """;
 
-    final List<Content> contents = [];
-    contents.add(Content.text(systemPrompt));
-
+    // Build conversation history for DeepSeek (system prompt handled separately)
+    final List<Map<String, String>> conversationMessages = [];
     for (var msg in _messages) {
-      if (msg.isUser) {
-        contents.add(Content.text(msg.text));
-      } else {
-        contents.add(Content.model([TextPart(msg.text)]));
-      }
+      conversationMessages.add({
+        'role': msg.isUser ? 'user' : 'assistant',
+        'content': msg.text,
+      });
     }
 
     final aiMessage = _ChatMessage(text: "", isUser: false);
     bool addedMessage = false;
 
     try {
-      final model = FirebaseAI.googleAI().generativeModel(
-        model: 'gemini-3.5-flash',
+      final stream = DeepseekService.sendMessageStream(
+        systemPrompt: systemPrompt,
+        messages: conversationMessages,
       );
-      final responseStream = model.generateContentStream(contents);
 
-      await for (final chunk in responseStream) {
+      await for (final chunk in stream) {
         if (!mounted) break;
-        if (chunk.text != null && chunk.text!.isNotEmpty) {
+        if (chunk.isNotEmpty) {
           if (!addedMessage) {
             _messages.add(aiMessage);
             addedMessage = true;
             _isTyping = false;
           }
           setState(() {
-            aiMessage.text += chunk.text!;
+            aiMessage.text += chunk;
           });
           _scrollToBottom();
         }
@@ -1399,7 +1403,7 @@ CRITICAL INSTRUCTION: Be extremely direct and straight to the point. Answer imme
         });
       }
     } catch (e) {
-      debugPrint("Firebase AI Chat Exception: $e");
+      debugPrint("DeepSeek Chat Exception: $e");
       if (mounted) {
         setState(() {
           _messages.add(
@@ -1477,7 +1481,7 @@ CRITICAL INSTRUCTION: Be extremely direct and straight to the point. Answer imme
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'Gemini AI Study Guide',
+                      'DeepSeek AI Study Guide',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -1525,7 +1529,7 @@ CRITICAL INSTRUCTION: Be extremely direct and straight to the point. Answer imme
                           ),
                           const SizedBox(width: 10),
                           Text(
-                            'Gemini is thinking...',
+                            'DeepSeek is thinking...',
                             style: TextStyle(
                               color: Colors.grey.shade600,
                               fontSize: 13,
@@ -1624,8 +1628,8 @@ CRITICAL INSTRUCTION: Be extremely direct and straight to the point. Answer imme
                     onSubmitted: _sendMessage,
                     decoration: InputDecoration(
                       hintText: _isTyping
-                          ? 'Please wait for Gemini to respond...'
-                          : 'Ask Gemini a follow-up question...',
+                          ? 'Please wait for DeepSeek to respond...'
+                          : 'Ask DeepSeek a follow-up question...',
                       hintStyle: TextStyle(
                         color: Colors.grey.shade400,
                         fontSize: 14,
