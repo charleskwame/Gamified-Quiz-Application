@@ -13,7 +13,7 @@ class AvatarCategory {
   final String label; // UI label, e.g. "Skin Tone"
   final String key; // key in avatarDetails map
   final List<AvatarTrait> options;
-  final bool optional; // e.g. clothingColor only shows when clothing != 'none'
+  final bool optional;
 
   const AvatarCategory({
     required this.label,
@@ -27,138 +27,106 @@ class AvatarCategory {
 class AvatarOptions {
   AvatarOptions._();
 
-  static const List<AvatarTrait> skinColor = [
-    AvatarTrait('ffeedd', 'Porcelain (Very Light)'),
-    AvatarTrait('f5d0b1', 'Peach (Light)'),
-    AvatarTrait('e6b88a', 'Golden (Medium)'),
-    AvatarTrait('d4a574', 'Tan (Medium Dark)'),
-    AvatarTrait('8d5524', 'Espresso (Dark)'),
+  static const List<AvatarTrait> beardVariant = [
+    AvatarTrait('chin', 'Chin'),
+    AvatarTrait('chinMoustache', 'Chin Moustache'),
+    AvatarTrait('fullBeard', 'Full Beard'),
+    AvatarTrait('longBeard', 'Long Beard'),
+    AvatarTrait('moustacheTwirl', 'Moustache Twirl'),
   ];
 
-  static const List<AvatarTrait> hair = [
-    AvatarTrait('bald', 'Bald'),
-    AvatarTrait('bob', 'Bob'),
-    AvatarTrait('braids', 'Braids'),
-    AvatarTrait('bun', 'Bun'),
-    AvatarTrait('buzz', 'Buzz Cut'),
-    AvatarTrait('curly', 'Curly'),
-    AvatarTrait('dannyPhantom', 'Danny Phantom (Tousled)'),
-    AvatarTrait('dougFunny', 'Doug Funny (Short)'),
-    AvatarTrait('flatTop', 'Flat Top'),
-    AvatarTrait('fonze', 'Fonze (Greaser)'),
-    AvatarTrait('full', 'Full (Afro / Volume)'),
-    AvatarTrait('long', 'Long'),
-    AvatarTrait('mrClean', 'Mr. Clean (Bald)'),
-    AvatarTrait('mrT', 'Mr. T (Mohawk)'),
-    AvatarTrait('pixie', 'Pixie'),
-    AvatarTrait('pompadour', 'Pompadour'),
-    AvatarTrait('shortCurly', 'Short Curly'),
-    AvatarTrait('shortFlat', 'Short Flat'),
-    AvatarTrait('shortRound', 'Short Round'),
-    AvatarTrait('turban', 'Turban'),
-    AvatarTrait('wave', 'Wave'),
+  static const List<AvatarTrait> clothesVariant = [
+    AvatarTrait('dress', 'Dress'),
+    AvatarTrait('openJacket', 'Open Jacket'),
+    AvatarTrait('shirt', 'Shirt'),
+    AvatarTrait('tShirt', 'T Shirt'),
+    AvatarTrait('turtleNeck', 'Turtle Neck'),
+  ];
+
+  static const List<AvatarTrait> eyebrowsVariant = [
+    AvatarTrait('angry', 'Angry'),
+    AvatarTrait('happy', 'Happy'),
+    AvatarTrait('neutral', 'Neutral'),
+    AvatarTrait('raised', 'Raised'),
+    AvatarTrait('sad', 'Sad'),
+  ];
+
+  static const List<AvatarTrait> eyesVariant = [
+    AvatarTrait('bow', 'Bow'),
+    AvatarTrait('happy', 'Happy'),
+    AvatarTrait('humble', 'Humble'),
     AvatarTrait('wide', 'Wide'),
+    AvatarTrait('wink', 'Wink'),
+  ];
+
+  static const List<AvatarTrait> hairVariant = [
+    AvatarTrait('bun', 'Bun'),
+    AvatarTrait('sideComed', 'Side Comed'),
+    AvatarTrait('spiky', 'Spiky'),
+    AvatarTrait('undercut', 'Undercut'),
+  ];
+
+  static const List<AvatarTrait> mouthVariant = [
+    AvatarTrait('agape', 'Agape'),
+    AvatarTrait('angry', 'Angry'),
+    AvatarTrait('laugh', 'Laugh'),
+    AvatarTrait('sad', 'Sad'),
+    AvatarTrait('smile', 'Smile'),
+  ];
+
+  static const List<AvatarTrait> clothesColor = [
+    AvatarTrait('151613', 'Jet Black'),
+    AvatarTrait('0b3286', 'Royal Blue'),
+    AvatarTrait('545454', 'Charcoal Gray'),
+    AvatarTrait('147f3c', 'Forest Green'),
+    AvatarTrait('f97316', 'Orange'),
+    AvatarTrait('ec4899', 'Pink'),
+    AvatarTrait('731ac3', 'Purple'),
+    AvatarTrait('b11f1f', 'Crimson'),
+    AvatarTrait('e8e9e6', 'Off White'),
+    AvatarTrait('eab308', 'Gold'),
   ];
 
   static const List<AvatarTrait> hairColor = [
-    AvatarTrait('1a1a1a', 'Black'),
-    AvatarTrait('4a3728', 'Brown'),
-    AvatarTrait('a5753f', 'Blonde'),
-    AvatarTrait('c25a38', 'Red / Auburn'),
-    AvatarTrait('707070', 'Gray'),
-    AvatarTrait('305a96', 'Blue'),
-    AvatarTrait('b83098', 'Pink'),
-    AvatarTrait('e8b270', 'Platinum'),
+    AvatarTrait('2c1b18', 'Black Brown'),
+    AvatarTrait('d6b370', 'Honey Blonde'),
+    AvatarTrait('724133', 'Chestnut Brown'),
+    AvatarTrait('a55728', 'Auburn'),
+    AvatarTrait('b58143', 'Light Brown'),
   ];
 
-  static const List<AvatarTrait> eyes = [
-    AvatarTrait('eyes', 'Eyes'),
-    AvatarTrait('eyesShadow', 'Eyes Shadow'),
-    AvatarTrait('round', 'Round'),
-    AvatarTrait('smiling', 'Smiling'),
-    AvatarTrait('wide', 'Wide'),
-  ];
-
-  static const List<AvatarTrait> eyebrows = [
-    AvatarTrait('down', 'Down'),
-    AvatarTrait('eyelashesDown', 'Eyelashes Down'),
-    AvatarTrait('eyelashesUp', 'Eyelashes Up'),
-    AvatarTrait('up', 'Up'),
-  ];
-
-  static const List<AvatarTrait> mouth = [
-    AvatarTrait('frown', 'Frown'),
-    AvatarTrait('laughing', 'Laughing'),
-    AvatarTrait('nervous', 'Nervous'),
-    AvatarTrait('pucker', 'Pucker'),
-    AvatarTrait('sad', 'Sad'),
-    AvatarTrait('smile', 'Smile'),
-    AvatarTrait('smirk', 'Smirk'),
-    AvatarTrait('surprised', 'Surprised'),
-  ];
-
-  static const List<AvatarTrait> facialHair = [
-    AvatarTrait('none', 'None'),
-    AvatarTrait('beard', 'Beard'),
-    AvatarTrait('scruff', 'Scruff'),
-    AvatarTrait('goatee', 'Goatee'),
-    AvatarTrait('moustache', 'Moustache'),
-  ];
-
-  static const List<AvatarTrait> glasses = [
-    AvatarTrait('none', 'None'),
-    AvatarTrait('round', 'Round'),
-    AvatarTrait('square', 'Square'),
-    AvatarTrait('wayfarers', 'Wayfarers'),
-  ];
-
-  static const List<AvatarTrait> clothing = [
-    AvatarTrait('none', 'None'),
-    AvatarTrait('blazer', 'Blazer'),
-    AvatarTrait('blazerAndShirt', 'Blazer & Shirt'),
-    AvatarTrait('graphicShirt', 'Graphic Shirt'),
-    AvatarTrait('hoodie', 'Hoodie'),
-    AvatarTrait('overall', 'Overall'),
-    AvatarTrait('shirt', 'Shirt'),
-    AvatarTrait('vneck', 'V-Neck'),
-  ];
-
-  static const List<AvatarTrait> clothingColor = [
-    AvatarTrait('1a1a1a', 'Black'),
-    AvatarTrait('4a3728', 'Brown'),
-    AvatarTrait('a5753f', 'Blonde / Tan'),
-    AvatarTrait('c25a38', 'Red / Auburn'),
-    AvatarTrait('707070', 'Gray'),
-    AvatarTrait('305a96', 'Blue'),
-    AvatarTrait('b83098', 'Pink'),
-    AvatarTrait('e8b270', 'Platinum'),
-    AvatarTrait('3a7d44', 'Green'),
-    AvatarTrait('6c4f8c', 'Purple'),
-    AvatarTrait('c4a35a', 'Gold'),
+  static const List<AvatarTrait> skinColor = [
+    AvatarTrait('5c3829', 'Deep Cocoa'),
+    AvatarTrait('f1c3a5', 'Fair Peach'),
+    AvatarTrait('a36b4f', 'Warm Brown'),
+    AvatarTrait('c68e7a', 'Medium Tan'),
+    AvatarTrait('b98e6a', 'Sand Brown'),
   ];
 
   /// Ordered list of categories used to build the customizer UI and
   /// serialize/deserialize avatar details.
   static const List<AvatarCategory> categories = [
-    AvatarCategory(label: 'Skin Tone', key: 'skinColor', options: skinColor),
-    AvatarCategory(label: 'Hair Style', key: 'hair', options: hair),
+    AvatarCategory(label: 'Beard', key: 'beardVariant', options: beardVariant),
+    AvatarCategory(
+      label: 'Clothes',
+      key: 'clothesVariant',
+      options: clothesVariant,
+    ),
+    AvatarCategory(
+      label: 'Eyebrows',
+      key: 'eyebrowsVariant',
+      options: eyebrowsVariant,
+    ),
+    AvatarCategory(label: 'Eyes', key: 'eyesVariant', options: eyesVariant),
+    AvatarCategory(label: 'Hair', key: 'hairVariant', options: hairVariant),
+    AvatarCategory(label: 'Mouth', key: 'mouthVariant', options: mouthVariant),
+    AvatarCategory(
+      label: 'Clothes Color',
+      key: 'clothesColor',
+      options: clothesColor,
+    ),
     AvatarCategory(label: 'Hair Color', key: 'hairColor', options: hairColor),
-    AvatarCategory(label: 'Eyes', key: 'eyes', options: eyes),
-    AvatarCategory(label: 'Eyebrows', key: 'eyebrows', options: eyebrows),
-    AvatarCategory(label: 'Mouth', key: 'mouth', options: mouth),
-    AvatarCategory(
-      label: 'Facial Hair',
-      key: 'facialHair',
-      options: facialHair,
-    ),
-    AvatarCategory(label: 'Glasses', key: 'glasses', options: glasses),
-    AvatarCategory(label: 'Clothing', key: 'clothing', options: clothing),
-    AvatarCategory(
-      label: 'Clothing Color',
-      key: 'clothingColor',
-      options: clothingColor,
-      optional: true,
-    ),
+    AvatarCategory(label: 'Skin Color', key: 'skinColor', options: skinColor),
   ];
 
   /// Returns the display label for a given category key and value.
@@ -195,39 +163,28 @@ class AvatarOptions {
     String param(String key, [String? value]) {
       final v = value ?? values[key] ?? '';
       if (v.isEmpty) return '';
-      // Special probability-based params
-      switch (key) {
-        case 'facialHair':
-          return v == 'none'
-              ? 'facialHairProbability=0'
-              : 'facialHairProbability=100&facialHair=$v';
-        case 'glasses':
-          return v == 'none'
-              ? 'glassesProbability=0'
-              : 'glassesProbability=100&glasses=$v';
-        default:
-          return '$key=$v';
-      }
+      return '$key=$v';
+    }
+
+    String component(String key, String probabilityKey) {
+      final value = values[key] ?? '';
+      if (value.isEmpty) return '';
+      return '$probabilityKey=100&$key=$value';
     }
 
     final seed = values['seed'] ?? '';
     final parts = <String>[
       'seed=$seed',
-      param('skinColor'),
-      param('mouth'),
-      param('eyebrows'),
-      param('eyes'),
-      param('hair'),
+      component('beardVariant', 'beardProbability'),
+      component('clothesVariant', 'clothesProbability'),
+      component('eyebrowsVariant', 'eyebrowsProbability'),
+      component('eyesVariant', 'eyesProbability'),
+      component('hairVariant', 'hairProbability'),
+      component('mouthVariant', 'mouthProbability'),
+      param('clothesColor'),
       param('hairColor'),
-      param('facialHair'),
-      param('glasses'),
+      param('skinColor'),
     ];
-
-    final clothingVal = values['clothing'] ?? '';
-    if (clothingVal != 'none' && clothingVal.isNotEmpty) {
-      parts.add(param('clothing'));
-      parts.add(param('clothingColor'));
-    }
 
     return 'https://api.dicebear.com/10.x/toon-head/svg?${parts.where((p) => p.isNotEmpty).join('&')}';
   }
