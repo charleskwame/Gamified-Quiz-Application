@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../services/auth_service.dart';
 import '../services/database_service.dart';
 
@@ -21,44 +22,60 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String? _errorMessage;
   String? _successMessage;
 
-  // DiceBear Micah options lists (v9)
-  final List<String> _baseColorOptions = [
-    'f3d1c1',
-    'f7c3a0',
-    'e28d75',
-    'b86c52',
-    '9c5b42'
+  // DiceBear toon-head options lists (v10.x)
+  final List<String> _skinColorOptions = [
+    'ffeedd',
+    'f5d0b1',
+    'e6b88a',
+    'd4a574',
+    '8d5524',
   ];
   final List<String> _hairOptions = [
+    'bald',
+    'bob',
+    'braids',
+    'bun',
+    'buzz',
+    'curly',
     'dannyPhantom',
     'dougFunny',
+    'flatTop',
     'fonze',
     'full',
+    'long',
     'mrClean',
     'mrT',
     'pixie',
-    'turban'
+    'pompadour',
+    'shortCurly',
+    'shortFlat',
+    'shortRound',
+    'turban',
+    'wave',
+    'wide',
   ];
   final List<String> _hairColorOptions = [
-    '4a3728',
     '1a1a1a',
+    '4a3728',
     'a5753f',
     'c25a38',
     '707070',
     '305a96',
-    'b83098'
+    'b83098',
+    'e8b270',
   ];
   final List<String> _eyesOptions = [
     'eyes',
     'eyesShadow',
     'round',
-    'smiling'
+    'smiling',
+    'wide',
   ];
   final List<String> _eyebrowsOptions = [
     'down',
     'eyelashesDown',
     'eyelashesUp',
-    'up'
+    'up',
   ];
   final List<String> _mouthOptions = [
     'frown',
@@ -68,9 +85,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
     'sad',
     'smile',
     'smirk',
-    'surprised'
+    'surprised',
   ];
-  final List<String> _facialHairOptions = ['none', 'beard', 'scruff'];
+  final List<String> _facialHairOptions = [
+    'none',
+    'beard',
+    'scruff',
+    'goatee',
+    'moustache',
+  ];
+  final List<String> _glassesOptions = ['none', 'round', 'square', 'wayfarers'];
+  final List<String> _clothingOptions = [
+    'none',
+    'blazer',
+    'blazerAndShirt',
+    'graphicShirt',
+    'hoodie',
+    'overall',
+    'shirt',
+    'vneck',
+  ];
+  final List<String> _clothingColorOptions = [
+    '1a1a1a',
+    '4a3728',
+    'a5753f',
+    'c25a38',
+    '707070',
+    '305a96',
+    'b83098',
+    'e8b270',
+    '3a7d44',
+    '6c4f8c',
+    'c4a35a',
+  ];
 
   @override
   void initState() {
@@ -125,13 +172,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return _AvatarCustomizerDialog(
           initialUrl: currentUrl,
           initialDetails: currentDetails,
-          baseColorOptions: _baseColorOptions,
+          skinColorOptions: _skinColorOptions,
           hairOptions: _hairOptions,
           hairColorOptions: _hairColorOptions,
           eyesOptions: _eyesOptions,
           eyebrowsOptions: _eyebrowsOptions,
           mouthOptions: _mouthOptions,
           facialHairOptions: _facialHairOptions,
+          glassesOptions: _glassesOptions,
+          clothingOptions: _clothingOptions,
+          clothingColorOptions: _clothingColorOptions,
           onSave: (url, details) async {
             final user = _authService.currentUser;
             if (user != null) {
@@ -211,9 +261,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(
-                                  alpha: 0.08,
-                                ),
+                                color: Colors.black.withValues(alpha: 0.08),
                                 blurRadius: 16,
                                 offset: const Offset(0, 8),
                               ),
@@ -221,16 +269,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                           child: avatarUrl != null && avatarUrl.isNotEmpty
                               ? ClipOval(
-                                  child: Image.network(
+                                  child: SvgPicture.network(
                                     avatarUrl,
                                     fit: BoxFit.cover,
-                                    errorBuilder:
-                                        (context, error, stackTrace) =>
-                                            const Icon(
-                                              Icons.person_rounded,
-                                              size: 60,
-                                              color: Color(0xFF141053),
-                                            ),
+                                    placeholderBuilder: (context) => const Icon(
+                                      Icons.person_rounded,
+                                      size: 60,
+                                      color: Color(0xFF141053),
+                                    ),
                                   ),
                                 )
                               : const Icon(
@@ -241,10 +287,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                         const SizedBox(height: 12),
                         OutlinedButton.icon(
-                          onPressed: () => _openAvatarCustomizer(
-                            avatarUrl,
-                            avatarDetails,
-                          ),
+                          onPressed: () =>
+                              _openAvatarCustomizer(avatarUrl, avatarDetails),
                           icon: const Icon(
                             Icons.face_retouching_natural_rounded,
                             size: 18,
@@ -393,23 +437,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     ),
                                     FilledButton(
                                       onPressed: () async {
-                                      final navigator = Navigator.of(context);
-                                      navigator.pop();
-                                      setState(() {
-                                        _isLoading = true;
-                                        _errorMessage = null;
-                                        _successMessage = null;
-                                      });
-                                      try {
-                                        final uid = user.uid;
-                                        await DatabaseService()
-                                            .deleteUserAccount(uid);
-                                        await user.delete();
-                                        await _authService.logOut();
-                                        if (mounted) {
-                                          navigator.pop(); // Exit settings
-                                        }
-                                      } catch (e) {
+                                        final navigator = Navigator.of(context);
+                                        navigator.pop();
+                                        setState(() {
+                                          _isLoading = true;
+                                          _errorMessage = null;
+                                          _successMessage = null;
+                                        });
+                                        try {
+                                          final uid = user.uid;
+                                          await DatabaseService()
+                                              .deleteUserAccount(uid);
+                                          await user.delete();
+                                          await _authService.logOut();
+                                          if (mounted) {
+                                            navigator.pop(); // Exit settings
+                                          }
+                                        } catch (e) {
                                           setState(() {
                                             _errorMessage =
                                                 'Failed to delete account: $e. For security, please log out, log back in, and try again.';
@@ -421,7 +465,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                         }
                                       },
                                       style: FilledButton.styleFrom(
-                                        backgroundColor: const Color(0xFF931716),
+                                        backgroundColor: const Color(
+                                          0xFF931716,
+                                        ),
                                         foregroundColor: Colors.white,
                                       ),
                                       child: const Text('Delete Permanently'),
@@ -460,41 +506,51 @@ class _SettingsScreenState extends State<SettingsScreen> {
 class _AvatarCustomizerDialog extends StatefulWidget {
   final String? initialUrl;
   final Map<String, dynamic>? initialDetails;
-  final List<String> baseColorOptions;
+  final List<String> skinColorOptions;
   final List<String> hairOptions;
   final List<String> hairColorOptions;
   final List<String> eyesOptions;
   final List<String> eyebrowsOptions;
   final List<String> mouthOptions;
   final List<String> facialHairOptions;
+  final List<String> glassesOptions;
+  final List<String> clothingOptions;
+  final List<String> clothingColorOptions;
   final Function(String, Map<String, dynamic>) onSave;
 
   const _AvatarCustomizerDialog({
     required this.initialUrl,
     required this.initialDetails,
-    required this.baseColorOptions,
+    required this.skinColorOptions,
     required this.hairOptions,
     required this.hairColorOptions,
     required this.eyesOptions,
     required this.eyebrowsOptions,
     required this.mouthOptions,
     required this.facialHairOptions,
+    required this.glassesOptions,
+    required this.clothingOptions,
+    required this.clothingColorOptions,
     required this.onSave,
   });
 
   @override
-  State<_AvatarCustomizerDialog> createState() => _AvatarCustomizerDialogState();
+  State<_AvatarCustomizerDialog> createState() =>
+      _AvatarCustomizerDialogState();
 }
 
 class _AvatarCustomizerDialogState extends State<_AvatarCustomizerDialog> {
   late String _seed;
-  late String _baseColor;
+  late String _skinColor;
   late String _hair;
   late String _hairColor;
   late String _eyes;
   late String _eyebrows;
   late String _mouth;
   late String _facialHair;
+  late String _glasses;
+  late String _clothing;
+  late String _clothingColor;
 
   bool _isSaving = false;
 
@@ -504,10 +560,10 @@ class _AvatarCustomizerDialogState extends State<_AvatarCustomizerDialog> {
     final d = widget.initialDetails;
     _seed = d?['seed'] ?? _generateRandomSeed();
 
-    final baseColorVal = d?['baseColor'];
-    _baseColor = widget.baseColorOptions.contains(baseColorVal)
-        ? baseColorVal!
-        : widget.baseColorOptions[0];
+    final skinColorVal = d?['skinColor'];
+    _skinColor = widget.skinColorOptions.contains(skinColorVal)
+        ? skinColorVal!
+        : widget.skinColorOptions[0];
 
     final hairVal = d?['hair'];
     _hair = widget.hairOptions.contains(hairVal)
@@ -538,6 +594,21 @@ class _AvatarCustomizerDialogState extends State<_AvatarCustomizerDialog> {
     _facialHair = widget.facialHairOptions.contains(facialHairVal)
         ? facialHairVal!
         : widget.facialHairOptions[0];
+
+    final glassesVal = d?['glasses'];
+    _glasses = widget.glassesOptions.contains(glassesVal)
+        ? glassesVal!
+        : widget.glassesOptions[0];
+
+    final clothingVal = d?['clothing'];
+    _clothing = widget.clothingOptions.contains(clothingVal)
+        ? clothingVal!
+        : widget.clothingOptions[0];
+
+    final clothingColorVal = d?['clothingColor'];
+    _clothingColor = widget.clothingColorOptions.contains(clothingColorVal)
+        ? clothingColorVal!
+        : widget.clothingColorOptions[0];
   }
 
   String _generateRandomSeed() {
@@ -550,28 +621,50 @@ class _AvatarCustomizerDialogState extends State<_AvatarCustomizerDialog> {
         ? 'facialHairProbability=0'
         : 'facialHairProbability=100&facialHair=$_facialHair';
 
-    return 'https://api.dicebear.com/9.x/micah/png?'
+    final String glassesParam = _glasses == 'none'
+        ? 'glassesProbability=0'
+        : 'glassesProbability=100&glasses=$_glasses';
+
+    final String clothingParam = _clothing == 'none'
+        ? ''
+        : 'clothing=$_clothing&clothingColor=$_clothingColor';
+
+    return 'https://api.dicebear.com/10.x/toon-head/svg?'
         'seed=$_seed&'
-        'baseColor=$_baseColor&'
+        'skinColor=$_skinColor&'
         'mouth=$_mouth&'
         'eyebrows=$_eyebrows&'
         'eyes=$_eyes&'
         'hair=$_hair&'
         'hairColor=$_hairColor&'
-        '$facialHairParam';
+        '$facialHairParam&'
+        '$glassesParam&'
+        '$clothingParam';
   }
 
   void _randomize() {
     final random = Random();
     setState(() {
       _seed = _generateRandomSeed();
-      _baseColor = widget.baseColorOptions[random.nextInt(widget.baseColorOptions.length)];
+      _skinColor = widget
+          .skinColorOptions[random.nextInt(widget.skinColorOptions.length)];
       _hair = widget.hairOptions[random.nextInt(widget.hairOptions.length)];
-      _hairColor = widget.hairColorOptions[random.nextInt(widget.hairColorOptions.length)];
+      _hairColor = widget
+          .hairColorOptions[random.nextInt(widget.hairColorOptions.length)];
       _eyes = widget.eyesOptions[random.nextInt(widget.eyesOptions.length)];
-      _eyebrows = widget.eyebrowsOptions[random.nextInt(widget.eyebrowsOptions.length)];
+      _eyebrows =
+          widget.eyebrowsOptions[random.nextInt(widget.eyebrowsOptions.length)];
       _mouth = widget.mouthOptions[random.nextInt(widget.mouthOptions.length)];
-      _facialHair = widget.facialHairOptions[random.nextInt(widget.facialHairOptions.length)];
+      _facialHair = widget
+          .facialHairOptions[random.nextInt(widget.facialHairOptions.length)];
+      _glasses =
+          widget.glassesOptions[random.nextInt(widget.glassesOptions.length)];
+      _clothing =
+          widget.clothingOptions[random.nextInt(widget.clothingOptions.length)];
+      _clothingColor =
+          widget.clothingColorOptions[random.nextInt(
+            widget.clothingColorOptions.length,
+          )];
     });
   }
 
@@ -596,43 +689,145 @@ class _AvatarCustomizerDialogState extends State<_AvatarCustomizerDialog> {
             items: options.map((opt) {
               String name = opt[0].toUpperCase() + opt.substring(1);
               if (label == 'Skin Tone') {
-                if (opt == 'f3d1c1') { name = 'Peach (Very Light)'; }
-                else if (opt == 'f7c3a0') { name = 'Apricot (Light)'; }
-                else if (opt == 'e28d75') { name = 'Bronze (Medium)'; }
-                else if (opt == 'b86c52') { name = 'Clay (Medium Dark)'; }
-                else if (opt == '9c5b42') { name = 'Espresso (Dark)'; }
+                if (opt == 'ffeedd') {
+                  name = 'Porcelain (Very Light)';
+                } else if (opt == 'f5d0b1') {
+                  name = 'Peach (Light)';
+                } else if (opt == 'e6b88a') {
+                  name = 'Golden (Medium)';
+                } else if (opt == 'd4a574') {
+                  name = 'Tan (Medium Dark)';
+                } else if (opt == '8d5524') {
+                  name = 'Espresso (Dark)';
+                }
               } else if (label == 'Hair Color') {
-                if (opt == '4a3728') { name = 'Brown'; }
-                else if (opt == '1a1a1a') { name = 'Black'; }
-                else if (opt == 'a5753f') { name = 'Blonde'; }
-                else if (opt == 'c25a38') { name = 'Red / Auburn'; }
-                else if (opt == '707070') { name = 'Gray'; }
-                else if (opt == '305a96') { name = 'Blue'; }
-                else if (opt == 'b83098') { name = 'Pink'; }
+                if (opt == '1a1a1a') {
+                  name = 'Black';
+                } else if (opt == '4a3728') {
+                  name = 'Brown';
+                } else if (opt == 'a5753f') {
+                  name = 'Blonde';
+                } else if (opt == 'c25a38') {
+                  name = 'Red / Auburn';
+                } else if (opt == '707070') {
+                  name = 'Gray';
+                } else if (opt == '305a96') {
+                  name = 'Blue';
+                } else if (opt == 'b83098') {
+                  name = 'Pink';
+                } else if (opt == 'e8b270') {
+                  name = 'Platinum';
+                }
               } else if (label == 'Hair Style') {
-                if (opt == 'dannyPhantom') { name = 'Danny Phantom (Tousled)'; }
-                else if (opt == 'dougFunny') { name = 'Doug Funny (Short)'; }
-                else if (opt == 'fonze') { name = 'Fonze (Greaser Wave)'; }
-                else if (opt == 'full') { name = 'Full Hair (Afro / Volume)'; }
-                else if (opt == 'mrClean') { name = 'Mr. Clean (Bald)'; }
-                else if (opt == 'mrT') { name = 'Mr. T (Mohawk)'; }
-                else if (opt == 'pixie') { name = 'Pixie (Short Curly)'; }
-                else if (opt == 'turban') { name = 'Turban'; }
+                if (opt == 'bald') {
+                  name = 'Bald';
+                } else if (opt == 'bob') {
+                  name = 'Bob';
+                } else if (opt == 'braids') {
+                  name = 'Braids';
+                } else if (opt == 'bun') {
+                  name = 'Bun';
+                } else if (opt == 'buzz') {
+                  name = 'Buzz Cut';
+                } else if (opt == 'curly') {
+                  name = 'Curly';
+                } else if (opt == 'dannyPhantom') {
+                  name = 'Danny Phantom (Tousled)';
+                } else if (opt == 'dougFunny') {
+                  name = 'Doug Funny (Short)';
+                } else if (opt == 'flatTop') {
+                  name = 'Flat Top';
+                } else if (opt == 'fonze') {
+                  name = 'Fonze (Greaser)';
+                } else if (opt == 'full') {
+                  name = 'Full (Afro / Volume)';
+                } else if (opt == 'long') {
+                  name = 'Long';
+                } else if (opt == 'mrClean') {
+                  name = 'Mr. Clean (Bald)';
+                } else if (opt == 'mrT') {
+                  name = 'Mr. T (Mohawk)';
+                } else if (opt == 'pixie') {
+                  name = 'Pixie';
+                } else if (opt == 'pompadour') {
+                  name = 'Pompadour';
+                } else if (opt == 'shortCurly') {
+                  name = 'Short Curly';
+                } else if (opt == 'shortFlat') {
+                  name = 'Short Flat';
+                } else if (opt == 'shortRound') {
+                  name = 'Short Round';
+                } else if (opt == 'turban') {
+                  name = 'Turban';
+                } else if (opt == 'wave') {
+                  name = 'Wave';
+                } else if (opt == 'wide') {
+                  name = 'Wide';
+                }
               } else if (label == 'Eyes') {
-                if (opt == 'eyesShadow') { name = 'Eyes Shadow'; }
+                if (opt == 'eyesShadow') {
+                  name = 'Eyes Shadow';
+                } else if (opt == 'wide') {
+                  name = 'Wide';
+                }
               } else if (label == 'Eyebrows') {
-                if (opt == 'eyelashesDown') { name = 'Eyelashes Down'; }
-                else if (opt == 'eyelashesUp') { name = 'Eyelashes Up'; }
+                if (opt == 'eyelashesDown') {
+                  name = 'Eyelashes Down';
+                } else if (opt == 'eyelashesUp') {
+                  name = 'Eyelashes Up';
+                }
+              } else if (label == 'Facial Hair') {
+                if (opt == 'goatee') {
+                  name = 'Goatee';
+                } else if (opt == 'moustache') {
+                  name = 'Moustache';
+                }
+              } else if (label == 'Glasses') {
+                if (opt == 'wayfarers') {
+                  name = 'Wayfarers';
+                }
+              } else if (label == 'Clothing') {
+                if (opt == 'blazerAndShirt') {
+                  name = 'Blazer & Shirt';
+                } else if (opt == 'graphicShirt') {
+                  name = 'Graphic Shirt';
+                } else if (opt == 'vneck') {
+                  name = 'V-Neck';
+                }
+              } else if (label == 'Clothing Color') {
+                if (opt == '1a1a1a') {
+                  name = 'Black';
+                } else if (opt == '4a3728') {
+                  name = 'Brown';
+                } else if (opt == 'a5753f') {
+                  name = 'Blonde / Tan';
+                } else if (opt == 'c25a38') {
+                  name = 'Red / Auburn';
+                } else if (opt == '707070') {
+                  name = 'Gray';
+                } else if (opt == '305a96') {
+                  name = 'Blue';
+                } else if (opt == 'b83098') {
+                  name = 'Pink';
+                } else if (opt == 'e8b270') {
+                  name = 'Platinum';
+                } else if (opt == '3a7d44') {
+                  name = 'Green';
+                } else if (opt == '6c4f8c') {
+                  name = 'Purple';
+                } else if (opt == 'c4a35a') {
+                  name = 'Gold';
+                }
               }
-              return DropdownMenuItem(
-                value: opt,
-                child: Text(name),
-              );
+              return DropdownMenuItem(value: opt, child: Text(name));
             }).toList(),
             onChanged: onChanged,
             decoration: InputDecoration(
               isDense: true,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 10,
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -648,7 +843,10 @@ class _AvatarCustomizerDialogState extends State<_AvatarCustomizerDialog> {
     final avatarUrl = _buildAvatarUrl();
 
     return AlertDialog(
-      insetPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+      insetPadding: const EdgeInsets.symmetric(
+        horizontal: 16.0,
+        vertical: 24.0,
+      ),
       title: const Text(
         'Customize Avatar',
         style: TextStyle(fontWeight: FontWeight.bold),
@@ -666,7 +864,10 @@ class _AvatarCustomizerDialogState extends State<_AvatarCustomizerDialog> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFE6EAF2), width: 1.5),
+                  border: Border.all(
+                    color: const Color(0xFFE6EAF2),
+                    width: 1.5,
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.05),
@@ -677,20 +878,17 @@ class _AvatarCustomizerDialogState extends State<_AvatarCustomizerDialog> {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(14),
-                  child: Image.network(
+                  child: SvgPicture.network(
                     avatarUrl,
                     fit: BoxFit.cover,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return const Center(
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF141053)),
+                    placeholderBuilder: (context) => const Center(
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Color(0xFF141053),
                         ),
-                      );
-                    },
-                    errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Icons.broken_image_rounded, color: Color(0xFF141053), size: 40),
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -714,27 +912,58 @@ class _AvatarCustomizerDialogState extends State<_AvatarCustomizerDialog> {
               const SizedBox(height: 16),
 
               // Customize parameters
-              _buildDropdown('Skin Tone', _baseColor, widget.baseColorOptions, (val) {
-                if (val != null) setState(() => _baseColor = val);
+              _buildDropdown('Skin Tone', _skinColor, widget.skinColorOptions, (
+                val,
+              ) {
+                if (val != null) setState(() => _skinColor = val);
               }),
               _buildDropdown('Hair Style', _hair, widget.hairOptions, (val) {
                 if (val != null) setState(() => _hair = val);
               }),
-              _buildDropdown('Hair Color', _hairColor, widget.hairColorOptions, (val) {
-                if (val != null) setState(() => _hairColor = val);
-              }),
+              _buildDropdown(
+                'Hair Color',
+                _hairColor,
+                widget.hairColorOptions,
+                (val) {
+                  if (val != null) setState(() => _hairColor = val);
+                },
+              ),
               _buildDropdown('Eyes', _eyes, widget.eyesOptions, (val) {
                 if (val != null) setState(() => _eyes = val);
               }),
-              _buildDropdown('Eyebrows', _eyebrows, widget.eyebrowsOptions, (val) {
+              _buildDropdown('Eyebrows', _eyebrows, widget.eyebrowsOptions, (
+                val,
+              ) {
                 if (val != null) setState(() => _eyebrows = val);
               }),
               _buildDropdown('Mouth', _mouth, widget.mouthOptions, (val) {
                 if (val != null) setState(() => _mouth = val);
               }),
-              _buildDropdown('Facial Hair', _facialHair, widget.facialHairOptions, (val) {
-                if (val != null) setState(() => _facialHair = val);
+              _buildDropdown(
+                'Facial Hair',
+                _facialHair,
+                widget.facialHairOptions,
+                (val) {
+                  if (val != null) setState(() => _facialHair = val);
+                },
+              ),
+              _buildDropdown('Glasses', _glasses, widget.glassesOptions, (val) {
+                if (val != null) setState(() => _glasses = val);
               }),
+              _buildDropdown('Clothing', _clothing, widget.clothingOptions, (
+                val,
+              ) {
+                if (val != null) setState(() => _clothing = val);
+              }),
+              if (_clothing != 'none')
+                _buildDropdown(
+                  'Clothing Color',
+                  _clothingColor,
+                  widget.clothingColorOptions,
+                  (val) {
+                    if (val != null) setState(() => _clothingColor = val);
+                  },
+                ),
             ],
           ),
         ),
@@ -745,27 +974,30 @@ class _AvatarCustomizerDialogState extends State<_AvatarCustomizerDialog> {
           child: const Text('Cancel'),
         ),
         FilledButton(
-              onPressed: _isSaving
-                  ? null
-                  : () async {
-                      final navigator = Navigator.of(context);
-                      setState(() => _isSaving = true);
-                      final Map<String, dynamic> details = {
-                        'seed': _seed,
-                        'baseColor': _baseColor,
-                        'hair': _hair,
-                        'hairColor': _hairColor,
-                        'eyes': _eyes,
-                        'eyebrows': _eyebrows,
-                        'mouth': _mouth,
-                        'facialHair': _facialHair,
-                      };
-                      try {
-                        await widget.onSave(avatarUrl, details);
-                        if (mounted) {
-                          navigator.pop(); // Close customizer dialog
-                        }
-                      } catch (e) {
+          onPressed: _isSaving
+              ? null
+              : () async {
+                  final navigator = Navigator.of(context);
+                  setState(() => _isSaving = true);
+                  final Map<String, dynamic> details = {
+                    'seed': _seed,
+                    'skinColor': _skinColor,
+                    'hair': _hair,
+                    'hairColor': _hairColor,
+                    'eyes': _eyes,
+                    'eyebrows': _eyebrows,
+                    'mouth': _mouth,
+                    'facialHair': _facialHair,
+                    'glasses': _glasses,
+                    'clothing': _clothing,
+                    'clothingColor': _clothingColor,
+                  };
+                  try {
+                    await widget.onSave(avatarUrl, details);
+                    if (mounted) {
+                      navigator.pop(); // Close customizer dialog
+                    }
+                  } catch (e) {
                     debugPrint('Error saving avatar: $e');
                   } finally {
                     if (mounted) {
@@ -773,7 +1005,9 @@ class _AvatarCustomizerDialogState extends State<_AvatarCustomizerDialog> {
                     }
                   }
                 },
-          style: FilledButton.styleFrom(backgroundColor: const Color(0xFF141053)),
+          style: FilledButton.styleFrom(
+            backgroundColor: const Color(0xFF141053),
+          ),
           child: _isSaving
               ? const SizedBox(
                   width: 16,

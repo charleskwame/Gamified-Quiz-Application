@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../models/badge.dart';
 import '../services/auth_service.dart';
 import '../services/notification_service.dart';
@@ -261,16 +262,14 @@ class _ProfilePageState extends State<ProfilePage> {
                           child: avatarUrl != null && avatarUrl.isNotEmpty
                               ? ClipRRect(
                                   borderRadius: BorderRadius.circular(40),
-                                  child: Image.network(
+                                  child: SvgPicture.network(
                                     avatarUrl,
                                     fit: BoxFit.cover,
-                                    errorBuilder:
-                                        (context, error, stackTrace) =>
-                                            const Icon(
-                                              Icons.person_rounded,
-                                              size: 40,
-                                              color: Color(0xFF141053),
-                                            ),
+                                    placeholderBuilder: (context) => const Icon(
+                                      Icons.person_rounded,
+                                      size: 40,
+                                      color: Color(0xFF141053),
+                                    ),
                                   ),
                                 )
                               : const Icon(

@@ -33,30 +33,45 @@ class DatabaseService {
     String displayName,
     String email,
   ) async {
-    // Generate a default random DiceBear Micah avatar so the user has one immediately
+    // Generate a default random DiceBear toon-head avatar so the user has one immediately
     final random = Random();
     final seed = List.generate(8, (_) => random.nextInt(10).toString()).join();
-    const baseColorOptions = ['f3d1c1', 'f7c3a0', 'e28d75', 'b86c52', '9c5b42'];
+    const skinColorOptions = ['ffeedd', 'f5d0b1', 'e6b88a', 'd4a574', '8d5524'];
     const hairOptions = [
+      'bald',
+      'bob',
+      'braids',
+      'bun',
+      'buzz',
+      'curly',
       'dannyPhantom',
       'dougFunny',
+      'flatTop',
       'fonze',
       'full',
+      'long',
       'mrClean',
       'mrT',
       'pixie',
+      'pompadour',
+      'shortCurly',
+      'shortFlat',
+      'shortRound',
       'turban',
+      'wave',
+      'wide',
     ];
     const hairColorOptions = [
-      '4a3728',
       '1a1a1a',
+      '4a3728',
       'a5753f',
       'c25a38',
       '707070',
       '305a96',
       'b83098',
+      'e8b270',
     ];
-    const eyesOptions = ['eyes', 'eyesShadow', 'round', 'smiling'];
+    const eyesOptions = ['eyes', 'eyesShadow', 'round', 'smiling', 'wide'];
     const eyebrowsOptions = ['down', 'eyelashesDown', 'eyelashesUp', 'up'];
     const mouthOptions = [
       'frown',
@@ -68,9 +83,39 @@ class DatabaseService {
       'smirk',
       'surprised',
     ];
-    const facialHairOptions = ['none', 'beard', 'scruff'];
+    const facialHairOptions = [
+      'none',
+      'beard',
+      'scruff',
+      'goatee',
+      'moustache',
+    ];
+    const glassesOptions = ['none', 'round', 'square', 'wayfarers'];
+    const clothingOptions = [
+      'none',
+      'blazer',
+      'blazerAndShirt',
+      'graphicShirt',
+      'hoodie',
+      'overall',
+      'shirt',
+      'vneck',
+    ];
+    const clothingColorOptions = [
+      '1a1a1a',
+      '4a3728',
+      'a5753f',
+      'c25a38',
+      '707070',
+      '305a96',
+      'b83098',
+      'e8b270',
+      '3a7d44',
+      '6c4f8c',
+      'c4a35a',
+    ];
 
-    final baseColor = baseColorOptions[random.nextInt(baseColorOptions.length)];
+    final skinColor = skinColorOptions[random.nextInt(skinColorOptions.length)];
     final hair = hairOptions[random.nextInt(hairOptions.length)];
     final hairColor = hairColorOptions[random.nextInt(hairColorOptions.length)];
     final eyes = eyesOptions[random.nextInt(eyesOptions.length)];
@@ -78,31 +123,48 @@ class DatabaseService {
     final mouth = mouthOptions[random.nextInt(mouthOptions.length)];
     final facialHair =
         facialHairOptions[random.nextInt(facialHairOptions.length)];
+    final glasses = glassesOptions[random.nextInt(glassesOptions.length)];
+    final clothing = clothingOptions[random.nextInt(clothingOptions.length)];
+    final clothingColor =
+        clothingColorOptions[random.nextInt(clothingColorOptions.length)];
 
     final facialHairParam = facialHair == 'none'
         ? 'facialHairProbability=0'
         : 'facialHairProbability=100&facialHair=$facialHair';
 
+    final glassesParam = glasses == 'none'
+        ? 'glassesProbability=0'
+        : 'glassesProbability=100&glasses=$glasses';
+
+    final clothingParam = clothing == 'none'
+        ? ''
+        : 'clothing=$clothing&clothingColor=$clothingColor';
+
     final avatarUrl =
-        'https://api.dicebear.com/9.x/micah/png?'
+        'https://api.dicebear.com/10.x/toon-head/svg?'
         'seed=$seed&'
-        'baseColor=$baseColor&'
+        'skinColor=$skinColor&'
         'mouth=$mouth&'
         'eyebrows=$eyebrows&'
         'eyes=$eyes&'
         'hair=$hair&'
         'hairColor=$hairColor&'
-        '$facialHairParam';
+        '$facialHairParam&'
+        '$glassesParam&'
+        '$clothingParam';
 
     final avatarDetails = <String, dynamic>{
       'seed': seed,
-      'baseColor': baseColor,
+      'skinColor': skinColor,
       'hair': hair,
       'hairColor': hairColor,
       'eyes': eyes,
       'eyebrows': eyebrows,
       'mouth': mouth,
       'facialHair': facialHair,
+      'glasses': glasses,
+      'clothing': clothing,
+      'clothingColor': clothingColor,
     };
 
     await _db.collection('users').doc(uid).set({

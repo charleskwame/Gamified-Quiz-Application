@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../models/badge.dart';
 import '../models/user_rank.dart';
 import '../services/database_service.dart';
@@ -237,7 +238,7 @@ class _RankingsPageState extends State<RankingsPage> {
                                     rank.avatarUrl != null &&
                                         rank.avatarUrl!.isNotEmpty
                                     ? ClipOval(
-                                        child: Image.network(
+                                        child: SvgPicture.network(
                                           rank.avatarUrl!,
                                           fit: BoxFit.cover,
                                           errorBuilder:
