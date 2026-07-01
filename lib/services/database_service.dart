@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -33,6 +34,78 @@ class DatabaseService {
     String displayName,
     String email,
   ) async {
+    // Generate a default random DiceBear Micah avatar so the user has one immediately
+    final random = Random();
+    final seed = List.generate(8, (_) => random.nextInt(10).toString()).join();
+    const baseColorOptions = ['f3d1c1', 'f7c3a0', 'e28d75', 'b86c52', '9c5b42'];
+    const hairOptions = [
+      'dannyPhantom',
+      'dougFunny',
+      'fonze',
+      'full',
+      'mrClean',
+      'mrT',
+      'pixie',
+      'turban',
+    ];
+    const hairColorOptions = [
+      '4a3728',
+      '1a1a1a',
+      'a5753f',
+      'c25a38',
+      '707070',
+      '305a96',
+      'b83098',
+    ];
+    const eyesOptions = ['eyes', 'eyesShadow', 'round', 'smiling'];
+    const eyebrowsOptions = ['down', 'eyelashesDown', 'eyelashesUp', 'up'];
+    const mouthOptions = [
+      'frown',
+      'laughing',
+      'nervous',
+      'pucker',
+      'sad',
+      'smile',
+      'smirk',
+      'surprised',
+    ];
+    const facialHairOptions = ['none', 'beard', 'scruff'];
+
+    final baseColor = baseColorOptions[random.nextInt(baseColorOptions.length)];
+    final hair = hairOptions[random.nextInt(hairOptions.length)];
+    final hairColor = hairColorOptions[random.nextInt(hairColorOptions.length)];
+    final eyes = eyesOptions[random.nextInt(eyesOptions.length)];
+    final eyebrows = eyebrowsOptions[random.nextInt(eyebrowsOptions.length)];
+    final mouth = mouthOptions[random.nextInt(mouthOptions.length)];
+    final facialHair =
+        facialHairOptions[random.nextInt(facialHairOptions.length)];
+
+    final facialHairParam = facialHair == 'none'
+        ? 'facialHairProbability=0'
+        : 'facialHairProbability=100&facialHair=$facialHair';
+
+    final avatarUrl =
+        'https://api.dicebear.com/9.x/micah/png?'
+        'seed=$seed&'
+        'baseColor=$baseColor&'
+        'mouth=$mouth&'
+        'eyebrows=$eyebrows&'
+        'eyes=$eyes&'
+        'hair=$hair&'
+        'hairColor=$hairColor&'
+        '$facialHairParam';
+
+    final avatarDetails = <String, dynamic>{
+      'seed': seed,
+      'baseColor': baseColor,
+      'hair': hair,
+      'hairColor': hairColor,
+      'eyes': eyes,
+      'eyebrows': eyebrows,
+      'mouth': mouth,
+      'facialHair': facialHair,
+    };
+
     await _db.collection('users').doc(uid).set({
       'displayName': displayName,
       'email': email,
@@ -53,8 +126,10 @@ class DatabaseService {
       'lastActiveDate': '',
       'badges': <String>[],
       'selectedBadges': <String>[],
+      'avatarUrl': avatarUrl,
+      'avatarDetails': avatarDetails,
       'createdAt': FieldValue.serverTimestamp(),
-    });
+    }, SetOptions(merge: true));
   }
 
   // Sync user profile updates to Firestore
