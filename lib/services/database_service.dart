@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/question.dart';
@@ -123,7 +122,6 @@ class DatabaseService {
       'questionsCorrect': 0,
       'questionsAnswered': 0,
       'streakNumber': 0,
-      'lastActiveDate': '',
       'badges': <String>[],
       'selectedBadges': <String>[],
       'avatarUrl': avatarUrl,
@@ -235,7 +233,6 @@ class DatabaseService {
       int questionsCorrect = data['questionsCorrect'] ?? 0;
       int questionsAnswered = data['questionsAnswered'] ?? 0;
       int streakNumber = data['streakNumber'] ?? 0;
-      String lastActiveDate = data['lastActiveDate'] ?? '';
       List<String> badges = List<String>.from(data['badges'] ?? []);
 
       int caAnswered = data['caAnswered'] ?? 0;
@@ -264,25 +261,11 @@ class DatabaseService {
         seCorrect += correctIncrement;
       }
 
-      // Calculate streak
-      final DateTime now = DateTime.now();
-      final String todayStr =
-          "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
-      final DateTime yesterdayDate = now.subtract(const Duration(days: 1));
-      final String yesterdayStr =
-          "${yesterdayDate.year}-${yesterdayDate.month.toString().padLeft(2, '0')}-${yesterdayDate.day.toString().padLeft(2, '0')}";
-
-      if (lastActiveDate.isEmpty) {
-        streakNumber = 1;
-      } else if (lastActiveDate == todayStr) {
-        // Already active today, streak remains same
-      } else if (lastActiveDate == yesterdayStr) {
+      // Calculate streak: increment if user scored at least half correct
+      if (answeredIncrement > 0 &&
+          correctIncrement >= (answeredIncrement / 2).ceil()) {
         streakNumber += 1;
-      } else {
-        // Broken streak, reset
-        streakNumber = 1;
       }
-      lastActiveDate = todayStr;
 
       // Evaluate badges
       for (var badgeDef in allBadges) {
@@ -320,60 +303,11 @@ class DatabaseService {
         'questionsCorrect': questionsCorrect,
         'questionsAnswered': questionsAnswered,
         'streakNumber': streakNumber,
-        'lastActiveDate': lastActiveDate,
         'badges': badges,
       });
     });
 
     return newlyUnlocked;
-  }
-
-  Future<void> syncLocalStreakCacheToFirestore(String uid) async {
-    final prefs = await SharedPreferences.getInstance();
-    final localLastActiveDate = prefs.getString('last_active_date') ?? '';
-    final localStreakNumber = prefs.getInt('streak_number') ?? 0;
-
-    debugPrint(
-      '[StreakSync] local cache lastActiveDate=$localLastActiveDate streakNumber=$localStreakNumber',
-    );
-
-    if (localLastActiveDate.isEmpty || localStreakNumber <= 0) {
-      debugPrint('[StreakSync] skipped because local cache is empty.');
-      return;
-    }
-
-    final userRef = _db.collection('users').doc(uid);
-
-    await _db.runTransaction((transaction) async {
-      final snapshot = await transaction.get(userRef);
-      if (!snapshot.exists) {
-        return;
-      }
-
-      final data = snapshot.data() as Map<String, dynamic>;
-      final remoteLastActiveDate = data['lastActiveDate'] ?? '';
-      final remoteStreakNumber = data['streakNumber'] ?? 0;
-
-      final shouldSync =
-          remoteLastActiveDate.isEmpty ||
-          localLastActiveDate.compareTo(remoteLastActiveDate) > 0 ||
-          (localLastActiveDate == remoteLastActiveDate &&
-              localStreakNumber > remoteStreakNumber);
-
-      debugPrint(
-        '[StreakSync] remote lastActiveDate=$remoteLastActiveDate streakNumber=$remoteStreakNumber shouldSync=$shouldSync',
-      );
-
-      if (shouldSync) {
-        transaction.update(userRef, {
-          'lastActiveDate': localLastActiveDate,
-          'streakNumber': localStreakNumber,
-        });
-        debugPrint('[StreakSync] Firestore updated from local cache.');
-      } else {
-        debugPrint('[StreakSync] Firestore already up to date.');
-      }
-    });
   }
 
   // Download up to 50 questions for a category for offline use

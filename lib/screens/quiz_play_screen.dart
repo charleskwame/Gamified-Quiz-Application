@@ -244,36 +244,13 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
 
     try {
       final prefs = await SharedPreferences.getInstance();
-      final todayStr = DateTime.now().toIso8601String().split('T')[0];
-      final yesterdayDate = DateTime.now().subtract(const Duration(days: 1));
-      final yesterdayStr =
-          "${yesterdayDate.year}-${yesterdayDate.month.toString().padLeft(2, '0')}-${yesterdayDate.day.toString().padLeft(2, '0')}";
-      final previousStreak = prefs.getInt('streak_number') ?? 0;
-      final previousActiveDate = prefs.getString('last_active_date') ?? '';
-
-      int localStreak = previousStreak;
-      if (previousActiveDate.isEmpty) {
-        localStreak = 1;
-      } else if (previousActiveDate == todayStr) {
-        // Keep the current streak if the user already played today.
-      } else if (previousActiveDate == yesterdayStr) {
-        localStreak += 1;
-      } else {
-        localStreak = 1;
-      }
-
-      await prefs.setString('last_active_date', todayStr);
-      await prefs.setInt('streak_number', localStreak);
-      debugPrint(
-        '[StreakSync] quiz complete cached lastActiveDate=$todayStr streakNumber=$localStreak previousStreak=$previousStreak previousActiveDate=$previousActiveDate',
-      );
       final notificationsEnabled =
           prefs.getBool('notifications_enabled') ?? false;
       if (notificationsEnabled) {
         await NotificationService().rescheduleForTomorrow();
       }
     } catch (e) {
-      // Ignore preference write/notification scheduling errors
+      // Ignore notification scheduling errors
     }
 
     // Load a random motivational quote

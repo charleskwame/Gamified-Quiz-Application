@@ -154,7 +154,7 @@ class QuizHomePage extends StatelessWidget {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              '$streakNumber Days',
+                              '$streakNumber Completions',
                               style: const TextStyle(
                                 color: Color(0xFFFF5722),
                                 fontWeight: FontWeight.w900,

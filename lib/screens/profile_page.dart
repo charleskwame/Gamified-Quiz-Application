@@ -51,12 +51,7 @@ class _ProfilePageState extends State<ProfilePage> {
       final alreadyScheduled = await NotificationService()
           .isReminderScheduled();
       if (!alreadyScheduled) {
-        final todayStr = DateTime.now().toIso8601String().split('T')[0];
-        final lastActiveDate = prefs.getString('last_active_date') ?? '';
-        final forceTomorrow = lastActiveDate == todayStr;
-        await NotificationService().scheduleDailyStreakReminder(
-          forceTomorrow: forceTomorrow,
-        );
+        await NotificationService().scheduleDailyStreakReminder();
       }
     } else {
       await NotificationService().cancelStreakReminder();

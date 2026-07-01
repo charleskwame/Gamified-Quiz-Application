@@ -57,7 +57,9 @@ class _StreakCardModalState extends State<StreakCardModal> {
   }
 
   Future<void> _fetchStats() async {
-    final percent = await DatabaseService().getStreakPercentage(widget.streakNumber);
+    final percent = await DatabaseService().getStreakPercentage(
+      widget.streakNumber,
+    );
     if (mounted) {
       setState(() {
         _percentage = percent;
@@ -72,14 +74,17 @@ class _StreakCardModalState extends State<StreakCardModal> {
     try {
       await Future.delayed(const Duration(milliseconds: 300));
       final RenderRepaintBoundary? boundary =
-          _repaintKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+          _repaintKey.currentContext?.findRenderObject()
+              as RenderRepaintBoundary?;
 
       if (boundary == null) {
         throw Exception('Could not capture streak layout.');
       }
 
       final ui.Image image = await boundary.toImage(pixelRatio: 3.0);
-      final ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      final ByteData? byteData = await image.toByteData(
+        format: ui.ImageByteFormat.png,
+      );
 
       if (byteData == null) {
         throw Exception('Failed to generate PNG data.');
@@ -92,7 +97,9 @@ class _StreakCardModalState extends State<StreakCardModal> {
       if (Platform.isAndroid) {
         await Permission.storage.request();
         await Permission.photos.request();
-        directory = Directory('/storage/emulated/0/Pictures/Gamified Quiz App Badges');
+        directory = Directory(
+          '/storage/emulated/0/Pictures/Gamified Quiz App Badges',
+        );
         if (!await directory.exists()) {
           await directory.create(recursive: true);
         }
@@ -100,11 +107,13 @@ class _StreakCardModalState extends State<StreakCardModal> {
         directory = await getApplicationDocumentsDirectory();
       }
 
-      final String path = '${directory.path}/streak_${widget.streakNumber}_days.png';
+      final String path =
+          '${directory.path}/streak_${widget.streakNumber}_days.png';
       final File imgFile = File(path);
 
       await imgFile.writeAsBytes(
-          buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
+        buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes),
+      );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -115,9 +124,15 @@ class _StreakCardModalState extends State<StreakCardModal> {
               children: [
                 const Text(
                   '🔥 Streak Card Saved successfully!',
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
-                Text('Saved to: $path', style: const TextStyle(fontSize: 12, color: Colors.white70)),
+                Text(
+                  'Saved to: $path',
+                  style: const TextStyle(fontSize: 12, color: Colors.white70),
+                ),
               ],
             ),
             backgroundColor: const Color(0xFF09262A),
@@ -184,7 +199,7 @@ class _StreakCardModalState extends State<StreakCardModal> {
                     color: Colors.black26,
                     blurRadius: 15,
                     offset: Offset(0, 8),
-                  )
+                  ),
                 ],
               ),
               child: Column(
@@ -197,7 +212,7 @@ class _StreakCardModalState extends State<StreakCardModal> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    '${widget.streakNumber} Days',
+                    '${widget.streakNumber} Challenges Completed',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 32,
@@ -215,7 +230,10 @@ class _StreakCardModalState extends State<StreakCardModal> {
                   ),
                   const SizedBox(height: 24),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.black.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(16),
@@ -224,7 +242,10 @@ class _StreakCardModalState extends State<StreakCardModal> {
                         ? const SizedBox(
                             height: 16,
                             width: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
                           )
                         : Text(
                             'Top ${_percentage.toStringAsFixed(1)}% of players have this streak',
@@ -260,7 +281,9 @@ class _StreakCardModalState extends State<StreakCardModal> {
                 backgroundColor: const Color(0xFF111C4A),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ),
