@@ -1,5 +1,4 @@
 import 'dart:math';
-import '../models/question.dart';
 
 /// Pure business logic for quiz scoring and shuffling.
 /// No Flutter or state dependencies.
