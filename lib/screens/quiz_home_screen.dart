@@ -45,6 +45,7 @@ class QuizHomePage extends StatelessWidget {
         int questionsCorrect = 0;
         int streakNumber = 0;
         int totalScore = 0;
+        String? avatarUrl;
 
         if (snapshot.hasData && snapshot.data!.exists) {
           final data = snapshot.data!.data() as Map<String, dynamic>;
@@ -53,6 +54,7 @@ class QuizHomePage extends StatelessWidget {
           questionsCorrect = data['questionsCorrect'] ?? 0;
           streakNumber = data['streakNumber'] ?? 0;
           totalScore = data['score'] ?? 0;
+          avatarUrl = data['avatarUrl'] as String?;
         }
 
         final accuracyPercent = questionsAnswered > 0
@@ -66,6 +68,7 @@ class QuizHomePage extends StatelessWidget {
           accuracyPercent: accuracyPercent,
           streakNumber: streakNumber,
           totalScore: totalScore,
+          avatarUrl: avatarUrl,
         );
       },
     );
@@ -78,6 +81,7 @@ class QuizHomePage extends StatelessWidget {
     required int accuracyPercent,
     required int streakNumber,
     required int totalScore,
+    String? avatarUrl,
   }) {
     return Scaffold(
       body: SafeArea(
@@ -118,7 +122,11 @@ class QuizHomePage extends StatelessWidget {
                   if (streakNumber > 0)
                     GestureDetector(
                       onTap: () {
-                        StreakCardModal.show(context, streakNumber);
+                        StreakCardModal.show(
+                          context,
+                          streakNumber,
+                          avatarUrl: avatarUrl,
+                        );
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(
