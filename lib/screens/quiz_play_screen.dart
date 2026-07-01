@@ -247,7 +247,28 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
     try {
       final prefs = await SharedPreferences.getInstance();
       final todayStr = DateTime.now().toIso8601String().split('T')[0];
+      final yesterdayDate = DateTime.now().subtract(const Duration(days: 1));
+      final yesterdayStr =
+          "${yesterdayDate.year}-${yesterdayDate.month.toString().padLeft(2, '0')}-${yesterdayDate.day.toString().padLeft(2, '0')}";
+      final previousStreak = prefs.getInt('streak_number') ?? 0;
+      final previousActiveDate = prefs.getString('last_active_date') ?? '';
+
+      int localStreak = previousStreak;
+      if (previousActiveDate.isEmpty) {
+        localStreak = 1;
+      } else if (previousActiveDate == todayStr) {
+        // Keep the current streak if the user already played today.
+      } else if (previousActiveDate == yesterdayStr) {
+        localStreak += 1;
+      } else {
+        localStreak = 1;
+      }
+
       await prefs.setString('last_active_date', todayStr);
+      await prefs.setInt('streak_number', localStreak);
+      debugPrint(
+        '[StreakSync] quiz complete cached lastActiveDate=$todayStr streakNumber=$localStreak previousStreak=$previousStreak previousActiveDate=$previousActiveDate',
+      );
       final notificationsEnabled =
           prefs.getBool('notifications_enabled') ?? false;
       if (notificationsEnabled) {
@@ -1051,11 +1072,11 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
               ),
             ),
           ),
-          // Streak multiplier badge anchored on the right side in challenge mode.
+          // Streak multiplier badge anchored in the same bottom-right spot as the AI assistant.
           if (widget.isTimed && _consecutiveCorrect >= 2)
             Positioned(
-              right: 12,
-              top: MediaQuery.of(context).padding.top + 96,
+              right: 16,
+              bottom: MediaQuery.of(context).padding.bottom + 16,
               child: IgnorePointer(child: _buildStreakMultiplierBadge()),
             ),
         ],
@@ -1081,8 +1102,8 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
         final double glowAlpha = 0.28 + (pulse * 0.22);
 
         return Container(
-          width: 96,
-          height: 96,
+          width: 128,
+          height: 128,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             boxShadow: [
@@ -1097,7 +1118,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
             alignment: Alignment.center,
             children: [
               Transform.scale(
-                scale: scale,
+                scale: scale * 1.12,
                 child: Lottie.asset(
                   'lib/assets/lottie/fire.lottie',
                   fit: BoxFit.contain,
@@ -1105,33 +1126,31 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
                   animate: true,
                 ),
               ),
-              Container(
-                width: 48,
-                height: 48,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0F172A).withValues(alpha: 0.72),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.18),
-                    width: 1,
-                  ),
-                ),
-                child: Text(
-                  multiplierText,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 17,
-                    fontWeight: FontWeight.w900,
-                    height: 1.0,
-                    shadows: [
-                      Shadow(
-                        color: Colors.black54,
-                        blurRadius: 4,
-                        offset: Offset(0, 1),
-                      ),
-                    ],
+              SizedBox(
+                width: 68,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    multiplierText,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                      height: 1.0,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black,
+                          blurRadius: 8,
+                          offset: Offset(0, 2),
+                        ),
+                        Shadow(
+                          color: Colors.black54,
+                          blurRadius: 2,
+                          offset: Offset(0, 0),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

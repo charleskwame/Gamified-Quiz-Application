@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/question.dart';
@@ -15,17 +16,23 @@ class DatabaseService {
         .collection('users')
         .orderBy('score', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .where((doc) {
-              final data = doc.data();
-              return data['role'] != 'lecturer';
-            })
-            .map((doc) => UserRank.fromFirestore(doc))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .where((doc) {
+                final data = doc.data();
+                return data['role'] != 'lecturer';
+              })
+              .map((doc) => UserRank.fromFirestore(doc))
+              .toList(),
+        );
   }
 
   // Initialize user profile and stats tracking document in Firestore
-  Future<void> initializeUserStats(String uid, String displayName, String email) async {
+  Future<void> initializeUserStats(
+    String uid,
+    String displayName,
+    String email,
+  ) async {
     await _db.collection('users').doc(uid).set({
       'displayName': displayName,
       'email': email,
@@ -51,7 +58,11 @@ class DatabaseService {
   }
 
   // Sync user profile updates to Firestore
-  Future<void> updateUserInfo(String uid, String? displayName, String? email) async {
+  Future<void> updateUserInfo(
+    String uid,
+    String? displayName,
+    String? email,
+  ) async {
     final Map<String, dynamic> data = {};
     if (displayName != null && displayName.isNotEmpty) {
       data['displayName'] = displayName;
@@ -65,7 +76,11 @@ class DatabaseService {
   }
 
   // Update customized avatar URL and options details in Firestore
-  Future<void> updateAvatar(String uid, String avatarUrl, Map<String, dynamic> details) async {
+  Future<void> updateAvatar(
+    String uid,
+    String avatarUrl,
+    Map<String, dynamic> details,
+  ) async {
     await _db.collection('users').doc(uid).update({
       'avatarUrl': avatarUrl,
       'avatarDetails': details,
@@ -74,9 +89,7 @@ class DatabaseService {
 
   // Update email verification status in Firestore
   Future<void> updateEmailVerificationStatus(String uid, bool verified) async {
-    await _db.collection('users').doc(uid).update({
-      'emailVerified': verified,
-    });
+    await _db.collection('users').doc(uid).update({'emailVerified': verified});
   }
 
   // Update user stats after a quiz challenge
@@ -96,15 +109,21 @@ class DatabaseService {
     };
 
     if (category == 'Computer Architecture') {
-      updates['computerArchitecturePoints'] = FieldValue.increment(scoreIncrement);
+      updates['computerArchitecturePoints'] = FieldValue.increment(
+        scoreIncrement,
+      );
       updates['caAnswered'] = FieldValue.increment(answeredIncrement);
       updates['caCorrect'] = FieldValue.increment(correctIncrement);
     } else if (category == 'Computer Networking') {
-      updates['computerNetworkingPoints'] = FieldValue.increment(scoreIncrement);
+      updates['computerNetworkingPoints'] = FieldValue.increment(
+        scoreIncrement,
+      );
       updates['cnAnswered'] = FieldValue.increment(answeredIncrement);
       updates['cnCorrect'] = FieldValue.increment(correctIncrement);
     } else if (category == 'Software Engineering') {
-      updates['softwareEngineeringPoints'] = FieldValue.increment(scoreIncrement);
+      updates['softwareEngineeringPoints'] = FieldValue.increment(
+        scoreIncrement,
+      );
       updates['seAnswered'] = FieldValue.increment(answeredIncrement);
       updates['seCorrect'] = FieldValue.increment(correctIncrement);
     }
@@ -172,9 +191,11 @@ class DatabaseService {
 
       // Calculate streak
       final DateTime now = DateTime.now();
-      final String todayStr = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+      final String todayStr =
+          "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
       final DateTime yesterdayDate = now.subtract(const Duration(days: 1));
-      final String yesterdayStr = "${yesterdayDate.year}-${yesterdayDate.month.toString().padLeft(2, '0')}-${yesterdayDate.day.toString().padLeft(2, '0')}";
+      final String yesterdayStr =
+          "${yesterdayDate.year}-${yesterdayDate.month.toString().padLeft(2, '0')}-${yesterdayDate.day.toString().padLeft(2, '0')}";
 
       if (lastActiveDate.isEmpty) {
         streakNumber = 1;
@@ -232,11 +253,60 @@ class DatabaseService {
     return newlyUnlocked;
   }
 
+  Future<void> syncLocalStreakCacheToFirestore(String uid) async {
+    final prefs = await SharedPreferences.getInstance();
+    final localLastActiveDate = prefs.getString('last_active_date') ?? '';
+    final localStreakNumber = prefs.getInt('streak_number') ?? 0;
+
+    debugPrint(
+      '[StreakSync] local cache lastActiveDate=$localLastActiveDate streakNumber=$localStreakNumber',
+    );
+
+    if (localLastActiveDate.isEmpty || localStreakNumber <= 0) {
+      debugPrint('[StreakSync] skipped because local cache is empty.');
+      return;
+    }
+
+    final userRef = _db.collection('users').doc(uid);
+
+    await _db.runTransaction((transaction) async {
+      final snapshot = await transaction.get(userRef);
+      if (!snapshot.exists) {
+        return;
+      }
+
+      final data = snapshot.data() as Map<String, dynamic>;
+      final remoteLastActiveDate = data['lastActiveDate'] ?? '';
+      final remoteStreakNumber = data['streakNumber'] ?? 0;
+
+      final shouldSync =
+          remoteLastActiveDate.isEmpty ||
+          localLastActiveDate.compareTo(remoteLastActiveDate) > 0 ||
+          (localLastActiveDate == remoteLastActiveDate &&
+              localStreakNumber > remoteStreakNumber);
+
+      debugPrint(
+        '[StreakSync] remote lastActiveDate=$remoteLastActiveDate streakNumber=$remoteStreakNumber shouldSync=$shouldSync',
+      );
+
+      if (shouldSync) {
+        transaction.update(userRef, {
+          'lastActiveDate': localLastActiveDate,
+          'streakNumber': localStreakNumber,
+        });
+        debugPrint('[StreakSync] Firestore updated from local cache.');
+      } else {
+        debugPrint('[StreakSync] Firestore already up to date.');
+      }
+    });
+  }
+
   // Download up to 50 questions for a category for offline use
   Future<void> downloadQuestionsForOffline(String category) async {
-    final collectionName = '${category.toLowerCase().replaceAll(' ', '_')}_questions';
+    final collectionName =
+        '${category.toLowerCase().replaceAll(' ', '_')}_questions';
     final snapshot = await _db.collection(collectionName).limit(50).get();
-    
+
     final questionsList = snapshot.docs.map((doc) {
       final data = doc.data();
       return {
@@ -282,10 +352,10 @@ class DatabaseService {
     return prefs.containsKey(key);
   }
 
-
   // Fetch questions by category from separate collections
   Future<List<Question>> getQuestionsByCategory(String category) async {
-    final collectionName = '${category.toLowerCase().replaceAll(' ', '_')}_questions';
+    final collectionName =
+        '${category.toLowerCase().replaceAll(' ', '_')}_questions';
     final snapshot = await _db.collection(collectionName).get();
     return snapshot.docs.map((doc) => Question.fromFirestore(doc)).toList();
   }
@@ -293,9 +363,12 @@ class DatabaseService {
   // Seeding method to load and upload JSON question banks into separate collections
   Future<String> seedAllQuestions() async {
     final filesToSeed = {
-      'lib/assets/computer_architecture_parsed_questions.json': 'Computer Architecture',
-      'lib/assets/computer_networking_parsed_questions.json': 'Computer Networking',
-      'lib/assets/software_engineering_parsed_questions.json': 'Software Engineering',
+      'lib/assets/computer_architecture_parsed_questions.json':
+          'Computer Architecture',
+      'lib/assets/computer_networking_parsed_questions.json':
+          'Computer Networking',
+      'lib/assets/software_engineering_parsed_questions.json':
+          'Software Engineering',
     };
 
     int totalAdded = 0;
@@ -304,14 +377,12 @@ class DatabaseService {
     for (var entry in filesToSeed.entries) {
       final String filePath = entry.key;
       final String category = entry.value;
-      final String collectionName = '${category.toLowerCase().replaceAll(' ', '_')}_questions';
+      final String collectionName =
+          '${category.toLowerCase().replaceAll(' ', '_')}_questions';
 
       try {
         // Check if category is already seeded
-        final check = await _db
-            .collection(collectionName)
-            .limit(1)
-            .get();
+        final check = await _db.collection(collectionName).limit(1).get();
 
         if (check.docs.isNotEmpty) {
           details.add('$category ($collectionName): Already seeded.');
@@ -336,7 +407,7 @@ class DatabaseService {
             'category': category,
           });
           addedInCategory++;
-          
+
           // Firestore batch limit is 500 writes
           if (addedInCategory >= 450) {
             break;
@@ -345,7 +416,9 @@ class DatabaseService {
 
         await batch.commit();
         totalAdded += addedInCategory;
-        details.add('$category: Seeded $addedInCategory questions into $collectionName.');
+        details.add(
+          '$category: Seeded $addedInCategory questions into $collectionName.',
+        );
       } catch (e) {
         details.add('$category error: $e');
       }
@@ -361,7 +434,10 @@ class DatabaseService {
 
     // Clear local saved offline questions in SharedPreferences
     final prefs = await SharedPreferences.getInstance();
-    final keysToClear = prefs.getKeys().where((key) => key.startsWith('offline_')).toList();
+    final keysToClear = prefs
+        .getKeys()
+        .where((key) => key.startsWith('offline_'))
+        .toList();
     for (final key in keysToClear) {
       await prefs.remove(key);
     }
@@ -369,9 +445,7 @@ class DatabaseService {
 
   // Updates the list of up to 3 selected badges to display next to user name in rankings
   Future<void> updateSelectedBadges(String uid, List<String> badgeIds) async {
-    await _db.collection('users').doc(uid).update({
-      'selectedBadges': badgeIds,
-    });
+    await _db.collection('users').doc(uid).update({'selectedBadges': badgeIds});
   }
 
   // Get percentage of users who own a specific badge

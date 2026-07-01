@@ -63,6 +63,18 @@ void main() async {
     }
   }
 
+  final currentUser = FirebaseAuth.instance.currentUser;
+  if (currentUser != null) {
+    try {
+      debugPrint(
+        '[StreakSync] startup reconciliation for uid=${currentUser.uid}',
+      );
+      await DatabaseService().syncLocalStreakCacheToFirestore(currentUser.uid);
+    } catch (_) {
+      // Ignore reconciliation failures; the quiz flow will retry on the next sync.
+    }
+  }
+
   runApp(const MyApp());
 }
 
@@ -784,19 +796,25 @@ class _RankingsPageState extends State<RankingsPage> {
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: const Color(0xFFE6EAF2), width: 1.5),
+                                  border: Border.all(
+                                    color: const Color(0xFFE6EAF2),
+                                    width: 1.5,
+                                  ),
                                 ),
-                                child: rank.avatarUrl != null && rank.avatarUrl!.isNotEmpty
+                                child:
+                                    rank.avatarUrl != null &&
+                                        rank.avatarUrl!.isNotEmpty
                                     ? ClipOval(
                                         child: Image.network(
                                           rank.avatarUrl!,
                                           fit: BoxFit.cover,
-                                          errorBuilder: (context, error, stackTrace) =>
-                                              const Icon(
-                                                Icons.person_rounded,
-                                                size: 24,
-                                                color: Color(0xFF141053),
-                                              ),
+                                          errorBuilder:
+                                              (context, error, stackTrace) =>
+                                                  const Icon(
+                                                    Icons.person_rounded,
+                                                    size: 24,
+                                                    color: Color(0xFF141053),
+                                                  ),
                                         ),
                                       )
                                     : const Icon(
@@ -934,7 +952,8 @@ class _ProfilePageState extends State<ProfilePage> {
         await Permission.notification.request();
       }
       // Only schedule if no repeating notification is already pending
-      final alreadyScheduled = await NotificationService().isReminderScheduled();
+      final alreadyScheduled = await NotificationService()
+          .isReminderScheduled();
       if (!alreadyScheduled) {
         final todayStr = DateTime.now().toIso8601String().split('T')[0];
         final lastActiveDate = prefs.getString('last_active_date') ?? '';
@@ -1143,7 +1162,10 @@ class _ProfilePageState extends State<ProfilePage> {
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(40),
-                            border: Border.all(color: const Color(0xFFE6EAF2), width: 1.5),
+                            border: Border.all(
+                              color: const Color(0xFFE6EAF2),
+                              width: 1.5,
+                            ),
                           ),
                           child: avatarUrl != null && avatarUrl.isNotEmpty
                               ? ClipRRect(
@@ -1267,7 +1289,6 @@ class _ProfilePageState extends State<ProfilePage> {
                                   }).toList(),
                                 ),
                               ],
-
                             ],
                           ),
                         ),
