@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../widgets/home/analytics_card.dart';
 import '../widgets/home/score_dashboard_card.dart';
 import '../widgets/home/modern_course_card.dart';
+import '../widgets/home/leaderboard_carousel.dart';
 import '../widgets/streak_card_modal.dart';
 import 'challenge_select_screen.dart';
 import 'analytics_screen.dart';
@@ -226,6 +227,8 @@ class QuizHomePage extends StatelessWidget {
                   ),
                 ],
               ),
+              const SizedBox(height: 14),
+              const LeaderboardCarousel(),
               const SizedBox(height: 14),
               ScoreDashboardCard(
                 totalScore: totalScore,
