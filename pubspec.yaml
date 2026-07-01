@@ -47,6 +47,7 @@ dependencies:
   http: ^1.2.1
   flutter_markdown: ^0.7.7+1
   flutter_secure_storage: ^10.3.1
+  lottie: ^3.1.2
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -75,6 +76,7 @@ flutter:
     - lib/assets/computer_networking_parsed_questions.json
     - lib/assets/software_engineering_parsed_questions.json
     - lib/assets/quotes.json
+    - lib/assets/lottie/fire.lottie
 
   # To add assets to your application, add an assets section, like this:
   # assets:

@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:lottie/lottie.dart';
 import '../models/question.dart';
 import '../models/badge.dart';
 import '../services/database_service.dart';
@@ -1050,12 +1051,12 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
               ),
             ),
           ),
-          // Streak multiplier badge (bottom-left corner, only in challenge mode)
+          // Streak multiplier badge anchored on the right side in challenge mode.
           if (widget.isTimed && _consecutiveCorrect >= 2)
             Positioned(
-              left: 16,
-              bottom: MediaQuery.of(context).padding.bottom + 16,
-              child: _buildStreakMultiplierBadge(),
+              right: 12,
+              top: MediaQuery.of(context).padding.top + 96,
+              child: IgnorePointer(child: _buildStreakMultiplierBadge()),
             ),
         ],
       ),
@@ -1073,21 +1074,16 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
       builder: (context, child) {
         final double pulse = _flameAnimationController!.value;
         // Flickering scale: oscillates between 0.85 and 1.15
-        final double scale = 0.85 + (pulse * 0.3);
+        final double scale = 0.92 + (pulse * 0.12);
         // Glow radius oscillates for a breathing fire effect
-        final double glowRadius = 6.0 + (pulse * 6.0);
+        final double glowRadius = 10.0 + (pulse * 8.0);
         // Subtle opacity flicker on the glow
-        final double glowAlpha = 0.3 + (pulse * 0.3);
+        final double glowAlpha = 0.28 + (pulse * 0.22);
 
         return Container(
-          width: 56,
-          height: 56,
+          width: 96,
+          height: 96,
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFFFF6B35), Color(0xFFFF4500)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
@@ -1102,21 +1098,40 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
             children: [
               Transform.scale(
                 scale: scale,
-                child: const Icon(
-                  Icons.local_fire_department_rounded,
-                  color: Colors.white,
-                  size: 32,
+                child: Lottie.asset(
+                  'lib/assets/lottie/fire.lottie',
+                  fit: BoxFit.contain,
+                  repeat: true,
+                  animate: true,
                 ),
               ),
-              Positioned(
-                bottom: 10,
+              Container(
+                width: 48,
+                height: 48,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0F172A).withValues(alpha: 0.72),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.18),
+                    width: 1,
+                  ),
+                ),
                 child: Text(
                   multiplierText,
+                  textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 11,
+                    fontSize: 17,
                     fontWeight: FontWeight.w900,
                     height: 1.0,
+                    shadows: [
+                      Shadow(
+                        color: Colors.black54,
+                        blurRadius: 4,
+                        offset: Offset(0, 1),
+                      ),
+                    ],
                   ),
                 ),
               ),
