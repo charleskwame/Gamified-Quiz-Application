@@ -36,6 +36,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
   int _consecutiveCorrect = 0;
   AnimationController? _aiButtonAnimationController;
   AnimationController? _progressAnimationController;
+  AnimationController? _flameAnimationController;
   final List<Question> _incorrectQuestions = [];
 
   // Fisher-Yates Shuffle Algorithm to ensure uniform random distribution
@@ -76,6 +77,10 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
       vsync: this,
       duration: const Duration(milliseconds: 1500),
     )..repeat(reverse: true);
+    _flameAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    )..repeat(reverse: true);
   }
 
   @override
@@ -83,6 +88,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
     _timer?.cancel();
     _progressAnimationController?.dispose();
     _aiButtonAnimationController?.dispose();
+    _flameAnimationController?.dispose();
     super.dispose();
   }
 
@@ -1062,46 +1068,62 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
     // Display with one decimal place (e.g. 1.5, 2.0, 2.5)
     final String multiplierText = totalMultiplier.toStringAsFixed(1);
 
-    return Container(
-      width: 56,
-      height: 56,
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFFF6B35), Color(0xFFFF4500)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFFF4500).withValues(alpha: 0.4),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          const Icon(
-            Icons.local_fire_department_rounded,
-            color: Colors.white,
-            size: 32,
-          ),
-          Positioned(
-            bottom: 10,
-            child: Text(
-              multiplierText,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 11,
-                fontWeight: FontWeight.w900,
-                height: 1.0,
-              ),
+    return AnimatedBuilder(
+      animation: _flameAnimationController!,
+      builder: (context, child) {
+        final double pulse = _flameAnimationController!.value;
+        // Flickering scale: oscillates between 0.85 and 1.15
+        final double scale = 0.85 + (pulse * 0.3);
+        // Glow radius oscillates for a breathing fire effect
+        final double glowRadius = 6.0 + (pulse * 6.0);
+        // Subtle opacity flicker on the glow
+        final double glowAlpha = 0.3 + (pulse * 0.3);
+
+        return Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFFFF6B35), Color(0xFFFF4500)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFFFF4500).withValues(alpha: glowAlpha),
+                blurRadius: glowRadius,
+                offset: const Offset(0, 3),
+              ),
+            ],
           ),
-        ],
-      ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Transform.scale(
+                scale: scale,
+                child: const Icon(
+                  Icons.local_fire_department_rounded,
+                  color: Colors.white,
+                  size: 32,
+                ),
+              ),
+              Positioned(
+                bottom: 10,
+                child: Text(
+                  multiplierText,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                    height: 1.0,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
