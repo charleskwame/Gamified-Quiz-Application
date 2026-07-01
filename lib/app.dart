@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'widgets/auth_gate.dart';
 
 class MyApp extends StatelessWidget {
@@ -26,9 +27,9 @@ class AppTheme {
       brightness: Brightness.light,
     ),
     scaffoldBackgroundColor: const Color(0xFFF4F6FB),
-    appBarTheme: const AppBarTheme(
+    appBarTheme: AppBarTheme(
       backgroundColor: Colors.transparent,
-      foregroundColor: Color(0xFF121826),
+      foregroundColor: const Color(0xFF121826),
       centerTitle: false,
       elevation: 0,
       systemOverlayStyle: SystemUiOverlayStyle(
