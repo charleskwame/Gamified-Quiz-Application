@@ -1299,6 +1299,25 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               const SizedBox(height: 32),
 
+              // Debug: Test streak notification
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    NotificationService().showImmediateStreakNotification();
+                  },
+                  icon: const Icon(Icons.notifications_active_rounded, size: 16),
+                  label: const Text('Test Streak Notification'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
               // Badges Section Header
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

@@ -37,10 +37,10 @@ class NotificationService {
 
     final DarwinInitializationSettings iosSettings =
         DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
-    );
+          requestAlertPermission: true,
+          requestBadgePermission: true,
+          requestSoundPermission: true,
+        );
 
     final InitializationSettings initSettings = InitializationSettings(
       android: androidSettings,
@@ -49,8 +49,7 @@ class NotificationService {
 
     await _notificationsPlugin.initialize(
       settings: initSettings,
-      onDidReceiveNotificationResponse:
-          (NotificationResponse response) async {
+      onDidReceiveNotificationResponse: (NotificationResponse response) async {
         onNotificationTap?.call(response.payload);
       },
     );
@@ -59,8 +58,7 @@ class NotificationService {
   /// Checks whether a daily streak reminder (notification ID 0) is already
   /// pending in the system. This avoids unnecessary cancel/reschedule cycles.
   Future<bool> isReminderScheduled() async {
-    final pending =
-        await _notificationsPlugin.pendingNotificationRequests();
+    final pending = await _notificationsPlugin.pendingNotificationRequests();
     return pending.any((req) => req.id == 0);
   }
 
@@ -129,5 +127,31 @@ class NotificationService {
 
   Future<void> cancelStreakReminder() async {
     await _notificationsPlugin.cancel(id: 0);
+  }
+
+  /// Immediately shows the streak reminder as a system notification.
+  /// This is intended for debugging purposes to verify that local
+  /// notifications are working correctly on the device.
+  Future<void> showImmediateStreakNotification() async {
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+          'streak_reminders',
+          'Streak Reminders',
+          channelDescription: 'Daily reminders to keep your streak alive',
+          importance: Importance.high,
+          priority: Priority.high,
+        );
+    const NotificationDetails platformDetails = NotificationDetails(
+      android: androidDetails,
+    );
+
+    await _notificationsPlugin.show(
+      id: 0,
+      title: 'Keep your streak alive! 🔥',
+      body:
+          "Don't forget to take a quick quiz today to keep your streak burning.",
+      notificationDetails: platformDetails,
+      payload: 'open_quiz',
+    );
   }
 }

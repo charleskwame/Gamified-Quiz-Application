@@ -751,6 +751,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
     }
 
     final question = _questions[_currentIndex];
+    final bool showStreakBadge = widget.isTimed && _consecutiveCorrect >= 2;
 
     return Scaffold(
       floatingActionButton:
@@ -801,7 +802,12 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
         children: [
           SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+              padding: EdgeInsets.fromLTRB(
+                24,
+                10,
+                24,
+                showStreakBadge ? 176 : 10,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1073,10 +1079,10 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
             ),
           ),
           // Streak multiplier badge anchored in the same bottom-right spot as the AI assistant.
-          if (widget.isTimed && _consecutiveCorrect >= 2)
+          if (showStreakBadge)
             Positioned(
-              right: 16,
-              bottom: MediaQuery.of(context).padding.bottom + 16,
+              right: 8,
+              bottom: MediaQuery.of(context).padding.bottom + 8,
               child: IgnorePointer(child: _buildStreakMultiplierBadge()),
             ),
         ],
@@ -1102,8 +1108,8 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
         final double glowAlpha = 0.28 + (pulse * 0.22);
 
         return Container(
-          width: 128,
-          height: 128,
+          width: 112,
+          height: 112,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             boxShadow: [
@@ -1118,7 +1124,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
             alignment: Alignment.center,
             children: [
               Transform.scale(
-                scale: scale * 1.12,
+                scale: scale * 1.02,
                 child: Lottie.asset(
                   'lib/assets/lottie/fire.lottie',
                   fit: BoxFit.contain,
@@ -1127,7 +1133,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
                 ),
               ),
               SizedBox(
-                width: 68,
+                width: 58,
                 child: FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Text(
@@ -1135,7 +1141,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 20,
+                      fontSize: 18,
                       fontWeight: FontWeight.w900,
                       height: 1.0,
                       shadows: [
