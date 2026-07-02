@@ -1,16 +1,16 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import '../../models/user_rank.dart';
 import '../../services/database_service.dart';
 import 'leaderboard_card.dart';
 
-/// A horizontally scrolling carousel that highlights top performers:
+/// A horizontally swipeable carousel that highlights top performers:
 /// - Highest streak
 /// - Highest total score
 /// - Highest points in each subject (Computer Architecture, Software Engineering, Computer Networking)
 ///
 /// Cards auto-advance every 4 seconds and use the same gradient/shape as ScoreDashboardCard.
+/// Uses AnimatedSwitcher instead of PageView to avoid scroll conflicts with the parent SingleChildScrollView.
 class LeaderboardCarousel extends StatefulWidget {
   const LeaderboardCarousel({super.key});
 
@@ -20,14 +20,12 @@ class LeaderboardCarousel extends StatefulWidget {
 
 class _LeaderboardCarouselState extends State<LeaderboardCarousel> {
   final DatabaseService _dbService = DatabaseService();
-  final PageController _pageController = PageController();
   Timer? _autoScrollTimer;
   int _currentPage = 0;
 
   @override
   void dispose() {
     _autoScrollTimer?.cancel();
-    _pageController.dispose();
     super.dispose();
   }
 
@@ -40,12 +38,13 @@ class _LeaderboardCarouselState extends State<LeaderboardCarousel> {
         timer.cancel();
         return;
       }
-      final nextPage = (_currentPage + 1) % totalCards;
-      _pageController.animateToPage(
-        nextPage,
-        duration: const Duration(milliseconds: 400),
-        curve: Curves.easeInOut,
-      );
+      _goToPage((_currentPage + 1) % totalCards);
+    });
+  }
+
+  void _goToPage(int page) {
+    setState(() {
+      _currentPage = page;
     });
   }
 
@@ -161,20 +160,32 @@ class _LeaderboardCarouselState extends State<LeaderboardCarousel> {
           children: [
             SizedBox(
               height: 90,
-              child: PageView.builder(
-                controller: _pageController,
-                itemCount: cards.length,
-                onPageChanged: (page) {
-                  setState(() {
-                    _currentPage = page;
-                  });
+              child: GestureDetector(
+                onHorizontalDragEnd: (details) {
+                  // Swipe left → next page, swipe right → previous page
+                  if (details.primaryVelocity != null) {
+                    if (details.primaryVelocity! < 0) {
+                      _goToPage((_currentPage + 1) % cards.length);
+                    } else {
+                      _goToPage(
+                        (_currentPage - 1 + cards.length) % cards.length,
+                      );
+                    }
+                  }
                 },
-                itemBuilder: (context, index) {
-                  return Padding(
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 400),
+                  switchInCurve: Curves.easeInOut,
+                  switchOutCurve: Curves.easeInOut,
+                  transitionBuilder: (child, animation) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
+                  child: Padding(
+                    key: ValueKey(_currentPage),
                     padding: const EdgeInsets.symmetric(horizontal: 2),
-                    child: cards[index],
-                  );
-                },
+                    child: cards[_currentPage],
+                  ),
+                ),
               ),
             ),
             if (cards.length > 1) ...[
@@ -184,16 +195,19 @@ class _LeaderboardCarouselState extends State<LeaderboardCarousel> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(cards.length, (index) {
                   final isActive = index == _currentPage;
-                  return AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    width: isActive ? 20 : 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: isActive
-                          ? const Color(0xFF1E293B)
-                          : const Color(0xFF1E293B).withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(4),
+                  return GestureDetector(
+                    onTap: () => _goToPage(index),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      width: isActive ? 20 : 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: isActive
+                            ? const Color(0xFF1E293B)
+                            : const Color(0xFF1E293B).withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
                     ),
                   );
                 }),
