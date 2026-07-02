@@ -14,10 +14,13 @@ class AuthGate extends StatefulWidget {
 
 class _AuthGateState extends State<AuthGate> {
   Timer? _verificationTimer;
+  Timer? _sessionRestoreTimer;
+  bool _sessionResolved = false;
 
   @override
   void dispose() {
     _verificationTimer?.cancel();
+    _sessionRestoreTimer?.cancel();
     super.dispose();
   }
 
@@ -39,7 +42,7 @@ class _AuthGateState extends State<AuthGate> {
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
-        // Show loading while Firebase Auth is initializing/restoring session
+        // Show loading while Firebase Auth is initializing
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
@@ -47,7 +50,11 @@ class _AuthGateState extends State<AuthGate> {
         }
 
         final user = snapshot.data;
+
+        // If the user is authenticated, handle email verification & navigation
         if (user != null) {
+          _sessionRestoreTimer?.cancel();
+          _sessionResolved = true;
           if (FirebaseAuth.instance.currentUser?.emailVerified == true) {
             _verificationTimer?.cancel();
             return const MainNavigation();
@@ -59,9 +66,27 @@ class _AuthGateState extends State<AuthGate> {
 
         _verificationTimer?.cancel();
 
+        // If there's no user, double-check: Firebase Auth may still be
+        // restoring the session from disk. Check currentUser synchronously
+        // first — if it's non-null, the stream will emit it shortly.
+        if (FirebaseAuth.instance.currentUser != null && !_sessionResolved) {
+          // Session exists but the stream hasn't emitted it yet.
+          // Start a short timer to avoid a brief login-screen flash.
+          _sessionRestoreTimer ??= Timer(const Duration(seconds: 3), () {
+            if (mounted) {
+              setState(() {
+                _sessionResolved = true;
+              });
+            }
+          });
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        _sessionResolved = true;
+
         // No user signed in — show the auth screen
-        // Firebase Auth handles session persistence automatically,
-        // so on app restart the stream will emit the logged-in user.
         return AuthScreen(
           onBypass: () {
             setState(() {});
