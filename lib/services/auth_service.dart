@@ -1,11 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'database_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  static const _storage = FlutterSecureStorage();
-  static const _sessionKey = 'auth_session_email';
 
   // Stream to listen to auth state changes
   Stream<User?> get authStateChanges => _auth.authStateChanges();
@@ -15,27 +12,6 @@ class AuthService {
 
   // Check if current user's email is verified
   bool get isEmailVerified => currentUser?.emailVerified ?? false;
-
-  /// Returns the email stored from a previous authenticated session, or null.
-  Future<String?> getStoredSessionEmail() async {
-    return await _storage.read(key: _sessionKey);
-  }
-
-  /// Persists the session email so we know the user was previously logged in.
-  Future<void> _saveSession(String email) async {
-    await _storage.write(key: _sessionKey, value: email);
-  }
-
-  /// Clears the persisted session marker on logout.
-  Future<void> _clearSession() async {
-    await _storage.delete(key: _sessionKey);
-  }
-
-  /// Checks whether a session was previously active (e.g. before app reinstall).
-  Future<bool> hasPreviousSession() async {
-    final email = await _storage.read(key: _sessionKey);
-    return email != null && email.isNotEmpty;
-  }
 
   // Sign up with email and password
   Future<UserCredential?> signUp({
@@ -49,8 +25,6 @@ class AuthService {
 
       final user = userCredential.user;
       if (user != null) {
-        // Persist session marker
-        await _saveSession(email);
         // Set display name
         await user.updateDisplayName(displayName);
         // Send email verification
@@ -79,8 +53,6 @@ class AuthService {
         email: email,
         password: password,
       );
-      // Persist session marker
-      await _saveSession(email);
       return userCredential;
     } on FirebaseAuthException {
       rethrow;
@@ -155,9 +127,8 @@ class AuthService {
     await user.delete();
   }
 
-  // Log out — clear session marker then sign out
+  // Log out
   Future<void> logOut() async {
-    await _clearSession();
     await _auth.signOut();
   }
 }
