@@ -1,12 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../models/question.dart';
 import '../services/database_service.dart';
 import '../services/quiz_engine.dart';
 import '../services/quote_service.dart';
-import '../services/notification_service.dart';
 import '../widgets/quiz/quiz_loading_view.dart';
 import '../widgets/quiz/quiz_error_view.dart';
 import '../widgets/quiz/quiz_results_view.dart';
@@ -240,17 +238,6 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
       } catch (e) {
         // Silently catch network failures or write problems in offline context
       }
-    }
-
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final notificationsEnabled =
-          prefs.getBool('notifications_enabled') ?? false;
-      if (notificationsEnabled) {
-        await NotificationService().rescheduleForTomorrow();
-      }
-    } catch (e) {
-      // Ignore notification scheduling errors
     }
 
     // Load a random motivational quote

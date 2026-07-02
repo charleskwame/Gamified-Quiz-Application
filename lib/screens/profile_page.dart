@@ -1,13 +1,9 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../models/badge.dart';
 import '../services/auth_service.dart';
-import '../services/notification_service.dart';
 import '../widgets/home/badge_card.dart';
 import 'auth_screen.dart';
 import 'earned_badges_screen.dart';
@@ -22,61 +18,6 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   final AuthService _authService = AuthService();
-  bool _notificationsEnabled = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadNotificationPreference();
-  }
-
-  Future<void> _loadNotificationPreference() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _notificationsEnabled = prefs.getBool('notifications_enabled') ?? false;
-    });
-  }
-
-  Future<void> _toggleNotifications() async {
-    final prefs = await SharedPreferences.getInstance();
-    final newValue = !_notificationsEnabled;
-    await prefs.setBool('notifications_enabled', newValue);
-    setState(() {
-      _notificationsEnabled = newValue;
-    });
-
-    if (newValue) {
-      if (Platform.isAndroid) {
-        await Permission.notification.request();
-      }
-      final alreadyScheduled = await NotificationService()
-          .isReminderScheduled();
-      if (!alreadyScheduled) {
-        await NotificationService().scheduleDailyStreakReminder();
-      }
-    } else {
-      await NotificationService().cancelStreakReminder();
-    }
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            newValue
-                ? 'Daily streak notifications turned ON'
-                : 'Daily streak notifications turned OFF',
-            style: const TextStyle(color: Colors.white),
-          ),
-          backgroundColor: newValue
-              ? const Color(0xFF4CAF50)
-              : const Color(0xFF616161),
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 2),
-        ),
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -167,17 +108,6 @@ class _ProfilePageState extends State<ProfilePage> {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      IconButton(
-                        onPressed: _toggleNotifications,
-                        icon: Icon(
-                          _notificationsEnabled
-                              ? Icons.notifications_active_rounded
-                              : Icons.notifications_off_rounded,
-                        ),
-                        color: _notificationsEnabled
-                            ? const Color(0xFF111C4A)
-                            : Colors.grey,
-                      ),
                       if (user != null) ...[
                         IconButton(
                           onPressed: () {
@@ -388,28 +318,6 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ),
               const SizedBox(height: 32),
-
-              // Test streak notification
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    NotificationService().showImmediateStreakNotification();
-                  },
-                  icon: const Icon(
-                    Icons.notifications_active_rounded,
-                    size: 16,
-                  ),
-                  label: const Text('Test Streak Notification'),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
 
               // Badges Section Header
               Row(
