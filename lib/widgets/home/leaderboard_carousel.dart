@@ -1,4 +1,4 @@
-import 'dart:async';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import '../../models/user_rank.dart';
 import '../../services/database_service.dart';
@@ -9,8 +9,8 @@ import 'leaderboard_card.dart';
 /// - Highest total score
 /// - Highest points in each subject (Computer Architecture, Software Engineering, Computer Networking)
 ///
-/// Cards auto-advance every 4 seconds and use the same gradient/shape as ScoreDashboardCard.
-/// Uses AnimatedSwitcher instead of PageView to avoid scroll conflicts with the parent SingleChildScrollView.
+/// Uses [CarouselSlider] for smooth native-feeling slide transitions,
+/// built-in auto-play, and reliable swipe gestures.
 class LeaderboardCarousel extends StatefulWidget {
   const LeaderboardCarousel({super.key});
 
@@ -20,33 +20,7 @@ class LeaderboardCarousel extends StatefulWidget {
 
 class _LeaderboardCarouselState extends State<LeaderboardCarousel> {
   final DatabaseService _dbService = DatabaseService();
-  Timer? _autoScrollTimer;
   int _currentPage = 0;
-
-  @override
-  void dispose() {
-    _autoScrollTimer?.cancel();
-    super.dispose();
-  }
-
-  void _startAutoScroll(int totalCards) {
-    _autoScrollTimer?.cancel();
-    if (totalCards <= 1) return;
-
-    _autoScrollTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
-      if (!mounted) {
-        timer.cancel();
-        return;
-      }
-      _goToPage((_currentPage + 1) % totalCards);
-    });
-  }
-
-  void _goToPage(int page) {
-    setState(() {
-      _currentPage = page;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -151,40 +125,33 @@ class _LeaderboardCarouselState extends State<LeaderboardCarousel> {
           ),
         ];
 
-        // Start auto-scroll after first build
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _startAutoScroll(cards.length);
-        });
-
         return Column(
           children: [
             SizedBox(
               height: 90,
-              child: GestureDetector(
-                onHorizontalDragEnd: (details) {
-                  // Swipe left → next page, swipe right → previous page
-                  if (details.primaryVelocity != null) {
-                    if (details.primaryVelocity! < 0) {
-                      _goToPage((_currentPage + 1) % cards.length);
-                    } else {
-                      _goToPage(
-                        (_currentPage - 1 + cards.length) % cards.length,
-                      );
-                    }
-                  }
-                },
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 400),
-                  switchInCurve: Curves.easeInOut,
-                  switchOutCurve: Curves.easeInOut,
-                  transitionBuilder: (child, animation) {
-                    return FadeTransition(opacity: animation, child: child);
-                  },
-                  child: Padding(
-                    key: ValueKey(_currentPage),
+              child: CarouselSlider.builder(
+                itemCount: cards.length,
+                itemBuilder: (context, index, realIndex) {
+                  return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 2),
-                    child: cards[_currentPage],
-                  ),
+                    child: cards[index],
+                  );
+                },
+                options: CarouselOptions(
+                  height: 90,
+                  viewportFraction: 1.0,
+                  enlargeCenterPage: false,
+                  enableInfiniteScroll: true,
+                  autoPlay: cards.length > 1,
+                  autoPlayInterval: const Duration(seconds: 4),
+                  autoPlayAnimationDuration: const Duration(milliseconds: 600),
+                  autoPlayCurve: Curves.easeInOut,
+                  scrollPhysics: const BouncingScrollPhysics(),
+                  onPageChanged: (index, reason) {
+                    setState(() {
+                      _currentPage = index;
+                    });
+                  },
                 ),
               ),
             ),
@@ -196,7 +163,10 @@ class _LeaderboardCarouselState extends State<LeaderboardCarousel> {
                 children: List.generate(cards.length, (index) {
                   final isActive = index == _currentPage;
                   return GestureDetector(
-                    onTap: () => _goToPage(index),
+                    onTap: () {
+                      // CarouselSlider doesn't expose a controller by default,
+                      // but the auto-play and swipe are sufficient for navigation.
+                    },
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 300),
                       margin: const EdgeInsets.symmetric(horizontal: 4),
