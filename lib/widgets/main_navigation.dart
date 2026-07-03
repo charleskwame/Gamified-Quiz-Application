@@ -69,23 +69,62 @@ class _MainNavigationState extends State<MainNavigation> {
           const ProfilePage(),
         ],
       ),
-      bottomNavigationBar: NavigationBar(
-        height: 65,
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: (index) {
-          setState(() => _selectedIndex = index);
-        },
-        destinations: [
-          const NavigationDestination(
-            icon: Icon(Icons.home_rounded),
-            label: 'Home',
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E2246).withValues(alpha: 0.85),
+          border: Border(
+            top: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
           ),
-          const NavigationDestination(
-            icon: Icon(Icons.emoji_events_rounded),
-            label: 'Rankings',
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.4),
+              blurRadius: 20,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          child: NavigationBar(
+            height: 65,
+            backgroundColor: Colors.transparent,
+            shadowColor: Colors.transparent,
+            surfaceTintColor: Colors.transparent,
+            indicatorColor: const Color(0xFF6366F1).withValues(alpha: 0.2),
+            selectedIndex: _selectedIndex,
+            onDestinationSelected: (index) {
+              setState(() => _selectedIndex = index);
+            },
+            destinations: [
+              NavigationDestination(
+                icon: Icon(
+                  Icons.home_rounded,
+                  color: Colors.white.withValues(alpha: 0.4),
+                ),
+                selectedIcon: const Icon(
+                  Icons.home_rounded,
+                  color: Colors.white,
+                ),
+                label: 'Home',
+              ),
+              NavigationDestination(
+                icon: Icon(
+                  Icons.emoji_events_rounded,
+                  color: Colors.white.withValues(alpha: 0.4),
+                ),
+                selectedIcon: const Icon(
+                  Icons.emoji_events_rounded,
+                  color: Color(0xFFFFD700),
+                ),
+                label: 'Rankings',
+              ),
+              NavigationDestination(
+                icon: _buildProfileIcon(),
+                selectedIcon: _buildProfileIcon(),
+                label: 'Profile',
+              ),
+            ],
           ),
-          NavigationDestination(icon: _buildProfileIcon(), label: 'Profile'),
-        ],
+        ),
       ),
     );
   }

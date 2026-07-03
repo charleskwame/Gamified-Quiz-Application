@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-/// A card in the leaderboard carousel styled identically to ScoreDashboardCard.
-/// Displays a featured user's avatar, name, reason for being featured, and stat value.
+/// A card in the leaderboard carousel styled with the dark modern game aesthetic.
 class LeaderboardCard extends StatelessWidget {
   final String titleLabel;
   final String userName;
@@ -31,23 +30,31 @@ class LeaderboardCard extends StatelessWidget {
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
-        boxShadow: const [
+        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x1F000000),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 18,
-            offset: Offset(0, 8),
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Row(
         children: [
-          // Avatar
+          // Avatar with crown indicator for #1
           Container(
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.12),
+              color: Colors.white.withValues(alpha: 0.1),
               shape: BoxShape.circle,
+              border: Border.all(
+                color:
+                    titleLabel == 'HIGHEST SCORE' || titleLabel == 'TOP STREAK'
+                    ? const Color(0xFFFFD700).withValues(alpha: 0.5)
+                    : Colors.white.withValues(alpha: 0.1),
+                width: 2,
+              ),
             ),
             child: avatarUrl != null && avatarUrl!.isNotEmpty
                 ? ClipOval(
@@ -56,14 +63,14 @@ class LeaderboardCard extends StatelessWidget {
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) => const Icon(
                         Icons.person_rounded,
-                        color: Colors.white70,
+                        color: Colors.white60,
                         size: 28,
                       ),
                     ),
                   )
                 : const Icon(
                     Icons.person_rounded,
-                    color: Colors.white70,
+                    color: Colors.white60,
                     size: 28,
                   ),
           ),
@@ -73,14 +80,28 @@ class LeaderboardCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  titleLabel,
-                  style: const TextStyle(
-                    color: Colors.white60,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.2,
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      titleLabel,
+                      style: const TextStyle(
+                        color: Colors.white60,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                    if (titleLabel == 'HIGHEST SCORE' ||
+                        titleLabel == 'TOP STREAK')
+                      const SizedBox(width: 6),
+                    if (titleLabel == 'HIGHEST SCORE' ||
+                        titleLabel == 'TOP STREAK')
+                      const Icon(
+                        Icons.emoji_events_rounded,
+                        color: Color(0xFFFFD700),
+                        size: 14,
+                      ),
+                  ],
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -105,7 +126,13 @@ class LeaderboardCard extends StatelessWidget {
             ),
           ),
           // Icon
-          Icon(icon, color: const Color(0xFFFFD700), size: 28),
+          Icon(
+            icon,
+            color: titleLabel == 'HIGHEST SCORE' || titleLabel == 'TOP STREAK'
+                ? const Color(0xFFFFD700)
+                : Colors.white38,
+            size: 28,
+          ),
         ],
       ),
     );
