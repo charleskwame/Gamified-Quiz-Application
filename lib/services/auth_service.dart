@@ -1,8 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'database_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
+
+  static const String _sessionKey = 'firebase_session_active';
 
   // Stream to listen to auth state changes
   Stream<User?> get authStateChanges => _auth.authStateChanges();
@@ -12,6 +17,47 @@ class AuthService {
 
   // Check if current user's email is verified
   bool get isEmailVerified => currentUser?.emailVerified ?? false;
+
+  /// Wait for Firebase Auth to finish restoring its persisted session from disk.
+  ///
+  /// On cold start, Firebase Auth loads the encrypted token from the Android
+  /// KeyStore-backed SharedPreferences asynchronously.  Calling [currentUser]
+  /// immediately may return null even though a valid token exists on disk.
+  ///
+  /// This method subscribes to [authStateChanges] and waits up to 5 seconds for
+  /// the first emission.  If a user is restored (either via built-in persistence
+  /// or the manual SharedPreferences flag) it returns that user; otherwise null.
+  Future<User?> waitForSessionRestore() async {
+    // Quick path – already resolved (e.g. after the first restore succeeds).
+    if (_auth.currentUser != null) return _auth.currentUser;
+
+    // Wait for the first auth state emission.
+    // - Guest users: emits null immediately (no timeout).
+    // - Signed-in users: emits the restored user once Firebase reads the token.
+    // - Fallback: 5-second safety net in case the token read hangs.
+    try {
+      final user = await _auth
+          .authStateChanges()
+          .timeout(const Duration(seconds: 5))
+          .first;
+      return user;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Persist the “session active” flag so we know a previous sign-in existed.
+  Future<void> _markSessionActive() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_sessionKey, true);
+  }
+
+  /// Clear the “session active” flag.
+  Future<void> _clearSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_sessionKey);
+    await _secureStorage.deleteAll();
+  }
 
   // Sign up with email and password
   Future<UserCredential?> signUp({
@@ -37,6 +83,8 @@ class AuthService {
         );
       }
 
+      await _markSessionActive();
+
       return userCredential;
     } on FirebaseAuthException {
       rethrow;
@@ -53,6 +101,9 @@ class AuthService {
         email: email,
         password: password,
       );
+
+      await _markSessionActive();
+
       return userCredential;
     } on FirebaseAuthException {
       rethrow;
@@ -125,10 +176,12 @@ class AuthService {
       throw Exception('No user is currently logged in.');
     }
     await user.delete();
+    await _clearSession();
   }
 
   // Log out
   Future<void> logOut() async {
+    await _clearSession();
     await _auth.signOut();
   }
 }

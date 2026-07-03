@@ -9,6 +9,18 @@
 -keep class com.google.firebase.auth.** { *; }
 -keep class com.google.firebase.** { *; }
 -dontwarn com.google.firebase.auth.**
+
+# --- Android KeyStore + Crypto ---
+# Firebase Auth persists auth tokens via the Android KeyStore and
+# javax.crypto encrypted shared preferences. If R8 strips/obfuscates
+# these, token storage silently fails and the user is logged out on restart.
+-keep class android.security.keystore.** { *; }
+-keep class android.security.** { *; }
+-keep class javax.crypto.** { *; }
+-keep class com.google.android.gms.security.** { *; }
+-keep class androidx.security.crypto.** { *; }
+
+# --- Play Core SplitCompat (for app bundle / install-time updates) ---
 -dontwarn com.google.android.play.core.splitinstall.SplitInstallException
 -dontwarn com.google.android.play.core.splitinstall.SplitInstallManager
 -dontwarn com.google.android.play.core.splitinstall.SplitInstallManagerFactory
