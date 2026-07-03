@@ -75,7 +75,10 @@ class _QuizResultsViewState extends State<QuizResultsView>
 
     // Start animations after build
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _confettiController.play();
+      final accuracy = widget.correctAnswers / widget.totalQuestions;
+      if (accuracy >= 0.50) {
+        _confettiController.play();
+      }
       _scoreCounterController.forward();
       _starsController.forward();
     });

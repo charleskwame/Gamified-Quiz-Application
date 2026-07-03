@@ -83,9 +83,9 @@ class _QuizGameOptionState extends State<QuizGameOption>
 
   @override
   Widget build(BuildContext context) {
-    Color borderColor = const Color(0xFF2D3361);
-    Color bgColor = const Color(0xFF1E2246);
-    Color labelBg = const Color(0xFF2D3361);
+    Color borderColor = const Color(0xFF3D4375);
+    Color bgColor = const Color(0xFF2A2F5A);
+    Color labelBg = const Color(0xFF3D4375);
     Color labelTextColor = Colors.white70;
     IconData? stateIcon;
     Color iconColor = Colors.white;

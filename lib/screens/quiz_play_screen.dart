@@ -67,6 +67,9 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
   // Confetti
   late ConfettiController _confettiController;
 
+  // Track correct/incorrect per question for progress dots
+  List<bool> _answerResults = [];
+
   // Timer fields
   Timer? _timer;
   int _timeLeft = 15;
@@ -148,16 +151,23 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
 
   void _startTimer() {
     _timer?.cancel();
-    _progressAnimationController?.dispose();
-    _progressAnimationController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 15),
-    );
 
-    _progressAnimationController!.addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
-        _handleTimeOut();
-      }
+    if (_progressAnimationController == null) {
+      _progressAnimationController = AnimationController(
+        vsync: this,
+        duration: const Duration(seconds: 15),
+      );
+      _progressAnimationController!.addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          _handleTimeOut();
+        }
+      });
+    } else {
+      _progressAnimationController!.reset();
+    }
+
+    setState(() {
+      _timeLeft = 15;
     });
 
     _progressAnimationController!.forward(from: 0.0);
@@ -185,6 +195,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
       _consecutiveIncorrect++;
       _consecutiveCorrect = 0;
       _incorrectQuestions.add(currentQuestion);
+      _answerResults.add(false);
       _showScorePopup = false;
     });
   }
@@ -206,6 +217,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
       _selectedOption = option;
       _isAnswered = true;
       if (isCorrect) {
+        _answerResults.add(true);
         _correctAnswers++;
         _consecutiveCorrect++;
         _consecutiveIncorrect = 0;
@@ -224,6 +236,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
         // Trigger confetti for correct answers
         _confettiController.play();
       } else {
+        _answerResults.add(false);
         _consecutiveCorrect = 0;
         _consecutiveIncorrect++;
         _incorrectQuestions.add(currentQuestion);
@@ -244,6 +257,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
   // ─── Navigation ────────────────────────────────────────────────────────────
 
   void _nextQuestion() {
+    _confettiController.stop();
     if (_currentIndex < _questions.length - 1) {
       _questionSlideController?.forward(from: 0.0);
       setState(() {
@@ -557,6 +571,10 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
         final bool isCurrent = index == _currentIndex;
         final bool isPast = index < _currentIndex;
 
+        final bool? answerResult = isPast && index < _answerResults.length
+            ? _answerResults[index]
+            : null;
+
         return Expanded(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 2),
@@ -564,11 +582,13 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
               height: 4,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(2),
-                color: isCurrent
+                color: isPast && answerResult != null
+                    ? (answerResult
+                          ? const Color(0xFF4ADE80) // green for correct
+                          : const Color(0xFFEF4444)) // red for incorrect
+                    : isCurrent
                     ? const Color(0xFF6366F1)
-                    : isPast
-                    ? const Color(0xFF4ADE80)
-                    : const Color(0xFF2D3361),
+                    : const Color(0xFF3D4375),
               ),
             ),
           ),
@@ -584,9 +604,9 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E2246),
+        color: const Color(0xFF2A2F5A),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF2D3361)),
+        border: Border.all(color: const Color(0xFF3D4375)),
         boxShadow: const [
           BoxShadow(
             color: Color(0x33000000),
@@ -653,9 +673,9 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1E3E),
+        color: const Color(0xFF252B55),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF2D3361)),
+        border: Border.all(color: const Color(0xFF3D4375)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

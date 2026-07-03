@@ -35,7 +35,7 @@ class QuizCircularTimer extends StatelessWidget {
       builder: (context, child) {
         // Pulse effect when low
         final double pulse = isLow
-            ? (0.92 + (0.08 * sin(animationController.value * 8 * pi)))
+            ? (0.94 + (0.06 * sin(animationController.value * 2 * pi)))
             : 1.0;
 
         return Transform.scale(

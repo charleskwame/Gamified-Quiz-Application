@@ -40,6 +40,7 @@ class _QuizAnimatedBackgroundState extends State<QuizAnimatedBackground>
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _controller,
+      child: widget.child,
       builder: (context, child) {
         final double t = _controller.value;
         // Map t to an angle that oscillates smoothly
@@ -54,14 +55,11 @@ class _QuizAnimatedBackgroundState extends State<QuizAnimatedBackground>
               end: Alignment(dx + 0.3, dy + 0.3),
               colors: widget.isActive
                   ? const [
-                      Color(0xFF0F172A), // slate-900
-                      Color(0xFF1E1B4B), // indigo-950
-                      Color(0xFF111C4A),
+                      Color(0xFF1E293B), // slate-800
+                      Color(0xFF312E81), // indigo-900
+                      Color(0xFF1E2258),
                     ]
-                  : const [
-                      Color(0xFFF4F6FB),
-                      Color(0xFFF4F6FB),
-                    ],
+                  : const [Color(0xFFF4F6FB), Color(0xFFF4F6FB)],
             ),
           ),
           child: child,
