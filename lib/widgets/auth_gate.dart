@@ -14,13 +14,48 @@ class AuthGate extends StatefulWidget {
 
 class _AuthGateState extends State<AuthGate> {
   Timer? _verificationTimer;
-  Timer? _sessionRestoreTimer;
-  bool _sessionResolved = false;
+  Timer? _signedOutGraceTimer;
+  StreamSubscription<User?>? _authSubscription;
+
+  User? _user;
+  bool _authResolved = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _user = FirebaseAuth.instance.currentUser;
+    if (_user != null) {
+      _authResolved = true;
+    }
+
+    _authSubscription = FirebaseAuth.instance.authStateChanges().listen((user) {
+      if (!mounted) return;
+
+      _signedOutGraceTimer?.cancel();
+
+      setState(() {
+        _user = user;
+        _authResolved = user != null;
+      });
+
+      if (user == null) {
+        _signedOutGraceTimer = Timer(const Duration(seconds: 5), () {
+          if (mounted && _user == null) {
+            setState(() {
+              _authResolved = true;
+            });
+          }
+        });
+      }
+    });
+  }
 
   @override
   void dispose() {
     _verificationTimer?.cancel();
-    _sessionRestoreTimer?.cancel();
+    _signedOutGraceTimer?.cancel();
+    _authSubscription?.cancel();
     super.dispose();
   }
 
@@ -39,59 +74,30 @@ class _AuthGateState extends State<AuthGate> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (context, snapshot) {
-        // Show loading while Firebase Auth is initializing
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
+    if (!_authResolved) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
-        final user = snapshot.data;
+    final user = _user;
 
-        // If the user is authenticated, handle email verification & navigation
-        if (user != null) {
-          _sessionRestoreTimer?.cancel();
-          _sessionResolved = true;
-          if (FirebaseAuth.instance.currentUser?.emailVerified == true) {
-            _verificationTimer?.cancel();
-            return const MainNavigation();
-          } else {
-            _startVerificationPolling();
-            return EmailVerificationScreen(email: user.email ?? '');
-          }
-        }
-
+    if (user != null) {
+      if (FirebaseAuth.instance.currentUser?.emailVerified == true) {
         _verificationTimer?.cancel();
+        return const MainNavigation();
+      }
 
-        // If there's no user, double-check: Firebase Auth may still be
-        // restoring the session from disk. Check currentUser synchronously
-        // first — if it's non-null, the stream will emit it shortly.
-        if (FirebaseAuth.instance.currentUser != null && !_sessionResolved) {
-          // Session exists but the stream hasn't emitted it yet.
-          // Start a short timer to avoid a brief login-screen flash.
-          _sessionRestoreTimer ??= Timer(const Duration(seconds: 3), () {
-            if (mounted) {
-              setState(() {
-                _sessionResolved = true;
-              });
-            }
-          });
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
+      _startVerificationPolling();
+      return EmailVerificationScreen(email: user.email ?? '');
+    }
 
-        _sessionResolved = true;
+    _verificationTimer?.cancel();
 
-        // No user signed in — show the auth screen
-        return AuthScreen(
-          onBypass: () {
-            setState(() {});
-          },
-        );
+    // No user signed in — show the auth screen.
+    return AuthScreen(
+      onBypass: () {
+        setState(() {
+          _authResolved = true;
+        });
       },
     );
   }
