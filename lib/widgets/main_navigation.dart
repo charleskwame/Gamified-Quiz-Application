@@ -19,6 +19,10 @@ class _MainNavigationState extends State<MainNavigation> {
   final AuthService _authService = AuthService();
   int _selectedIndex = 0;
 
+  /// Set to false to temporarily hide the bottom navigation bar.
+  /// For debugging purposes only remove after use
+  static bool showNavBar = true;
+
   Widget _buildProfileIcon() {
     final user = _authService.currentUser;
     if (user == null) {
@@ -74,50 +78,59 @@ class _MainNavigationState extends State<MainNavigation> {
             const ProfilePage(),
           ],
         ),
-        bottomNavigationBar: Padding(
-          padding: const EdgeInsets.only(bottom: 16, left: 24, right: 24),
-          child: Container(
-            decoration: BoxDecoration(
-              color: const Color(0xFF1E1E2E),
-              borderRadius: BorderRadius.circular(32),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-            child: GNav(
-              selectedIndex: _selectedIndex,
-              onTabChange: (index) {
-                setState(() => _selectedIndex = index);
-              },
-              backgroundColor: Colors.transparent,
-              color: Colors.white.withValues(alpha: 0.55),
-              activeColor: Colors.white,
-              tabBackgroundColor: const Color(0xFF6366F1).withValues(alpha: 0.25),
-              gap: 8,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-              tabBorderRadius: 20,
-              tabs: [
-                GButton(
-                  icon: Icons.home_rounded,
-                  text: 'Home',
-                  iconActiveColor: Colors.white,
-                  textColor: Colors.white,
+        bottomNavigationBar: showNavBar
+            ? Padding(
+                padding: const EdgeInsets.only(bottom: 16, left: 24, right: 24),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E1E2E),
+                    borderRadius: BorderRadius.circular(32),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 6,
+                  ),
+                  child: GNav(
+                    selectedIndex: _selectedIndex,
+                    onTabChange: (index) {
+                      setState(() => _selectedIndex = index);
+                    },
+                    color: Colors.white.withValues(alpha: 0.55),
+                    activeColor: Colors.white,
+                    tabBackgroundColor: const Color(
+                      0xFF6366F1,
+                    ).withValues(alpha: 0.25),
+                    gap: 8,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 14,
+                    ),
+                    tabBorderRadius: 20,
+                    tabs: [
+                      GButton(
+                        icon: Icons.home_rounded,
+                        text: 'Home',
+                        iconActiveColor: Colors.white,
+                        textColor: Colors.white,
+                      ),
+                      GButton(
+                        icon: Icons.emoji_events_rounded,
+                        text: 'Rankings',
+                        iconActiveColor: const Color(0xFFFFD700),
+                        textColor: Colors.white,
+                      ),
+                      GButton(
+                        icon: Icons.person_rounded,
+                        text: 'Profile',
+                        iconActiveColor: Colors.white,
+                        textColor: Colors.white,
+                        leading: _buildProfileIcon(),
+                      ),
+                    ],
+                  ),
                 ),
-                GButton(
-                  icon: Icons.emoji_events_rounded,
-                  text: 'Rankings',
-                  iconActiveColor: const Color(0xFFFFD700),
-                  textColor: Colors.white,
-                ),
-                GButton(
-                  icon: Icons.person_rounded,
-                  text: 'Profile',
-                  iconActiveColor: Colors.white,
-                  textColor: Colors.white,
-                  leading: _buildProfileIcon(),
-                ),
-              ],
-            ),
-          ),
-        ),
+              )
+            : null,
       ),
     );
   }
