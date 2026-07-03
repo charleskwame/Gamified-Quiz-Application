@@ -47,7 +47,7 @@ class AppTheme {
       elevation: 0,
       systemOverlayStyle: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark,
+        statusBarIconBrightness: Brightness.light,
       ),
     ),
     filledButtonTheme: FilledButtonThemeData(

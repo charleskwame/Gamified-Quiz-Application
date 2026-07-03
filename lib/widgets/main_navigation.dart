@@ -1,3 +1,5 @@
+import 'dart:ui' show ImageFilter;
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -69,60 +71,78 @@ class _MainNavigationState extends State<MainNavigation> {
           const ProfilePage(),
         ],
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: const Color(0xFF1E2246).withValues(alpha: 0.85),
-          border: Border(
-            top: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.4),
-              blurRadius: 20,
-              offset: const Offset(0, -4),
-            ),
-          ],
-        ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.only(bottom: 16, left: 24, right: 24),
         child: ClipRRect(
-          child: NavigationBar(
-            height: 65,
-            backgroundColor: Colors.transparent,
-            shadowColor: Colors.transparent,
-            surfaceTintColor: Colors.transparent,
-            indicatorColor: const Color(0xFF6366F1).withValues(alpha: 0.2),
-            selectedIndex: _selectedIndex,
-            onDestinationSelected: (index) {
-              setState(() => _selectedIndex = index);
-            },
-            destinations: [
-              NavigationDestination(
-                icon: Icon(
-                  Icons.home_rounded,
-                  color: Colors.white.withValues(alpha: 0.4),
+          borderRadius: BorderRadius.circular(32),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E2246).withValues(alpha: 0.55),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.08),
+                  width: 1,
                 ),
-                selectedIcon: const Icon(
-                  Icons.home_rounded,
-                  color: Colors.white,
-                ),
-                label: 'Home',
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.5),
+                    blurRadius: 30,
+                    offset: const Offset(0, -4),
+                  ),
+                  BoxShadow(
+                    color: const Color(0xFF6366F1).withValues(alpha: 0.08),
+                    blurRadius: 20,
+                    offset: const Offset(0, -8),
+                  ),
+                ],
               ),
-              NavigationDestination(
-                icon: Icon(
-                  Icons.emoji_events_rounded,
-                  color: Colors.white.withValues(alpha: 0.4),
+              child: NavigationBar(
+                height: 68,
+                backgroundColor: Colors.transparent,
+                shadowColor: Colors.transparent,
+                surfaceTintColor: Colors.transparent,
+                elevation: 0,
+                indicatorColor: const Color(0xFF6366F1).withValues(alpha: 0.25),
+                indicatorShape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
                 ),
-                selectedIcon: const Icon(
-                  Icons.emoji_events_rounded,
-                  color: Color(0xFFFFD700),
-                ),
-                label: 'Rankings',
+                selectedIndex: _selectedIndex,
+                onDestinationSelected: (index) {
+                  setState(() => _selectedIndex = index);
+                },
+                labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+                destinations: [
+                  NavigationDestination(
+                    icon: Icon(
+                      Icons.home_rounded,
+                      color: Colors.white.withValues(alpha: 0.35),
+                    ),
+                    selectedIcon: const Icon(
+                      Icons.home_rounded,
+                      color: Colors.white,
+                    ),
+                    label: 'Home',
+                  ),
+                  NavigationDestination(
+                    icon: Icon(
+                      Icons.emoji_events_rounded,
+                      color: Colors.white.withValues(alpha: 0.35),
+                    ),
+                    selectedIcon: const Icon(
+                      Icons.emoji_events_rounded,
+                      color: Color(0xFFFFD700),
+                    ),
+                    label: 'Rankings',
+                  ),
+                  NavigationDestination(
+                    icon: _buildProfileIcon(),
+                    selectedIcon: _buildProfileIcon(),
+                    label: 'Profile',
+                  ),
+                ],
               ),
-              NavigationDestination(
-                icon: _buildProfileIcon(),
-                selectedIcon: _buildProfileIcon(),
-                label: 'Profile',
-              ),
-            ],
+            ),
           ),
         ),
       ),

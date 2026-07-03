@@ -68,7 +68,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
   late ConfettiController _confettiController;
 
   // Track correct/incorrect per question for progress dots
-  List<bool> _answerResults = [];
+  final List<bool> _answerResults = [];
 
   // Timer fields
   Timer? _timer;

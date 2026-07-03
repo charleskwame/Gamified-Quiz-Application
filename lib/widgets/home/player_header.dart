@@ -234,7 +234,7 @@ class PlayerHeader extends StatelessWidget {
       onTap: onStreakTap,
       child: _PulsingStreak(
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
@@ -244,34 +244,35 @@ class PlayerHeader extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: const Color(0xFFFF5722).withValues(alpha: 0.4),
               width: 1.5,
             ),
           ),
-          child: Column(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               const Icon(
                 Icons.local_fire_department_rounded,
                 color: Color(0xFFFF5722),
-                size: 24,
+                size: 20,
               ),
-              const SizedBox(height: 2),
+              const SizedBox(width: 6),
               Text(
                 '$streakNumber',
                 style: const TextStyle(
                   color: Color(0xFFFF5722),
                   fontWeight: FontWeight.w900,
-                  fontSize: 16,
+                  fontSize: 15,
                 ),
               ),
+              const SizedBox(width: 4),
               Text(
                 'day${streakNumber > 1 ? 's' : ''}',
                 style: TextStyle(
                   color: const Color(0xFFFF5722).withValues(alpha: 0.7),
-                  fontSize: 9,
+                  fontSize: 11,
                   fontWeight: FontWeight.w600,
                 ),
               ),

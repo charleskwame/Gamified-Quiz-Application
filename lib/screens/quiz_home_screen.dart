@@ -85,25 +85,10 @@ class QuizHomePage extends StatelessWidget {
     required int totalScore,
     String? avatarUrl,
   }) {
-    // Calculate level and XP progress
-    final level = (totalScore ~/ 500) + 1;
-    final xpInCurrentLevel = totalScore % 500;
-    final xpProgress = xpInCurrentLevel / 500.0;
-
-    // Approximate quest progress per category (using total score as proxy)
-    // In a real app you'd fetch per-category stats
-    final caProgress = (totalScore > 0 ? (totalScore % 100) / 100.0 : 0.0)
-        .clamp(0.0, 1.0);
-    final seProgress =
-        (totalScore > 0 ? ((totalScore + 33) % 100) / 100.0 : 0.0).clamp(
-          0.0,
-          1.0,
-        );
-    final cnProgress =
-        (totalScore > 0 ? ((totalScore + 66) % 100) / 100.0 : 0.0).clamp(
-          0.0,
-          1.0,
-        );
+    // Calculate level and XP progress (100 XP per level)
+    final level = (totalScore ~/ 100) + 1;
+    final xpInCurrentLevel = totalScore % 100;
+    final xpProgress = xpInCurrentLevel / 100.0;
 
     return Scaffold(
       body: ParticleBackground(
@@ -118,9 +103,6 @@ class QuizHomePage extends StatelessWidget {
             level: level,
             xpProgress: xpProgress,
             avatarUrl: avatarUrl,
-            caProgress: caProgress,
-            seProgress: seProgress,
-            cnProgress: cnProgress,
           ),
         ),
       ),
@@ -137,9 +119,6 @@ class QuizHomePage extends StatelessWidget {
     required int level,
     required double xpProgress,
     String? avatarUrl,
-    required double caProgress,
-    required double seProgress,
-    required double cnProgress,
   }) {
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
@@ -222,8 +201,6 @@ class QuizHomePage extends StatelessWidget {
               icon: Icons.memory_rounded,
               color1: const Color(0xFF8C52FF),
               color2: const Color(0xFF141053),
-              progress: caProgress,
-              difficulty: 3,
               onPressed: () {
                 Navigator.push(
                   context,
@@ -249,8 +226,6 @@ class QuizHomePage extends StatelessWidget {
               icon: Icons.terminal_rounded,
               color1: const Color(0xFF37474F),
               color2: const Color(0xFF5A738E),
-              progress: seProgress,
-              difficulty: 2,
               onPressed: () {
                 Navigator.push(
                   context,
@@ -276,8 +251,6 @@ class QuizHomePage extends StatelessWidget {
               icon: Icons.lan_rounded,
               color1: const Color(0xFF0091EA),
               color2: const Color(0xFF00E5FF),
-              progress: cnProgress,
-              difficulty: 2,
               onPressed: () {
                 Navigator.push(
                   context,

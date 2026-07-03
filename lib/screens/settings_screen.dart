@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../services/auth_service.dart';
@@ -210,6 +211,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             elevation: 0,
             backgroundColor: Colors.transparent,
             foregroundColor: const Color(0xFF121826),
+            systemOverlayStyle: const SystemUiOverlayStyle(
+              statusBarColor: Colors.transparent,
+              statusBarIconBrightness: Brightness.dark,
+            ),
           ),
           body: SafeArea(
             child: SingleChildScrollView(

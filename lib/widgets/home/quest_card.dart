@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// An RPG-style quest/dungeon entrance card for a subject category.
-/// Shows progress, difficulty indicators, and has a subtle pulsing glow.
+/// Shows a subtle pulsing glow.
 class QuestCard extends StatelessWidget {
   final String category;
   final String description;
@@ -9,9 +9,6 @@ class QuestCard extends StatelessWidget {
   final Color color1;
   final Color color2;
   final VoidCallback onPressed;
-  final double
-  progress; // 0.0 to 1.0 — e.g., questions answered / total in this category
-  final int difficulty; // 1-3 stars
 
   const QuestCard({
     super.key,
@@ -21,8 +18,6 @@ class QuestCard extends StatelessWidget {
     required this.color1,
     required this.color2,
     required this.onPressed,
-    this.progress = 0.0,
-    this.difficulty = 1,
   });
 
   @override
@@ -56,25 +51,17 @@ class QuestCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Top row: icon + difficulty + "Enter Quest" button
+                  // Top row: icon + "Enter Quest" button
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.18),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(icon, color: Colors.white, size: 26),
-                          ),
-                          if (difficulty > 0) ...[
-                            const SizedBox(width: 10),
-                            _buildDifficultyStars(),
-                          ],
-                        ],
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.18),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(icon, color: Colors.white, size: 26),
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(
@@ -128,9 +115,6 @@ class QuestCard extends StatelessWidget {
                       height: 1.3,
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  // Progress bar
-                  _buildProgressBar(),
                 ],
               ),
             ),
@@ -140,61 +124,8 @@ class QuestCard extends StatelessWidget {
     );
   }
 
-  Widget _buildDifficultyStars() {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(3, (index) {
-        return Icon(
-          index < difficulty ? Icons.star_rounded : Icons.star_outline_rounded,
-          color: Colors.white.withValues(alpha: index < difficulty ? 0.9 : 0.3),
-          size: 16,
-        );
-      }),
-    );
-  }
-
-  Widget _buildProgressBar() {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0, end: progress.clamp(0.0, 1.0)),
-      duration: const Duration(milliseconds: 1000),
-      curve: Curves.easeOutCubic,
-      builder: (context, value, child) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: Container(
-                height: 6,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: FractionallySizedBox(
-                  widthFactor: value,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      color: Colors.white.withValues(alpha: 0.6),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '${(value * 100).round()}% complete',
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.4),
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
+  // Methods _buildDifficultyStars and _buildProgressBar removed
+  // as progress and difficulty are no longer displayed on the cards.
 }
 
 class _PulsingGlow extends StatefulWidget {
@@ -216,7 +147,7 @@ class _PulsingGlowState extends State<_PulsingGlow>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 3),
+      duration: const Duration(seconds: 6),
     )..repeat(reverse: true);
   }
 
@@ -231,15 +162,15 @@ class _PulsingGlowState extends State<_PulsingGlow>
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
-        final glowValue = 0.2 + _controller.value * 0.15;
+        final glowValue = 0.08 + _controller.value * 0.10;
         return Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
                 color: widget.color.withValues(alpha: glowValue),
-                blurRadius: 20,
-                spreadRadius: 1,
+                blurRadius: 12,
+                spreadRadius: 0,
               ),
             ],
           ),
