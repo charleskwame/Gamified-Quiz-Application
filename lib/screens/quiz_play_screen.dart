@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:confetti/confetti.dart';
 import '../models/question.dart';
 import '../services/database_service.dart';
 import '../services/quiz_engine.dart';
 import '../services/quote_service.dart';
+import '../widgets/quiz/quiz_animated_background.dart';
 import '../widgets/quiz/quiz_loading_view.dart';
 import '../widgets/quiz/quiz_error_view.dart';
 import '../widgets/quiz/quiz_results_view.dart';
@@ -12,6 +15,9 @@ import '../widgets/quiz/quiz_badge_celebration.dart';
 import '../widgets/quiz/quiz_ai_chat_sheet.dart';
 import '../widgets/quiz/quiz_streak_badge.dart';
 import '../widgets/quiz/quiz_ai_fab.dart';
+import '../widgets/quiz/quiz_game_option.dart';
+import '../widgets/quiz/quiz_score_popup.dart';
+import '../widgets/quiz/quiz_circular_timer.dart';
 
 class QuizPlayScreen extends StatefulWidget {
   final String category;
@@ -40,6 +46,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
   AnimationController? _aiButtonAnimationController;
   AnimationController? _progressAnimationController;
   AnimationController? _flameAnimationController;
+  AnimationController? _questionSlideController;
   final List<Question> _incorrectQuestions = [];
 
   List<Question> _questions = [];
@@ -52,6 +59,13 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
   int _correctAnswers = 0;
   String? _selectedOption;
   bool _isAnswered = false;
+
+  // Score popup
+  int _lastScoreIncrement = 0;
+  bool _showScorePopup = false;
+
+  // Confetti
+  late ConfettiController _confettiController;
 
   // Timer fields
   Timer? _timer;
@@ -67,6 +81,9 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
   void initState() {
     super.initState();
     _loadQuizQuestions();
+    _confettiController = ConfettiController(
+      duration: const Duration(seconds: 2),
+    );
     _aiButtonAnimationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
@@ -75,6 +92,10 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
       vsync: this,
       duration: const Duration(milliseconds: 800),
     )..repeat(reverse: true);
+    _questionSlideController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 350),
+    );
   }
 
   @override
@@ -83,6 +104,8 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
     _progressAnimationController?.dispose();
     _aiButtonAnimationController?.dispose();
     _flameAnimationController?.dispose();
+    _questionSlideController?.dispose();
+    _confettiController.dispose();
     super.dispose();
   }
 
@@ -162,6 +185,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
       _consecutiveIncorrect++;
       _consecutiveCorrect = 0;
       _incorrectQuestions.add(currentQuestion);
+      _showScorePopup = false;
     });
   }
 
@@ -188,25 +212,45 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
 
         if (widget.isTimed) {
           _score += QuizEngine.timedScoreIncrement(_consecutiveCorrect);
+          _lastScoreIncrement = QuizEngine.timedScoreIncrement(
+            _consecutiveCorrect,
+          );
         } else {
           _score += 1;
+          _lastScoreIncrement = 1;
         }
+        _showScorePopup = true;
+
+        // Trigger confetti for correct answers
+        _confettiController.play();
       } else {
         _consecutiveCorrect = 0;
         _consecutiveIncorrect++;
         _incorrectQuestions.add(currentQuestion);
+        _showScorePopup = false;
       }
     });
+
+    // Hide score popup after a delay
+    if (isCorrect) {
+      Future.delayed(const Duration(milliseconds: 1000), () {
+        if (mounted) {
+          setState(() => _showScorePopup = false);
+        }
+      });
+    }
   }
 
   // ─── Navigation ────────────────────────────────────────────────────────────
 
   void _nextQuestion() {
     if (_currentIndex < _questions.length - 1) {
+      _questionSlideController?.forward(from: 0.0);
       setState(() {
         _currentIndex++;
         _selectedOption = null;
         _isAnswered = false;
+        _showScorePopup = false;
       });
       if (widget.isTimed) {
         _startTimer();
@@ -219,6 +263,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
   // ─── Quiz Completion ───────────────────────────────────────────────────────
 
   Future<void> _finishQuiz() async {
+    _confettiController.stop();
     setState(() {
       _isLoading = true;
     });
@@ -281,16 +326,27 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Quit Challenge?'),
+        backgroundColor: const Color(0xFF1E2246),
+        title: const Text(
+          'Quit Challenge?',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800),
+        ),
         content: const Text(
           'Are you sure you want to quit? Your progress for this challenge will be lost.',
+          style: TextStyle(color: Colors.white70),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.white60),
+            ),
           ),
           FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFFEF4444),
+            ),
             onPressed: () {
               Navigator.pop(context); // Close dialog
               Navigator.pop(context); // Exit quiz
@@ -337,104 +393,187 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
     final question = _questions[_currentIndex];
     final bool showStreakBadge = widget.isTimed && _consecutiveCorrect >= 2;
 
-    return Scaffold(
-      floatingActionButton:
-          (!widget.isTimed &&
-              !widget.isOffline &&
-              _consecutiveIncorrect >= 2 &&
-              _currentIndex < _questions.length)
-          ? QuizAiFab(
-              animationController: _aiButtonAnimationController!,
-              onPressed: _showAiChatInterface,
-            )
-          : null,
-      appBar: AppBar(
-        title: Text(
-          widget.category,
-          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
-        ),
-        centerTitle: true,
-        automaticallyImplyLeading: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.close_rounded),
-            onPressed: _showQuitDialog,
-          ),
-        ],
-      ),
-      body: Stack(
-        children: [
-          SafeArea(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(
-                24,
-                10,
-                24,
-                showStreakBadge ? 176 : 10,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Timer Progress bar (if Timed Mode)
-                  if (widget.isTimed) ...[
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: AnimatedBuilder(
-                        animation: _progressAnimationController!,
-                        builder: (context, child) {
-                          final double progress =
-                              1.0 - _progressAnimationController!.value;
-                          return LinearProgressIndicator(
-                            value: progress,
-                            minHeight: 6,
-                            color: _timeLeft <= 4
-                                ? Colors.red
-                                : Theme.of(context).colorScheme.primary,
-                            backgroundColor: const Color(0xFFE6EAF2),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-
-                  // Question Card
-                  _buildQuestionCard(question),
-
-                  const SizedBox(height: 24),
-
-                  // Option Buttons
-                  ...question.options.map(
-                    (option) =>
-                        _buildOptionTile(option, question.correctAnswer),
-                  ),
-
-                  // Explanation & Next Button
-                  if (_isAnswered) ...[
-                    const SizedBox(height: 16),
-                    _buildExplanationBox(question),
-                    const SizedBox(height: 24),
-                    _buildNextButton(),
-                    const SizedBox(height: 20),
-                  ],
-                ],
-              ),
+    return QuizAnimatedBackground(
+      isActive: true,
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        floatingActionButton:
+            (!widget.isTimed &&
+                !widget.isOffline &&
+                _consecutiveIncorrect >= 2 &&
+                _currentIndex < _questions.length)
+            ? QuizAiFab(
+                animationController: _aiButtonAnimationController!,
+                onPressed: _showAiChatInterface,
+              )
+            : null,
+        appBar: AppBar(
+          title: Text(
+            widget.category,
+            style: const TextStyle(
+              fontWeight: FontWeight.w800,
+              fontSize: 16,
+              color: Colors.white,
             ),
           ),
-          // Streak multiplier badge
-          if (showStreakBadge)
-            Positioned(
-              right: 8,
-              bottom: MediaQuery.of(context).padding.bottom + 8,
-              child: IgnorePointer(
-                child: QuizStreakBadge(
-                  animationController: _flameAnimationController!,
-                  consecutiveCorrect: _consecutiveCorrect,
+          centerTitle: true,
+          automaticallyImplyLeading: false,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.close_rounded, color: Colors.white70),
+              onPressed: _showQuitDialog,
+            ),
+          ],
+        ),
+        body: Stack(
+          children: [
+            SafeArea(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(
+                  20,
+                  8,
+                  20,
+                  showStreakBadge ? 176 : 20,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ─── Top bar: Progress + Timer ──────────────────────
+                    Row(
+                      children: [
+                        // Question progress dots
+                        Expanded(child: _buildProgressDots()),
+                        if (widget.isTimed &&
+                            _progressAnimationController != null)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 12),
+                            child: QuizCircularTimer(
+                              animationController:
+                                  _progressAnimationController!,
+                              timeLeft: _timeLeft,
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // ─── Question Card ──────────────────────────────────
+                    _buildQuestionCard(question),
+                    const SizedBox(height: 20),
+
+                    // ─── Option Buttons ─────────────────────────────────
+                    ...List.generate(question.options.length, (index) {
+                      final option = question.options[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: QuizGameOption(
+                          option: option,
+                          correctAnswer: question.correctAnswer,
+                          selectedOption: _selectedOption,
+                          isAnswered: _isAnswered,
+                          onTap: () => _selectAnswer(option),
+                          index: index,
+                        ),
+                      );
+                    }),
+
+                    // ─── Explanation & Next Button ──────────────────────
+                    if (_isAnswered) ...[
+                      const SizedBox(height: 8),
+                      _buildExplanationBox(question),
+                      const SizedBox(height: 20),
+                      _buildNextButton(),
+                      const SizedBox(height: 20),
+                    ],
+                  ],
                 ),
               ),
             ),
-        ],
+
+            // Confetti overlay
+            Align(
+              alignment: Alignment.topCenter,
+              child: ConfettiWidget(
+                confettiController: _confettiController,
+                blastDirection: -pi / 2,
+                blastDirectionality: BlastDirectionality.explosive,
+                maxBlastForce: 20,
+                minBlastForce: 5,
+                emissionFrequency: 0.05,
+                numberOfParticles: 20,
+                gravity: 0.3,
+                colors: const [
+                  Color(0xFF4ADE80),
+                  Color(0xFF6366F1),
+                  Color(0xFFF59E0B),
+                  Color(0xFFEF4444),
+                  Colors.white,
+                ],
+                shouldLoop: false,
+              ),
+            ),
+
+            // Score popup - positioned near the question card
+            if (_showScorePopup)
+              Positioned(
+                top: MediaQuery.of(context).size.height * 0.38,
+                left: 0,
+                right: 0,
+                child: IgnorePointer(
+                  child: Center(
+                    child: QuizScorePopup(
+                      points: _lastScoreIncrement,
+                      isTimed: widget.isTimed,
+                    ),
+                  ),
+                ),
+              ),
+
+            // Streak multiplier badge
+            if (showStreakBadge)
+              Positioned(
+                right: 8,
+                bottom: MediaQuery.of(context).padding.bottom + 8,
+                child: IgnorePointer(
+                  child: QuizStreakBadge(
+                    animationController: _flameAnimationController!,
+                    consecutiveCorrect: _consecutiveCorrect,
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
+    );
+  }
+
+  // ─── Progress Dots ──────────────────────────────────────────────────────────
+
+  Widget _buildProgressDots() {
+    return Row(
+      children: List.generate(_questions.length, (index) {
+        final bool isCurrent = index == _currentIndex;
+        final bool isPast = index < _currentIndex;
+
+        return Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 2),
+            child: Container(
+              height: 4,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(2),
+                color: isCurrent
+                    ? const Color(0xFF6366F1)
+                    : isPast
+                    ? const Color(0xFF4ADE80)
+                    : const Color(0xFF2D3361),
+              ),
+            ),
+          ),
+        );
+      }),
     );
   }
 
@@ -445,14 +584,14 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFE6EAF2)),
+        color: const Color(0xFF1E2246),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFF2D3361)),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x05121826),
-            blurRadius: 10,
-            offset: Offset(0, 4),
+            color: Color(0x33000000),
+            blurRadius: 20,
+            offset: Offset(0, 8),
           ),
         ],
       ),
@@ -468,56 +607,30 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  color: const Color(0xFF6366F1).withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                child: Text(
-                  'QUESTION ${_currentIndex + 1} OF ${_questions.length}',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.0,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.help_outline_rounded,
+                      size: 12,
+                      color: Color(0xFF818CF8),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'QUESTION ${_currentIndex + 1} OF ${_questions.length}',
+                      style: const TextStyle(
+                        color: Color(0xFF818CF8),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.0,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              if (widget.isTimed)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _timeLeft <= 4
-                        ? Colors.red.shade50
-                        : const Color(0xFFF4F6FB),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.timer_rounded,
-                        size: 14,
-                        color: _timeLeft <= 4
-                            ? Colors.red
-                            : const Color(0xFF6B7280),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${_timeLeft}s',
-                        style: TextStyle(
-                          color: _timeLeft <= 4
-                              ? Colors.red
-                              : const Color(0xFF121826),
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
             ],
           ),
           const SizedBox(height: 20),
@@ -526,83 +639,11 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w800,
-              color: Color(0xFF121826),
+              color: Colors.white,
               height: 1.45,
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildOptionTile(String option, String correctAnswer) {
-    final isSelected = _selectedOption == option;
-    final isCorrectOption = QuizEngine.isOptionCorrect(option, correctAnswer);
-
-    Color borderC = const Color(0xFFE6EAF2);
-    Color bgC = Colors.white;
-    IconData? stateIcon;
-
-    if (_isAnswered) {
-      if (isCorrectOption) {
-        borderC = const Color(0xFF4CAF50);
-        bgC = const Color(0xFFE8F5E9);
-        stateIcon = Icons.check_circle_rounded;
-      } else if (isSelected) {
-        borderC = const Color(0xFFF44336);
-        bgC = const Color(0xFFFFEBEE);
-        stateIcon = Icons.cancel_rounded;
-      }
-    } else if (isSelected) {
-      borderC = Theme.of(context).colorScheme.primary;
-      bgC = Theme.of(context).colorScheme.primary.withValues(alpha: 0.05);
-    }
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: Container(
-        decoration: BoxDecoration(
-          color: bgC,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: borderC, width: 2),
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: _isAnswered ? null : () => _selectAnswer(option),
-            borderRadius: BorderRadius.circular(16),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      option,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight:
-                            isSelected || (_isAnswered && isCorrectOption)
-                            ? FontWeight.w700
-                            : FontWeight.w500,
-                        color: const Color(0xFF121826),
-                      ),
-                    ),
-                  ),
-                  if (stateIcon != null) ...[
-                    const SizedBox(width: 8),
-                    Icon(
-                      stateIcon,
-                      color: stateIcon == Icons.check_circle_rounded
-                          ? const Color(0xFF4CAF50)
-                          : const Color(0xFFF44336),
-                      size: 20,
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }
@@ -612,30 +653,40 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: const Color(0xFFF4F6FB),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE6EAF2)),
+        color: const Color(0xFF1A1E3E),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFF2D3361)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Explanation',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w800,
-              color: Color(0xFF4B5565),
-            ),
+          Row(
+            children: [
+              const Icon(
+                Icons.lightbulb_outline_rounded,
+                size: 16,
+                color: Color(0xFFF59E0B),
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'Explanation',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF9CA3AF),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Text(
             question.explanation.isEmpty || question.explanation == 'None.'
                 ? 'The correct answer is indeed option (${question.correctAnswer.toUpperCase()}).'
                 : question.explanation,
             style: const TextStyle(
               fontSize: 13,
-              color: Color(0xFF4B5565),
-              height: 1.45,
+              color: Color(0xFFD1D5DB),
+              height: 1.5,
             ),
           ),
         ],
@@ -644,17 +695,21 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
   }
 
   Widget _buildNextButton() {
+    final bool isLast = _currentIndex >= _questions.length - 1;
     return SizedBox(
       width: double.infinity,
       child: FilledButton.icon(
         onPressed: _nextQuestion,
-        icon: const Icon(Icons.arrow_forward_rounded),
+        icon: Icon(isLast ? Icons.flag_rounded : Icons.arrow_forward_rounded),
         label: Text(
-          _currentIndex < _questions.length - 1
-              ? 'Next Question'
-              : 'Finish Challenge',
+          isLast ? 'Finish Challenge' : 'Next Question',
+          style: const TextStyle(fontWeight: FontWeight.w700),
         ),
         style: FilledButton.styleFrom(
+          backgroundColor: isLast
+              ? const Color(0xFFF59E0B)
+              : const Color(0xFF6366F1),
+          foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 14),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),

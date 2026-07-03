@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 
-/// An animated streak multiplier badge with a fire Lottie animation.
+/// An animated streak multiplier badge with a fire Lottie animation
+/// and combo counter text.
 class QuizStreakBadge extends StatelessWidget {
   final AnimationController animationController;
   final int consecutiveCorrect;
@@ -27,8 +28,8 @@ class QuizStreakBadge extends StatelessWidget {
         final double glowAlpha = 0.28 + (pulse * 0.22);
 
         return Container(
-          width: 112,
-          height: 112,
+          width: 130,
+          height: 130,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             boxShadow: [
@@ -51,33 +52,50 @@ class QuizStreakBadge extends StatelessWidget {
                   animate: true,
                 ),
               ),
-              SizedBox(
-                width: 58,
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    multiplierText,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                      height: 1.0,
-                      shadows: [
-                        Shadow(
-                          color: Colors.black,
-                          blurRadius: 8,
-                          offset: Offset(0, 2),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: 58,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        multiplierText,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
+                          height: 1.0,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black,
+                              blurRadius: 8,
+                              offset: Offset(0, 2),
+                            ),
+                            Shadow(
+                              color: Colors.black54,
+                              blurRadius: 2,
+                              offset: Offset(0, 0),
+                            ),
+                          ],
                         ),
-                        Shadow(
-                          color: Colors.black54,
-                          blurRadius: 2,
-                          offset: Offset(0, 0),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'COMBO',
+                    style: TextStyle(
+                      color: const Color(
+                        0xFFFFD700,
+                      ).withValues(alpha: 0.8 + (pulse * 0.2)),
+                      fontSize: 8,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

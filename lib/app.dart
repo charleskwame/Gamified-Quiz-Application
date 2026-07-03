@@ -18,18 +18,31 @@ class MyApp extends StatelessWidget {
 
 /// Centralized theme configuration for the app.
 class AppTheme {
+  // Game-like accent colors
+  static const Color primary = Color(0xFF111C4A);
+  static const Color indigoAccent = Color(0xFF6366F1);
+  static const Color gold = Color(0xFFFFD700);
+  static const Color green = Color(0xFF4ADE80);
+  static const Color amber = Color(0xFFF59E0B);
+  static const Color red = Color(0xFFEF4444);
+  static const Color darkBg = Color(0xFF0F172A);
+  static const Color darkCard = Color(0xFF1E2246);
+  static const Color darkBorder = Color(0xFF2D3361);
+  static const Color darkText = Color(0xFF121826);
+  static const Color lightText = Color(0xFF4B5565);
+
   static final ThemeData light = ThemeData(
     useMaterial3: true,
     colorScheme: ColorScheme.fromSeed(
-      seedColor: const Color(0xFF111C4A),
-      primary: const Color(0xFF111C4A),
+      seedColor: primary,
+      primary: primary,
       error: const Color(0xFF931716),
       brightness: Brightness.light,
     ),
     scaffoldBackgroundColor: const Color(0xFFF4F6FB),
     appBarTheme: AppBarTheme(
       backgroundColor: Colors.transparent,
-      foregroundColor: const Color(0xFF121826),
+      foregroundColor: darkText,
       centerTitle: false,
       elevation: 0,
       systemOverlayStyle: SystemUiOverlayStyle(
@@ -39,37 +52,37 @@ class AppTheme {
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        backgroundColor: const Color(0xFF111C4A),
+        backgroundColor: indigoAccent,
         foregroundColor: Colors.white,
       ),
     ),
     textButtonTheme: TextButtonThemeData(
-      style: TextButton.styleFrom(foregroundColor: const Color(0xFF111C4A)),
+      style: TextButton.styleFrom(foregroundColor: primary),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        foregroundColor: const Color(0xFF111C4A),
-        side: const BorderSide(color: Color(0xFF111C4A)),
+        foregroundColor: primary,
+        side: const BorderSide(color: primary),
       ),
     ),
     textTheme: const TextTheme(
       headlineLarge: TextStyle(
         fontSize: 34,
         fontWeight: FontWeight.w800,
-        color: Color(0xFF121826),
+        color: darkText,
         height: 1.05,
       ),
       headlineMedium: TextStyle(
         fontSize: 24,
         fontWeight: FontWeight.w700,
-        color: Color(0xFF121826),
+        color: darkText,
       ),
       titleLarge: TextStyle(
         fontSize: 20,
         fontWeight: FontWeight.w700,
-        color: Color(0xFF121826),
+        color: darkText,
       ),
-      bodyLarge: TextStyle(fontSize: 16, height: 1.5, color: Color(0xFF4B5565)),
+      bodyLarge: TextStyle(fontSize: 16, height: 1.5, color: lightText),
     ),
   );
 }
