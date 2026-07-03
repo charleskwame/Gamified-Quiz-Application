@@ -91,6 +91,7 @@ class QuizHomePage extends StatelessWidget {
     final xpProgress = xpInCurrentLevel / 100.0;
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: ParticleBackground(
         child: SafeArea(
           child: _buildScrollContent(

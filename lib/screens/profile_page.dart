@@ -96,6 +96,7 @@ class _ProfilePageState extends State<ProfilePage> {
     final previewBadges = allBadges.take(4).toList();
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: AnnotatedRegion<SystemUiOverlayStyle>(
         value: const SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,

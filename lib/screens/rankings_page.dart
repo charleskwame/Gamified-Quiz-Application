@@ -40,6 +40,7 @@ class _RankingsPageState extends State<RankingsPage> {
     ];
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: ParticleBackground(
         child: SafeArea(
           child: StreamBuilder<List<UserRank>>(

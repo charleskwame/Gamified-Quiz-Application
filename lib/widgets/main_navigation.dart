@@ -59,6 +59,7 @@ class _MainNavigationState extends State<MainNavigation> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: IndexedStack(
         index: _selectedIndex,
         children: [
@@ -79,7 +80,7 @@ class _MainNavigationState extends State<MainNavigation> {
             filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
             child: Container(
               decoration: BoxDecoration(
-                color: const Color(0xFF1E2246).withValues(alpha: 0.55),
+                color: const Color(0xFF1E2246).withValues(alpha: 0.65),
                 border: Border.all(
                   color: Colors.white.withValues(alpha: 0.08),
                   width: 1,
@@ -112,11 +113,20 @@ class _MainNavigationState extends State<MainNavigation> {
                   setState(() => _selectedIndex = index);
                 },
                 labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+                labelTextStyle: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.selected)) {
+                    return const TextStyle(color: Colors.white, fontSize: 12);
+                  }
+                  return const TextStyle(
+                    color: Color(0xFF9CA3AF),
+                    fontSize: 12,
+                  );
+                }),
                 destinations: [
                   NavigationDestination(
                     icon: Icon(
                       Icons.home_rounded,
-                      color: Colors.white.withValues(alpha: 0.35),
+                      color: Colors.white.withValues(alpha: 0.55),
                     ),
                     selectedIcon: const Icon(
                       Icons.home_rounded,
@@ -127,7 +137,7 @@ class _MainNavigationState extends State<MainNavigation> {
                   NavigationDestination(
                     icon: Icon(
                       Icons.emoji_events_rounded,
-                      color: Colors.white.withValues(alpha: 0.35),
+                      color: Colors.white.withValues(alpha: 0.55),
                     ),
                     selectedIcon: const Icon(
                       Icons.emoji_events_rounded,
