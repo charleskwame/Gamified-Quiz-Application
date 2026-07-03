@@ -21,10 +21,19 @@ Deno.serve(async (req) => {
     const body = await req.json()
     const { systemPrompt, messages, stream } = body
 
-    const formattedMessages = [
+    let formattedMessages = [
       ...(systemPrompt ? [{ role: 'system', content: systemPrompt }] : []),
       ...(messages || []),
     ]
+
+    // If no user/assistant messages provided, add a default user message
+    // so DeepSeek has something to respond to
+    if (formattedMessages.length <= 1 && messages && messages.length === 0) {
+      formattedMessages.push({
+        role: 'user',
+        content: systemPrompt || 'Hello, please respond with study tips.',
+      })
+    }
 
     // 5. Make the secure server-to-server call to DeepSeek
     const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
@@ -40,36 +49,14 @@ Deno.serve(async (req) => {
       }),
     })
 
-    // 6. If streaming, forward the SSE stream back to the client
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new Error(`DeepSeek API error (${response.status}): ${errorText}`)
+    }
+
+    // 6. If streaming, pass the SSE body directly through to the client
     if (stream === true && response.body) {
-      // Use a TransformStream to pass through SSE data chunks
-      const { readable, writable } = new TransformStream()
-      const writer = writable.getWriter()
-      const reader = response.body.getReader()
-      const decoder = new TextDecoder()
-      const encoder = new TextEncoder()
-
-      // Pump chunks in the background
-      const pump = async () => {
-        try {
-          while (true) {
-            const { done, value } = await reader.read()
-            if (done) {
-              await writer.write(encoder.encode('data: [DONE]\n\n'))
-              await writer.close()
-              break
-            }
-            const text = decoder.decode(value, { stream: true })
-            await writer.write(encoder.encode(text))
-          }
-        } catch (e) {
-          console.error('Stream pump error:', e)
-          await writer.abort(e)
-        }
-      }
-      pump()
-
-      return new Response(readable, {
+      return new Response(response.body, {
         headers: {
           ...corsHeaders,
           'Content-Type': 'text/event-stream',
@@ -88,7 +75,7 @@ Deno.serve(async (req) => {
     })
 
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = error instanceof Error ? error.message : 'Unknown error'
     return new Response(JSON.stringify({ error: message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,
