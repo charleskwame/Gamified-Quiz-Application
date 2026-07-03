@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../widgets/home/particle_background.dart';
 import '../widgets/home/player_header.dart';
 import '../widgets/home/game_stat_panel.dart';
 import '../widgets/home/xp_vault_card.dart';
@@ -90,22 +89,17 @@ class QuizHomePage extends StatelessWidget {
     final xpInCurrentLevel = totalScore % 100;
     final xpProgress = xpInCurrentLevel / 100.0;
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: ParticleBackground(
-        child: SafeArea(
-          child: _buildScrollContent(
-            context: context,
-            displayName: displayName,
-            questionsAnswered: questionsAnswered,
-            accuracyPercent: accuracyPercent,
-            streakNumber: streakNumber,
-            totalScore: totalScore,
-            level: level,
-            xpProgress: xpProgress,
-            avatarUrl: avatarUrl,
-          ),
-        ),
+    return SafeArea(
+      child: _buildScrollContent(
+        context: context,
+        displayName: displayName,
+        questionsAnswered: questionsAnswered,
+        accuracyPercent: accuracyPercent,
+        streakNumber: streakNumber,
+        totalScore: totalScore,
+        level: level,
+        xpProgress: xpProgress,
+        avatarUrl: avatarUrl,
       ),
     );
   }
@@ -122,7 +116,7 @@ class QuizHomePage extends StatelessWidget {
     String? avatarUrl,
   }) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

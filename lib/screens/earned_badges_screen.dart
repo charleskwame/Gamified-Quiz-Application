@@ -8,6 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../models/badge.dart';
 import '../services/database_service.dart';
+import '../widgets/home/particle_background.dart';
 
 class EarnedBadgesScreen extends StatefulWidget {
   final List<String> unlockedBadgeIds;
@@ -32,7 +33,6 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
   @override
   void initState() {
     super.initState();
-    // Copy initial selection list
     _selectedBadges = List<String>.from(widget.initialSelectedBadges);
   }
 
@@ -45,7 +45,6 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
         _selectedBadges.remove(badgeId);
       } else {
         if (_selectedBadges.length >= 3) {
-          // Show error toast/message using warning color
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text(
@@ -78,7 +77,6 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
     setState(() => _isDownloading = true);
 
     try {
-      // Small delay to ensure widget is fully rendered in dialog/screen
       await Future.delayed(const Duration(milliseconds: 300));
 
       final RenderRepaintBoundary? boundary =
@@ -100,12 +98,9 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
 
       final Uint8List pngBytes = byteData.buffer.asUint8List();
 
-      // Find path to documents/external directory
       Directory? directory;
       if (Platform.isAndroid) {
-        // Request storage permissions
         await Permission.storage.request();
-        // Also request photos permission for Android 13+
         await Permission.photos.request();
 
         directory = Directory(
@@ -124,7 +119,6 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
       await imgFile.writeAsBytes(pngBytes);
 
       if (mounted) {
-        // Show success toast in deep teal #09262A
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Column(
@@ -175,7 +169,9 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
         return StatefulBuilder(
           builder: (context, setModalState) {
             if (loadingStats) {
-              DatabaseService().getBadgeOwnershipPercentage(badge.id).then((val) {
+              DatabaseService().getBadgeOwnershipPercentage(badge.id).then((
+                val,
+              ) {
                 if (context.mounted) {
                   setModalState(() {
                     percentage = val;
@@ -185,6 +181,7 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
               });
             }
             return AlertDialog(
+              backgroundColor: const Color(0xFF1E2246),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(28),
               ),
@@ -192,7 +189,6 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // RepaintBoundary wrapping the premium card widget
                   RepaintBoundary(
                     key: _repaintKey,
                     child: Container(
@@ -268,7 +264,10 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
                               ? const SizedBox(
                                   height: 14,
                                   width: 14,
-                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white70),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white70,
+                                  ),
                                 )
                               : Text(
                                   'Top ${percentage.toStringAsFixed(1)}% of players have this badge',
@@ -318,7 +317,10 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
                       Expanded(
                         child: TextButton(
                           onPressed: () => Navigator.pop(context),
-                          child: const Text('Close'),
+                          child: const Text(
+                            'Close',
+                            style: TextStyle(color: Colors.white60),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -350,7 +352,7 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
                             _isDownloading ? 'Saving...' : 'Save Card',
                           ),
                           style: FilledButton.styleFrom(
-                            backgroundColor: const Color(0xFF111C4A),
+                            backgroundColor: const Color(0xFF6366F1),
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 10),
                             shape: RoundedRectangleBorder(
@@ -378,277 +380,413 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
     final progress = unlockedCount / allBadges.length;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Badges & Achievements',
-          style: TextStyle(fontWeight: FontWeight.w800),
-        ),
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        foregroundColor: const Color(0xFF121826),
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Premium Progress Card
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF111C4A), Color(0xFF283A8C)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(28),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF111C4A).withValues(alpha: 0.3),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'YOUR PROGRESS',
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1.5,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              '$unlockedCount of ${allBadges.length} Unlocked',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 24,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.15),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.emoji_events_rounded,
-                            color: Colors.white,
-                            size: 32,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: LinearProgressIndicator(
-                        value: progress,
-                        minHeight: 10,
-                        backgroundColor: Colors.white24,
-                        valueColor: const AlwaysStoppedAnimation<Color>(
-                          Colors.white,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Tapping unlocked badges displays them in your rank profile (max 3).',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 32),
+      backgroundColor: Colors.transparent,
+      body: ParticleBackground(
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── Header ──
+                _StaggeredFadeSlide(index: 0, child: _buildHeader()),
 
-              Text(
-                'All Achievements (${allBadges.length})',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF121826),
-                ),
-              ),
-              const SizedBox(height: 16),
+                const SizedBox(height: 20),
 
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  childAspectRatio: 0.76,
+                // ── Progress Card ──
+                _StaggeredFadeSlide(
+                  index: 1,
+                  child: _buildProgressCard(unlockedCount, progress),
                 ),
-                itemCount: allBadges.length,
-                itemBuilder: (context, index) {
-                  final badge = allBadges[index];
-                  final isUnlocked = widget.unlockedBadgeIds.contains(badge.id);
-                  final isSelected = _selectedBadges.contains(badge.id);
 
-                  return Container(
-                    decoration: BoxDecoration(
+                const SizedBox(height: 32),
+
+                // ── Section Title ──
+                _StaggeredFadeSlide(
+                  index: 2,
+                  child: Text(
+                    'All Achievements (${allBadges.length})',
+                    style: const TextStyle(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: isSelected
-                            ? const Color(0xFF111C4A)
-                            : (isUnlocked
-                                  ? badge.color.withValues(alpha: 0.25)
-                                  : const Color(0xFFE6EAF2)),
-                        width: isSelected ? 2.5 : 1,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: isSelected
-                              ? const Color(0xFF111C4A).withValues(alpha: 0.08)
-                              : const Color(0x05121826),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
                     ),
-                    child: Stack(
-                      children: [
-                        Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: isUnlocked
-                                ? () => _toggleBadgeSelection(badge.id)
-                                : null,
-                            borderRadius: BorderRadius.circular(24),
-                            child: Padding(
-                              padding: const EdgeInsets.fromLTRB(
-                                16,
-                                20,
-                                16,
-                                12,
-                              ),
-                              child: Column(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: isUnlocked
-                                          ? badge.color.withValues(alpha: 0.1)
-                                          : const Color(0xFFF4F6FB),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(
-                                      isUnlocked
-                                          ? badge.icon
-                                          : Icons.lock_rounded,
-                                      color: isUnlocked
-                                          ? badge.color
-                                          : const Color(0xFF9CA3AF),
-                                      size: 32,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    badge.name,
-                                    textAlign: TextAlign.center,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w800,
-                                      color: Color(0xFF121826),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Expanded(
-                                    child: Text(
-                                      badge.description,
-                                      textAlign: TextAlign.center,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        fontSize: 10.5,
-                                        fontWeight: FontWeight.w500,
-                                        color: Color(0xFF6B7280),
-                                        height: 1.3,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  if (isUnlocked)
-                                    SizedBox(
-                                      width: double.infinity,
-                                      child: OutlinedButton.icon(
-                                        onPressed: () =>
-                                            _showDownloadCardModal(badge),
-                                        icon: const Icon(
-                                          Icons.share_rounded,
-                                          size: 12,
-                                        ),
-                                        label: const Text(
-                                          'Export Card',
-                                          style: TextStyle(fontSize: 11),
-                                        ),
-                                        style: OutlinedButton.styleFrom(
-                                          padding: const EdgeInsets.symmetric(
-                                            vertical: 6,
-                                          ),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              10,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // ── Badge Grid ──
+                _StaggeredFadeSlide(
+                  index: 3,
+                  child: GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 14,
+                          mainAxisSpacing: 14,
+                          childAspectRatio: 0.76,
                         ),
-                        if (isSelected)
-                          Positioned(
-                            top: 8,
-                            right: 8,
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: const BoxDecoration(
-                                color: Color(0xFF111C4A),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.check_rounded,
-                                color: Colors.white,
-                                size: 12,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ],
+                    itemCount: allBadges.length,
+                    itemBuilder: (context, index) {
+                      final badge = allBadges[index];
+                      final isUnlocked = widget.unlockedBadgeIds.contains(
+                        badge.id,
+                      );
+                      final isSelected = _selectedBadges.contains(badge.id);
+
+                      return _buildBadgeGridItem(
+                        badge: badge,
+                        isUnlocked: isUnlocked,
+                        isSelected: isSelected,
+                      );
+                    },
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+              ],
+            ),
           ),
         ),
       ),
+    );
+  }
+
+  // ──────────────────────────────────────────────
+  //  Header with back button
+  // ──────────────────────────────────────────────
+
+  Widget _buildHeader() {
+    return Row(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.06),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+          ),
+          child: IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(Icons.arrow_back_rounded),
+            color: Colors.white,
+            padding: const EdgeInsets.all(10),
+            constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+          ),
+        ),
+        const SizedBox(width: 16),
+        const Text(
+          'Badges & Achievements',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ──────────────────────────────────────────────
+  //  Progress Card
+  // ──────────────────────────────────────────────
+
+  Widget _buildProgressCard(int unlockedCount, double progress) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'YOUR PROGRESS',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.5),
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '$unlockedCount of ${allBadges.length} Unlocked',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.emoji_events_rounded,
+                  color: Color(0xFFFFD700),
+                  size: 32,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 10,
+              backgroundColor: Colors.white.withValues(alpha: 0.1),
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                Color(0xFF6366F1),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Tapping unlocked badges displays them in your rank profile (max 3).',
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.5),
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ──────────────────────────────────────────────
+  //  Badge Grid Item
+  // ──────────────────────────────────────────────
+
+  Widget _buildBadgeGridItem({
+    required BadgeDefinition badge,
+    required bool isUnlocked,
+    required bool isSelected,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isSelected
+              ? const Color(0xFF6366F1)
+              : (isUnlocked
+                    ? badge.color.withValues(alpha: 0.25)
+                    : Colors.white.withValues(alpha: 0.06)),
+          width: isSelected ? 2.5 : 1,
+        ),
+        boxShadow: [
+          if (isSelected)
+            BoxShadow(
+              color: const Color(0xFF6366F1).withValues(alpha: 0.2),
+              blurRadius: 12,
+            ),
+          if (isUnlocked && !isSelected)
+            BoxShadow(
+              color: badge.color.withValues(alpha: 0.08),
+              blurRadius: 8,
+            ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: isUnlocked ? () => _toggleBadgeSelection(badge.id) : null,
+              borderRadius: BorderRadius.circular(20),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
+                child: Opacity(
+                  opacity: isUnlocked ? 1.0 : 0.5,
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: isUnlocked
+                              ? badge.color.withValues(alpha: 0.15)
+                              : Colors.white.withValues(alpha: 0.06),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          isUnlocked ? badge.icon : Icons.lock_rounded,
+                          color: isUnlocked ? badge.color : Colors.white38,
+                          size: 32,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        badge.name,
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: isUnlocked ? Colors.white : Colors.white54,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Expanded(
+                        child: Text(
+                          badge.description,
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white.withValues(
+                              alpha: isUnlocked ? 0.5 : 0.3,
+                            ),
+                            height: 1.3,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      if (isUnlocked)
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: () => _showDownloadCardModal(badge),
+                            icon: const Icon(Icons.share_rounded, size: 12),
+                            label: const Text(
+                              'Export Card',
+                              style: TextStyle(fontSize: 11),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 6),
+                              foregroundColor: Colors.white70,
+                              side: BorderSide(
+                                color: Colors.white.withValues(alpha: 0.15),
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          if (isSelected)
+            Positioned(
+              top: 8,
+              right: 8,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: const BoxDecoration(
+                  color: Color(0xFF6366F1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.check_rounded,
+                  color: Colors.white,
+                  size: 12,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  Staggered Fade-Slide — matching app-wide entrance animation
+// ═══════════════════════════════════════════════════════════════
+
+class _StaggeredFadeSlide extends StatefulWidget {
+  final int index;
+  final Widget child;
+
+  const _StaggeredFadeSlide({required this.index, required this.child});
+
+  @override
+  State<_StaggeredFadeSlide> createState() => _StaggeredFadeSlideState();
+}
+
+class _StaggeredFadeSlideState extends State<_StaggeredFadeSlide>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _opacityAnim;
+  late Animation<Offset> _slideAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+
+    final startDelay = Duration(milliseconds: 100 * widget.index);
+    _opacityAnim = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
+      ),
+    );
+    _slideAnim = Tween<Offset>(begin: const Offset(0, 0.15), end: Offset.zero)
+        .animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.0, 0.7, curve: Curves.easeOutCubic),
+          ),
+        );
+
+    Future.delayed(startDelay, () {
+      if (mounted) _controller.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _opacityAnim,
+      child: SlideTransition(position: _slideAnim, child: widget.child),
     );
   }
 }

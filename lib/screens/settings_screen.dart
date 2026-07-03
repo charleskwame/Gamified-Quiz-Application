@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../services/auth_service.dart';
 import '../services/database_service.dart';
 import '../widgets/avatar_customizer_dialog.dart';
+import '../widgets/home/particle_background.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -84,31 +84,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               messenger.showSnackBar(
                 const SnackBar(
                   content: Text('Avatar saved successfully!'),
-                  backgroundColor: Color(0xFF141053),
+                  backgroundColor: Color(0xFF09262A),
                 ),
               );
             }
           }
         },
       ),
-    );
-  }
-
-  Widget _buildStatusBanner(
-    String message,
-    Color bgColor,
-    Color borderColor,
-    Color textColor,
-  ) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: borderColor),
-      ),
-      child: Text(message, style: TextStyle(color: textColor)),
     );
   }
 
@@ -120,25 +102,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1E2246),
         title: const Text(
           'Delete Account?',
           style: TextStyle(
-            color: Color(0xFF931716),
+            color: Color(0xFFEF4444),
             fontWeight: FontWeight.bold,
           ),
         ),
         content: const Text(
           'Warning: This action is irreversible. Your entire progress, achievements, points, earned badges, and offline saved questions will be permanently deleted from the system.',
+          style: TextStyle(color: Colors.white70),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.white60),
+            ),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF931716),
+              backgroundColor: const Color(0xFFEF4444),
               foregroundColor: Colors.white,
             ),
             child: const Text('Delete Permanently'),
@@ -202,205 +189,458 @@ class _SettingsScreenState extends State<SettingsScreen> {
         }
 
         return Scaffold(
-          appBar: AppBar(
-            title: const Text(
-              'Settings',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            centerTitle: true,
-            elevation: 0,
-            backgroundColor: Colors.transparent,
-            foregroundColor: const Color(0xFF121826),
-            systemOverlayStyle: const SystemUiOverlayStyle(
-              statusBarColor: Colors.transparent,
-              statusBarIconBrightness: Brightness.dark,
-            ),
-          ),
-          body: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Avatar Section
-                  Center(
-                    child: Column(
-                      children: [
-                        Container(
-                          width: 110,
-                          height: 110,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: const Color(0xFFE6EAF2),
-                              width: 3,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.08),
-                                blurRadius: 16,
-                                offset: const Offset(0, 8),
-                              ),
-                            ],
-                          ),
-                          child: avatarUrl != null && avatarUrl.isNotEmpty
-                              ? ClipOval(
-                                  child: SvgPicture.network(
-                                    avatarUrl,
-                                    fit: BoxFit.cover,
-                                    placeholderBuilder: (context) => const Icon(
-                                      Icons.person_rounded,
-                                      size: 60,
-                                      color: Color(0xFF141053),
-                                    ),
-                                  ),
-                                )
-                              : const Icon(
-                                  Icons.person_rounded,
-                                  size: 60,
-                                  color: Color(0xFF141053),
-                                ),
-                        ),
-                        const SizedBox(height: 12),
-                        OutlinedButton.icon(
-                          onPressed: () =>
-                              _openAvatarCustomizer(avatarUrl, avatarDetails),
-                          icon: const Icon(
-                            Icons.face_retouching_natural_rounded,
-                            size: 18,
-                            color: Color(0xFF141053),
-                          ),
-                          label: const Text(
-                            'Customize Avatar',
-                            style: TextStyle(
-                              color: Color(0xFF141053),
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Color(0xFF141053)),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 32),
+          backgroundColor: Colors.transparent,
+          body: ParticleBackground(
+            child: SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ── Back Button + Title ──
+                    _StaggeredFadeSlide(index: 0, child: _buildHeader()),
 
-                  Text(
-                    'Update Account Info',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: const Color(0xFF121826),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
+                    const SizedBox(height: 24),
 
-                  if (_errorMessage != null) ...[
-                    _buildStatusBanner(
-                      _errorMessage!,
-                      Colors.red.shade50,
-                      Colors.red.shade200,
-                      Colors.red.shade700,
+                    // ── Avatar Section ──
+                    _StaggeredFadeSlide(
+                      index: 1,
+                      child: _buildAvatarSection(avatarUrl, avatarDetails),
                     ),
-                    const SizedBox(height: 16),
+
+                    const SizedBox(height: 32),
+
+                    // ── Update Account Info ──
+                    _StaggeredFadeSlide(
+                      index: 2,
+                      child: _buildAccountInfoSection(),
+                    ),
+
+                    const SizedBox(height: 32),
+
+                    // ── Divider ──
+                    _StaggeredFadeSlide(
+                      index: 5,
+                      child: Container(
+                        height: 1,
+                        width: double.infinity,
+                        color: Colors.white.withValues(alpha: 0.08),
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // ── Danger Zone ──
+                    _StaggeredFadeSlide(index: 6, child: _buildDangerZone()),
                   ],
-
-                  if (_successMessage != null) ...[
-                    _buildStatusBanner(
-                      _successMessage!,
-                      Colors.green.shade50,
-                      Colors.green.shade200,
-                      Colors.green.shade700,
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-
-                  TextField(
-                    controller: _displayNameController,
-                    decoration: InputDecoration(
-                      labelText: 'Full Name',
-                      hintText: 'Enter your full name',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 14,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
-                      onPressed: _isLoading ? null : _updateAccountInfo,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: const Color(0xFF141053),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: _isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  Colors.white,
-                                ),
-                              ),
-                            )
-                          : const Text('Save Changes'),
-                    ),
-                  ),
-
-                  const SizedBox(height: 32),
-                  const Divider(),
-                  const SizedBox(height: 16),
-
-                  Text(
-                    'Danger Zone',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: const Color(0xFF931716),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: _isLoading ? null : _deleteAccount,
-                      icon: const Icon(
-                        Icons.delete_forever_rounded,
-                        color: Color(0xFF931716),
-                      ),
-                      label: const Text(
-                        'Delete Account',
-                        style: TextStyle(color: Color(0xFF931716)),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        side: const BorderSide(color: Color(0xFF931716)),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
         );
       },
+    );
+  }
+
+  // ──────────────────────────────────────────────
+  //  Header
+  // ──────────────────────────────────────────────
+
+  Widget _buildHeader() {
+    return Row(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.06),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+          ),
+          child: IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(Icons.arrow_back_rounded),
+            color: Colors.white,
+            padding: const EdgeInsets.all(10),
+            constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+          ),
+        ),
+        const SizedBox(width: 16),
+        const Text(
+          'Settings',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 28,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ──────────────────────────────────────────────
+  //  Avatar Section
+  // ──────────────────────────────────────────────
+
+  Widget _buildAvatarSection(
+    String? avatarUrl,
+    Map<String, dynamic>? avatarDetails,
+  ) {
+    return Center(
+      child: Column(
+        children: [
+          // Glowing avatar ring matching PlayerHeader style
+          _buildGlowingAvatar(avatarUrl),
+          const SizedBox(height: 16),
+          OutlinedButton.icon(
+            onPressed: () => _openAvatarCustomizer(avatarUrl, avatarDetails),
+            icon: const Icon(
+              Icons.face_retouching_natural_rounded,
+              size: 18,
+              color: Colors.white70,
+            ),
+            label: const Text(
+              'Customize Avatar',
+              style: TextStyle(
+                color: Colors.white70,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            style: OutlinedButton.styleFrom(
+              side: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              backgroundColor: Colors.white.withValues(alpha: 0.04),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGlowingAvatar(String? avatarUrl) {
+    return Container(
+      width: 110,
+      height: 110,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: const SweepGradient(
+          colors: [
+            Color(0xFF6366F1),
+            Color(0xFF8C52FF),
+            Color(0xFFFFD700),
+            Color(0xFF4ADE80),
+            Color(0xFF6366F1),
+          ],
+          stops: [0.0, 0.25, 0.5, 0.75, 1.0],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF6366F1).withValues(alpha: 0.35),
+            blurRadius: 20,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(4),
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Color(0xFF0A0E21),
+            shape: BoxShape.circle,
+          ),
+          child: ClipOval(
+            child: avatarUrl != null && avatarUrl.isNotEmpty
+                ? SvgPicture.network(
+                    avatarUrl,
+                    fit: BoxFit.cover,
+                    placeholderBuilder: (context) => const Icon(
+                      Icons.person_rounded,
+                      size: 60,
+                      color: Colors.white70,
+                    ),
+                  )
+                : const Icon(
+                    Icons.person_rounded,
+                    size: 60,
+                    color: Colors.white70,
+                  ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ──────────────────────────────────────────────
+  //  Account Info Section
+  // ──────────────────────────────────────────────
+
+  Widget _buildAccountInfoSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Update Account Info',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        if (_errorMessage != null) ...[
+          _buildStatusBanner(_errorMessage!, const Color(0xFFEF4444)),
+          const SizedBox(height: 16),
+        ],
+
+        if (_successMessage != null) ...[
+          _buildStatusBanner(_successMessage!, const Color(0xFF4ADE80)),
+          const SizedBox(height: 16),
+        ],
+
+        // Name field
+        TextField(
+          controller: _displayNameController,
+          style: const TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+            labelText: 'Full Name',
+            labelStyle: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
+            hintText: 'Enter your full name',
+            hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.2)),
+            filled: true,
+            fillColor: Colors.white.withValues(alpha: 0.06),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(
+                color: Colors.white.withValues(alpha: 0.1),
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(
+                color: Colors.white.withValues(alpha: 0.1),
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: Color(0xFF6366F1), width: 2),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+
+        SizedBox(
+          width: double.infinity,
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF6366F1), Color(0xFF8C52FF)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: FilledButton(
+              onPressed: _isLoading ? null : _updateAccountInfo,
+              style: FilledButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                shadowColor: Colors.transparent,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                disabledBackgroundColor: Colors.white.withValues(alpha: 0.06),
+              ),
+              child: _isLoading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Text(
+                      'Save Changes',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatusBanner(String message, Color accentColor) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: accentColor.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: accentColor.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            accentColor == const Color(0xFF4ADE80)
+                ? Icons.check_circle_outline_rounded
+                : Icons.error_outline_rounded,
+            size: 20,
+            color: accentColor,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(
+                color: accentColor,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ──────────────────────────────────────────────
+  //  Danger Zone
+  // ──────────────────────────────────────────────
+
+  Widget _buildDangerZone() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(
+              Icons.warning_amber_rounded,
+              color: Color(0xFFEF4444),
+              size: 20,
+            ),
+            const SizedBox(width: 8),
+            const Text(
+              'Danger Zone',
+              style: TextStyle(
+                color: Color(0xFFEF4444),
+                fontSize: 20,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: _isLoading ? null : _deleteAccount,
+            icon: const Icon(
+              Icons.delete_forever_rounded,
+              color: Color(0xFFEF4444),
+              size: 20,
+            ),
+            label: const Text(
+              'Delete Account',
+              style: TextStyle(
+                color: Color(0xFFEF4444),
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+              side: BorderSide(
+                color: const Color(0xFFEF4444).withValues(alpha: 0.5),
+              ),
+              backgroundColor: const Color(0xFFEF4444).withValues(alpha: 0.06),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'This action cannot be undone. All your data will be permanently removed.',
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.35),
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  Staggered Fade-Slide — matching app-wide entrance animation
+// ═══════════════════════════════════════════════════════════════
+
+class _StaggeredFadeSlide extends StatefulWidget {
+  final int index;
+  final Widget child;
+
+  const _StaggeredFadeSlide({required this.index, required this.child});
+
+  @override
+  State<_StaggeredFadeSlide> createState() => _StaggeredFadeSlideState();
+}
+
+class _StaggeredFadeSlideState extends State<_StaggeredFadeSlide>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _opacityAnim;
+  late Animation<Offset> _slideAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+
+    final startDelay = Duration(milliseconds: 100 * widget.index);
+    _opacityAnim = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
+      ),
+    );
+    _slideAnim = Tween<Offset>(begin: const Offset(0, 0.15), end: Offset.zero)
+        .animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.0, 0.7, curve: Curves.easeOutCubic),
+          ),
+        );
+
+    Future.delayed(startDelay, () {
+      if (mounted) _controller.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _opacityAnim,
+      child: SlideTransition(position: _slideAnim, child: widget.child),
     );
   }
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/badge.dart';
 
-/// A card displaying a badge, with unlocked/locked visual state.
+/// A dark-themed game-style card displaying a badge, with unlocked/locked visual state.
 class BadgeCard extends StatelessWidget {
   final BadgeDefinition badge;
   final bool isUnlocked;
@@ -13,31 +13,42 @@ class BadgeCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE6EAF2)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x05121826),
-            blurRadius: 10,
-            offset: Offset(0, 4),
-          ),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isUnlocked
+              ? badge.color.withValues(alpha: 0.25)
+              : Colors.white.withValues(alpha: 0.06),
+        ),
+        boxShadow: [
+          if (isUnlocked)
+            BoxShadow(
+              color: badge.color.withValues(alpha: 0.12),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
         ],
       ),
       child: Opacity(
-        opacity: isUnlocked ? 1.0 : 0.5,
+        opacity: isUnlocked ? 1.0 : 0.45,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: badge.color.withValues(alpha: 0.12),
+                color: isUnlocked
+                    ? badge.color.withValues(alpha: 0.15)
+                    : Colors.white.withValues(alpha: 0.06),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 isUnlocked ? badge.icon : Icons.lock_rounded,
-                color: isUnlocked ? badge.color : const Color(0xFF6B7280),
+                color: isUnlocked ? badge.color : Colors.white38,
                 size: 28,
               ),
             ),
@@ -47,10 +58,10 @@ class BadgeCard extends StatelessWidget {
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF121826),
+                color: isUnlocked ? Colors.white : Colors.white54,
               ),
             ),
             const SizedBox(height: 4),
@@ -59,10 +70,10 @@ class BadgeCard extends StatelessWidget {
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
-                color: Color(0xFF6B7280),
+                color: Colors.white.withValues(alpha: isUnlocked ? 0.5 : 0.3),
               ),
             ),
           ],

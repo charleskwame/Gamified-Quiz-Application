@@ -1,12 +1,12 @@
-import 'dart:ui' show ImageFilter;
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:google_nav_bar/google_nav_bar.dart';
 import '../screens/quiz_home_screen.dart';
 import '../screens/rankings_page.dart';
 import '../screens/profile_page.dart';
 import '../services/auth_service.dart';
+import 'home/particle_background.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -58,100 +58,63 @@ class _MainNavigationState extends State<MainNavigation> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: [
-          QuizHomePage(
-            onNavigateToRanks: () {
-              setState(() => _selectedIndex = 1);
-            },
-          ),
-          const RankingsPage(),
-          const ProfilePage(),
-        ],
-      ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.only(bottom: 16, left: 24, right: 24),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(32),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-            child: Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFF1E2246).withValues(alpha: 0.65),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.08),
-                  width: 1,
+    return ParticleBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        extendBody: true,
+        body: IndexedStack(
+          index: _selectedIndex,
+          children: [
+            QuizHomePage(
+              onNavigateToRanks: () {
+                setState(() => _selectedIndex = 1);
+              },
+            ),
+            const RankingsPage(),
+            const ProfilePage(),
+          ],
+        ),
+        bottomNavigationBar: Padding(
+          padding: const EdgeInsets.only(bottom: 16, left: 24, right: 24),
+          child: Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E1E2E),
+              borderRadius: BorderRadius.circular(32),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            child: GNav(
+              selectedIndex: _selectedIndex,
+              onTabChange: (index) {
+                setState(() => _selectedIndex = index);
+              },
+              backgroundColor: Colors.transparent,
+              color: Colors.white.withValues(alpha: 0.55),
+              activeColor: Colors.white,
+              tabBackgroundColor: const Color(0xFF6366F1).withValues(alpha: 0.25),
+              gap: 8,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              tabBorderRadius: 20,
+              tabs: [
+                GButton(
+                  icon: Icons.home_rounded,
+                  text: 'Home',
+                  iconActiveColor: Colors.white,
+                  textColor: Colors.white,
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.5),
-                    blurRadius: 30,
-                    offset: const Offset(0, -4),
-                  ),
-                  BoxShadow(
-                    color: const Color(0xFF6366F1).withValues(alpha: 0.08),
-                    blurRadius: 20,
-                    offset: const Offset(0, -8),
-                  ),
-                ],
-              ),
-              child: NavigationBar(
-                height: 68,
-                backgroundColor: Colors.transparent,
-                shadowColor: Colors.transparent,
-                surfaceTintColor: Colors.transparent,
-                elevation: 0,
-                indicatorColor: const Color(0xFF6366F1).withValues(alpha: 0.25),
-                indicatorShape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+                GButton(
+                  icon: Icons.emoji_events_rounded,
+                  text: 'Rankings',
+                  iconActiveColor: const Color(0xFFFFD700),
+                  textColor: Colors.white,
                 ),
-                selectedIndex: _selectedIndex,
-                onDestinationSelected: (index) {
-                  setState(() => _selectedIndex = index);
-                },
-                labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-                labelTextStyle: WidgetStateProperty.resolveWith((states) {
-                  if (states.contains(WidgetState.selected)) {
-                    return const TextStyle(color: Colors.white, fontSize: 12);
-                  }
-                  return const TextStyle(
-                    color: Color(0xFF9CA3AF),
-                    fontSize: 12,
-                  );
-                }),
-                destinations: [
-                  NavigationDestination(
-                    icon: Icon(
-                      Icons.home_rounded,
-                      color: Colors.white.withValues(alpha: 0.55),
-                    ),
-                    selectedIcon: const Icon(
-                      Icons.home_rounded,
-                      color: Colors.white,
-                    ),
-                    label: 'Home',
-                  ),
-                  NavigationDestination(
-                    icon: Icon(
-                      Icons.emoji_events_rounded,
-                      color: Colors.white.withValues(alpha: 0.55),
-                    ),
-                    selectedIcon: const Icon(
-                      Icons.emoji_events_rounded,
-                      color: Color(0xFFFFD700),
-                    ),
-                    label: 'Rankings',
-                  ),
-                  NavigationDestination(
-                    icon: _buildProfileIcon(),
-                    selectedIcon: _buildProfileIcon(),
-                    label: 'Profile',
-                  ),
-                ],
-              ),
+                GButton(
+                  icon: Icons.person_rounded,
+                  text: 'Profile',
+                  iconActiveColor: Colors.white,
+                  textColor: Colors.white,
+                  leading: _buildProfileIcon(),
+                ),
+              ],
             ),
           ),
         ),

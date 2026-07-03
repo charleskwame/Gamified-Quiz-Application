@@ -57,35 +57,37 @@ class _ParticleBackgroundState extends State<ParticleBackground>
       animation: _controller,
       child: widget.child,
       builder: (context, child) {
-        return Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Color(0xFF060B1A), // very dark navy
-                Color(0xFF0A0E21), // dark blue
-                Color(0xFF0F1832), // slightly lighter
-                Color(0xFF141852), // deep indigo hint
-              ],
-              stops: [0.0, 0.3, 0.7, 1.0],
+        return SizedBox.expand(
+          child: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xFF060B1A), // very dark navy
+                  Color(0xFF0A0E21), // dark blue
+                  Color(0xFF0F1832), // slightly lighter
+                  Color(0xFF141852), // deep indigo hint
+                ],
+                stops: [0.0, 0.3, 0.7, 1.0],
+              ),
             ),
-          ),
-          child: Stack(
-            children: [
-              // Particle layer
-              if (widget.isActive)
-                Positioned.fill(
-                  child: CustomPaint(
-                    painter: _ParticlePainter(
-                      particles: _particles,
-                      progress: _controller,
+            child: Stack(
+              children: [
+                // Particle layer
+                if (widget.isActive)
+                  Positioned.fill(
+                    child: CustomPaint(
+                      painter: _ParticlePainter(
+                        particles: _particles,
+                        progress: _controller,
+                      ),
                     ),
                   ),
-                ),
-              // Content layer
-              child!,
-            ],
+                // Content layer
+                child!,
+              ],
+            ),
           ),
         );
       },
