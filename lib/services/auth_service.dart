@@ -8,6 +8,18 @@ class AuthService {
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
   static const String _sessionKey = 'firebase_session_active';
+  static const String _secureEmailKey = 'cached_user_email';
+  static const String _securePasswordKey = 'cached_user_password';
+
+  Future<void> _saveCredentials(String email, String password) async {
+    await _secureStorage.write(key: _secureEmailKey, value: email);
+    await _secureStorage.write(key: _securePasswordKey, value: password);
+  }
+
+  Future<void> _clearCredentials() async {
+    await _secureStorage.delete(key: _secureEmailKey);
+    await _secureStorage.delete(key: _securePasswordKey);
+  }
 
   // Stream to listen to auth state changes
   Stream<User?> get authStateChanges => _auth.authStateChanges();
@@ -35,15 +47,40 @@ class AuthService {
     // - Guest users: emits null immediately (no timeout).
     // - Signed-in users: emits the restored user once Firebase reads the token.
     // - Fallback: 5-second safety net in case the token read hangs.
+    User? user;
     try {
-      final user = await _auth
+      user = await _auth
           .authStateChanges()
           .timeout(const Duration(seconds: 5))
           .first;
-      return user;
     } catch (_) {
-      return null;
+      user = null;
     }
+
+    if (user != null) return user;
+
+    // Fallback: If Firebase token persistence failed but we have cached credentials,
+    // perform an automatic silent sign-in.
+    try {
+      final email = await _secureStorage.read(key: _secureEmailKey);
+      final password = await _secureStorage.read(key: _securePasswordKey);
+      if (email != null && password != null) {
+        final credential = await _auth.signInWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
+        return credential.user;
+      }
+    } on FirebaseAuthException catch (e) {
+      // If the credentials are invalid (e.g. password changed), clear them.
+      if (e.code == 'wrong-password' || e.code == 'user-not-found' || e.code == 'user-disabled' || e.code == 'invalid-credential' || e.code == 'invalid-email') {
+        await _clearCredentials();
+      }
+    } catch (_) {
+      // Ignore other errors (e.g. network timeout) to allow retrying later.
+    }
+
+    return null;
   }
 
   /// Persist the “session active” flag so we know a previous sign-in existed.
@@ -57,6 +94,7 @@ class AuthService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_sessionKey);
     await _secureStorage.deleteAll();
+    await _clearCredentials();
   }
 
   // Sign up with email and password
@@ -83,6 +121,7 @@ class AuthService {
         );
       }
 
+      await _saveCredentials(email, password);
       await _markSessionActive();
 
       return userCredential;
@@ -102,6 +141,7 @@ class AuthService {
         password: password,
       );
 
+      await _saveCredentials(email, password);
       await _markSessionActive();
 
       return userCredential;
@@ -145,6 +185,9 @@ class AuthService {
         throw Exception('No user is currently logged in.');
       }
 
+      final currentEmail = user.email ?? '';
+      final oldPassword = await _secureStorage.read(key: _securePasswordKey) ?? '';
+
       if (displayName != null && displayName.isNotEmpty) {
         await user.updateDisplayName(displayName);
       }
@@ -158,6 +201,13 @@ class AuthService {
 
       if (password != null && password.isNotEmpty) {
         await user.updatePassword(password);
+      }
+
+      // Update cached credentials if they changed
+      final updatedEmail = (email != null && email.isNotEmpty) ? email : currentEmail;
+      final updatedPassword = (password != null && password.isNotEmpty) ? password : oldPassword;
+      if (updatedEmail.isNotEmpty && updatedPassword.isNotEmpty) {
+        await _saveCredentials(updatedEmail, updatedPassword);
       }
 
       // Sync changes to the Firestore database
