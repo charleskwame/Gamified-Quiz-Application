@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/avatar_options.dart';
 import '../models/question.dart';
+import '../models/rank_history.dart';
 import '../models/user_rank.dart';
 import '../models/badge.dart';
 
@@ -372,8 +373,65 @@ class DatabaseService {
     return 'Seeding Results:\n${details.join('\n')}\nTotal new questions added: $totalAdded';
   }
 
+  // Calculate the user's current global rank (1-based) based on score
+  Future<int> getCurrentRank(String uid) async {
+    final userDoc = await _db.collection('users').doc(uid).get();
+    if (!userDoc.exists) return 0;
+
+    final userScore = userDoc.data()?['score'] ?? 0;
+
+    final countQuery = await _db
+        .collection('users')
+        .where('score', isGreaterThan: userScore)
+        .count()
+        .get();
+
+    return (countQuery.count ?? 0) + 1;
+  }
+
+  // Record a single rank history entry after quiz completion
+  Future<void> recordRankHistoryEntry({
+    required String uid,
+    required String category,
+    required int rank,
+  }) async {
+    await _db.collection('users').doc(uid).collection('rankHistory').add({
+      'rank': rank,
+      'category': category,
+      'timestamp': FieldValue.serverTimestamp(),
+    });
+  }
+
+  // Stream the user's rank history ordered by timestamp descending
+  Stream<List<RankHistoryEntry>> getRankHistoryStream(String uid) {
+    return _db
+        .collection('users')
+        .doc(uid)
+        .collection('rankHistory')
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => RankHistoryEntry.fromFirestore(doc))
+              .toList(),
+        );
+  }
+
   // Deletes user account data from Firestore and SharedPreferences offline questions
   Future<void> deleteUserAccount(String uid) async {
+    // Delete all rank history subcollection documents
+    final historySnap = await _db
+        .collection('users')
+        .doc(uid)
+        .collection('rankHistory')
+        .get();
+
+    final batch = _db.batch();
+    for (final doc in historySnap.docs) {
+      batch.delete(doc.reference);
+    }
+    await batch.commit();
+
     // Delete user document in Firestore
     await _db.collection('users').doc(uid).delete();
 

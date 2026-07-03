@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart';
 import '../models/badge.dart';
+import '../models/rank_history.dart';
 import '../services/auth_service.dart';
+import '../services/database_service.dart';
 import '../widgets/home/badge_card.dart';
 import 'auth_screen.dart';
 import 'earned_badges_screen.dart';
@@ -374,6 +377,170 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
 
               const SizedBox(height: 32),
+
+              // Ranking History Section
+              if (user != null) ...[
+                Text(
+                  'Ranking History',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 12),
+                StreamBuilder<List<RankHistoryEntry>>(
+                  stream: DatabaseService().getRankHistoryStream(user.uid),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 20),
+                        child: Center(
+                          child: SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
+                      );
+                    }
+
+                    final entries = snapshot.data ?? [];
+
+                    if (entries.isEmpty) {
+                      return Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: const Color(0xFFE6EAF2)),
+                        ),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.leaderboard_rounded,
+                              size: 40,
+                              color: Colors.grey.shade300,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'No rank history yet',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey.shade500,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Complete a quiz to see your rank!',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade400,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    return ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: entries.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 8),
+                      itemBuilder: (context, index) {
+                        final entry = entries[index];
+
+                        // Determine rank letter and color
+                        late final String rankLetter;
+                        late final Color rankColor;
+                        late final Color rankBgColor;
+
+                        if (entry.rank == 1) {
+                          rankLetter = 'S';
+                          rankColor = const Color(0xFFFFD700);
+                          rankBgColor = const Color(0xFFFFF8E1);
+                        } else if (entry.rank <= 3) {
+                          rankLetter = 'A';
+                          rankColor = const Color(0xFF4ADE80);
+                          rankBgColor = const Color(0xFFE8F9EF);
+                        } else if (entry.rank <= 10) {
+                          rankLetter = 'B';
+                          rankColor = const Color(0xFF6366F1);
+                          rankBgColor = const Color(0xFFF0EFFF);
+                        } else if (entry.rank <= 50) {
+                          rankLetter = 'C';
+                          rankColor = const Color(0xFFF59E0B);
+                          rankBgColor = const Color(0xFFFFFAE6);
+                        } else {
+                          rankLetter = 'D';
+                          rankColor = const Color(0xFF9CA3AF);
+                          rankBgColor = const Color(0xFFF3F4F6);
+                        }
+
+                        final dateStr = DateFormat(
+                          'MMM d, yyyy, h:mm a',
+                        ).format(entry.timestamp);
+
+                        return Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: const Color(0xFFE6EAF2)),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: rankBgColor,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    rankLetter,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w900,
+                                      color: rankColor,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      entry.category,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFF121826),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      dateStr,
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: Colors.grey.shade500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+                const SizedBox(height: 32),
+              ],
 
               // Login button for guests
               if (user == null)

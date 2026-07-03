@@ -294,6 +294,14 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
           answeredIncrement: _questions.length,
           isTimed: widget.isTimed,
         );
+
+        // Record rank history entry after successful quiz completion
+        final rank = await _db.getCurrentRank(user.uid);
+        await _db.recordRankHistoryEntry(
+          uid: user.uid,
+          category: widget.category,
+          rank: rank,
+        );
       } catch (e) {
         // Silently catch network failures or write problems in offline context
       }
