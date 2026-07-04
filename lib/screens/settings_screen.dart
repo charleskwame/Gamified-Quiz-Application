@@ -6,6 +6,7 @@ import '../services/auth_service.dart';
 import '../services/database_service.dart';
 import '../widgets/avatar_customizer_dialog.dart';
 import '../widgets/home/particle_background.dart';
+import '../widgets/main_navigation.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -100,7 +101,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (user == null) return;
 
     // Step 1: Confirmation dialog
-    final navigator = Navigator.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -243,7 +243,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       await _authService.deleteAccount(password: password);
       if (mounted) {
-        navigator.pop();
+        // Rebuild entire navigation stack so ProfilePage recreates with null user
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const MainNavigation()),
+          (route) => false,
+        );
       }
     } on FirebaseAuthException catch (e) {
       String message;

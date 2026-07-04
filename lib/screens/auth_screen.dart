@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
 import 'dart:math' as math;
+import 'email_verification_screen.dart';
 
 class AuthScreen extends StatefulWidget {
   final VoidCallback? onBypass;
@@ -149,6 +150,17 @@ class _AuthScreenState extends State<AuthScreen>
           password: password,
           displayName: _displayNameController.text.trim(),
         );
+
+        // After successful sign-up, navigate to email verification screen
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => EmailVerificationScreen(email: email),
+            ),
+          );
+        }
+        return;
       } else {
         final email = _emailController.text.trim();
 
