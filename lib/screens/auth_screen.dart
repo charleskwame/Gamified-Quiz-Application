@@ -54,18 +54,52 @@ class _AuthScreenState extends State<AuthScreen>
   }
 
   void _handleAuthError(FirebaseAuthException e) {
-    String message = 'An error occurred';
+    String message;
 
-    if (e.code == 'weak-password') {
-      message = 'The password provided is too weak.';
-    } else if (e.code == 'email-already-in-use') {
-      message = 'The account already exists for that email.';
-    } else if (e.code == 'user-not-found') {
-      message = 'No user found for that email.';
-    } else if (e.code == 'wrong-password') {
-      message = 'Wrong password provided for that user.';
-    } else if (e.code == 'invalid-email') {
-      message = 'The email address is not valid.';
+    switch (e.code) {
+      case 'weak-password':
+        message =
+            'Your password is too weak. Use at least 6 characters with a mix of letters, numbers, and symbols.';
+        break;
+      case 'email-already-in-use':
+        message = 'This email is already registered. Try logging in instead.';
+        break;
+      case 'user-not-found':
+        message =
+            'No account found with this email address. Double-check your email or sign up for a new account.';
+        break;
+      case 'wrong-password':
+        message =
+            'Incorrect password. Please try again or reset your password.';
+        break;
+      case 'invalid-email':
+        message =
+            'Please enter a valid email address (e.g., name@example.com).';
+        break;
+      case 'invalid-credential':
+        message =
+            'Invalid email or password. Please check your credentials and try again.';
+        break;
+      case 'user-disabled':
+        message =
+            'This account has been disabled. Please contact support for assistance.';
+        break;
+      case 'too-many-requests':
+        message =
+            'Too many login attempts. Please wait 30 seconds before trying again.';
+        break;
+      case 'operation-not-allowed':
+        message =
+            'Email/password sign-in is currently disabled. Please contact support.';
+        break;
+      case 'network-request-failed':
+        message =
+            'Unable to connect. Please check your internet connection and try again.';
+        break;
+      default:
+        message =
+            'Something went wrong (${e.code}). Please try again or contact support if the issue persists.';
+        break;
     }
 
     setState(() => _errorMessage = message);
@@ -80,19 +114,56 @@ class _AuthScreenState extends State<AuthScreen>
     try {
       if (_isSignUp) {
         if (_displayNameController.text.isEmpty) {
-          setState(() => _errorMessage = 'Please enter your name');
+          setState(
+            () => _errorMessage = 'Please enter your full name to continue.',
+          );
+          setState(() => _isLoading = false);
+          return;
+        }
+
+        final email = _emailController.text.trim();
+        final password = _passwordController.text;
+
+        // Client-side email validation
+        if (!_isValidEmail(email)) {
+          setState(
+            () => _errorMessage =
+                'Please enter a valid email address (e.g., name@example.com).',
+          );
+          setState(() => _isLoading = false);
+          return;
+        }
+
+        // Client-side password validation
+        if (password.length < 6) {
+          setState(
+            () => _errorMessage =
+                'Password must be at least 6 characters long for security.',
+          );
           setState(() => _isLoading = false);
           return;
         }
 
         await _authService.signUp(
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
+          email: email,
+          password: password,
           displayName: _displayNameController.text.trim(),
         );
       } else {
+        final email = _emailController.text.trim();
+
+        // Client-side email validation for login too
+        if (!_isValidEmail(email)) {
+          setState(
+            () => _errorMessage =
+                'Please enter a valid email address (e.g., name@example.com).',
+          );
+          setState(() => _isLoading = false);
+          return;
+        }
+
         await _authService.logIn(
-          email: _emailController.text.trim(),
+          email: email,
           password: _passwordController.text,
         );
       }
@@ -103,10 +174,23 @@ class _AuthScreenState extends State<AuthScreen>
     } on FirebaseAuthException catch (e) {
       _handleAuthError(e);
     } catch (e) {
-      setState(() => _errorMessage = 'An unexpected error occurred');
+      final errorMsg = e.toString().replaceFirst('Exception: ', '');
+      setState(
+        () => _errorMessage = errorMsg.isNotEmpty
+            ? errorMsg
+            : 'A network or connection error occurred. Please check your internet and try again.',
+      );
     } finally {
       setState(() => _isLoading = false);
     }
+  }
+
+  bool _isValidEmail(String email) {
+    if (email.isEmpty) return false;
+    final emailRegex = RegExp(
+      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+    );
+    return emailRegex.hasMatch(email);
   }
 
   void _toggleMode() {

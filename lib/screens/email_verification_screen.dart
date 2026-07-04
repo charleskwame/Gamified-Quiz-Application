@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
 import '../services/database_service.dart';
 
@@ -119,12 +120,35 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
           });
         }
       }
+    } on FirebaseAuthException catch (e) {
+      if (mounted) {
+        String message;
+        switch (e.code) {
+          case 'network-request-failed':
+            message =
+                'Unable to connect. Please check your internet connection and try again.';
+            break;
+          case 'too-many-requests':
+            message =
+                'Too many requests. Please wait a moment before trying again.';
+            break;
+          case 'user-not-found':
+            message = 'Your session may have expired. Please log in again.';
+            break;
+          default:
+            message = 'Something went wrong (${e.code}). Please try again.';
+            break;
+        }
+        setState(() => _errorMessage = message);
+      }
     } catch (e) {
       if (mounted) {
-        setState(() {
-          _errorMessage =
-              'Failed to check verification status. Please try again.';
-        });
+        final errorMsg = e.toString().replaceFirst('Exception: ', '');
+        setState(
+          () => _errorMessage = errorMsg.isNotEmpty
+              ? errorMsg
+              : 'Failed to check verification status. Please check your connection and try again.',
+        );
       }
     } finally {
       if (mounted) {
@@ -148,11 +172,33 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
         });
         _startResendCooldown();
       }
+    } on FirebaseAuthException catch (e) {
+      if (mounted) {
+        String message;
+        switch (e.code) {
+          case 'too-many-requests':
+            message =
+                'Too many resend requests. Please wait ${_resendCooldown > 0 ? _resendCooldown.toString() : "a moment"} before trying again.';
+            break;
+          case 'network-request-failed':
+            message =
+                'Unable to connect. Please check your internet connection and try again.';
+            break;
+          default:
+            message =
+                'Failed to resend email (${e.code}). Please try again later.';
+            break;
+        }
+        setState(() => _errorMessage = message);
+      }
     } catch (e) {
       if (mounted) {
-        setState(() {
-          _errorMessage = 'Failed to resend email. Please try again later.';
-        });
+        final errorMsg = e.toString().replaceFirst('Exception: ', '');
+        setState(
+          () => _errorMessage = errorMsg.isNotEmpty
+              ? errorMsg
+              : 'Failed to resend email. Please check your connection and try again.',
+        );
       }
     } finally {
       if (mounted) {
