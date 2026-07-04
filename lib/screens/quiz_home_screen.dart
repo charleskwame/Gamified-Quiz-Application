@@ -116,7 +116,7 @@ class QuizHomePage extends StatelessWidget {
     String? avatarUrl,
   }) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 100),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

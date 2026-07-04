@@ -113,11 +113,11 @@ class _QuizResultsViewState extends State<QuizResultsView>
 
   String _getRankFromAccuracy() {
     final accuracy = widget.correctAnswers / widget.totalQuestions;
-    if (accuracy >= 0.95) return 'S';
+    if (accuracy >= 0.90) return 'S';
     if (accuracy >= 0.80) return 'A';
-    if (accuracy >= 0.65) return 'B';
-    if (accuracy >= 0.50) return 'C';
-    if (accuracy >= 0.30) return 'D';
+    if (accuracy >= 0.70) return 'B';
+    if (accuracy >= 0.60) return 'C';
+    if (accuracy >= 0.50) return 'D';
     return 'E';
   }
 
@@ -133,22 +133,22 @@ class _QuizResultsViewState extends State<QuizResultsView>
   String _getGradeText() {
     final accuracy = (widget.correctAnswers / widget.totalQuestions * 100)
         .round();
-    if (accuracy >= 95) return 'S Rank';
+    if (accuracy >= 90) return 'S Rank';
     if (accuracy >= 80) return 'A Rank';
-    if (accuracy >= 65) return 'B Rank';
-    if (accuracy >= 50) return 'C Rank';
-    if (accuracy >= 30) return 'D Rank';
+    if (accuracy >= 70) return 'B Rank';
+    if (accuracy >= 60) return 'C Rank';
+    if (accuracy >= 50) return 'D Rank';
     return 'E Rank';
   }
 
   Color _getGradeColor() {
     final accuracy = (widget.correctAnswers / widget.totalQuestions * 100)
         .round();
-    if (accuracy >= 95) return const Color(0xFFFFD700);
+    if (accuracy >= 90) return const Color(0xFFFFD700);
     if (accuracy >= 80) return const Color(0xFF4ADE80);
-    if (accuracy >= 65) return const Color(0xFF6366F1);
-    if (accuracy >= 50) return const Color(0xFFF59E0B);
-    if (accuracy >= 30) return const Color(0xFFEF4444);
+    if (accuracy >= 70) return const Color(0xFF6366F1);
+    if (accuracy >= 60) return const Color(0xFFF59E0B);
+    if (accuracy >= 50) return const Color(0xFFEF4444);
     return const Color(0xFF6B7280);
   }
 
