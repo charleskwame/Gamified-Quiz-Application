@@ -145,7 +145,7 @@ CRITICAL INSTRUCTION: Be extremely direct and straight to the point. Give 1-2 co
           _messages.add(
             _ChatMessage(
               text:
-                  "Welcome to your AI Study Tutor! How can I help you with $category today?",
+                  "⚠️ **AI Assistant Error**\n\nCould not connect to the AI study tutor. Error details:\n\n`${e.toString()}`\n\nPlease check your network connection and that the DeepSeek API key is configured in your Supabase project dashboard.",
               isUser: false,
             ),
           );
@@ -238,7 +238,7 @@ CRITICAL INSTRUCTION: Be extremely direct and straight to the point. Answer imme
           _messages.add(
             _ChatMessage(
               text:
-                  "Sorry, an issue occurred with the AI assistant service. Please check your network or try again later.",
+                  "⚠️ **AI Assistant Error**\n\nCould not connect to the AI study tutor. Error details:\n\n`${e.toString()}`\n\nPlease check your network connection and that the DeepSeek API key is configured in your Supabase project dashboard.",
               isUser: false,
             ),
           );

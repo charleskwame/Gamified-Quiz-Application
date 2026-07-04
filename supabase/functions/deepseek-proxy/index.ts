@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
 
     if (!response.ok) {
       const errorText = await response.text()
-      throw new Error(`DeepSeek API error (${response.status}): ${errorText}`)
+      throw new Error(`DeepSeek API error (${response.status}): ${errorText || 'no body'}`)
     }
 
     // 6. If streaming, pass the SSE body directly through to the client
@@ -68,6 +68,11 @@ Deno.serve(async (req) => {
     }
 
     // 7. Non-streaming: return the full JSON response
+    // Note: If we reach here with stream=true but no response.body, return error
+    if (stream === true) {
+      throw new Error('Streaming requested but response body is empty from DeepSeek')
+    }
+
     const data = await response.json()
     return new Response(JSON.stringify(data), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -76,9 +81,11 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error'
+    // Return 400 for client errors, 500 for server errors
+    const status = message.includes('DeepSeek API error') ? 502 : 400
     return new Response(JSON.stringify({ error: message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 400,
+      status,
     })
   }
 })

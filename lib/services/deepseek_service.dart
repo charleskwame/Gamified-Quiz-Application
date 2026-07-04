@@ -126,7 +126,10 @@ class DeepseekService {
       throw Exception('Network error connecting to DeepSeek edge function: $e');
     }
 
-    if (response.statusCode != 200) {
+    // Check if the response is JSON (error) rather than SSE (stream)
+    final contentType = response.headers['content-type'] ?? '';
+    if (contentType.contains('application/json') ||
+        response.statusCode != 200) {
       final errorBody = await response.stream.bytesToString();
       throw Exception(
         'DeepSeek edge function error (${response.statusCode}): $errorBody',
