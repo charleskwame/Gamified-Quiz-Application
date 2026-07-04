@@ -144,21 +144,25 @@ class LevelsOverviewModal extends StatelessWidget {
 
                 // Unlocked levels
                 ...unlockedLevels.map(
-                  (lvl) => _buildLevelRow(
-                    level: lvl,
-                    isUnlocked: true,
-                    isCurrent: lvl.level == currentLevel.level,
-                    currentScore: totalScore,
+                  (lvl) => SliverToBoxAdapter(
+                    child: _buildLevelRow(
+                      level: lvl,
+                      isUnlocked: true,
+                      isCurrent: lvl.level == currentLevel.level,
+                      currentScore: totalScore,
+                    ),
                   ),
                 ),
 
                 // Locked levels
                 ...lockedLevels.map(
-                  (lvl) => _buildLevelRow(
-                    level: lvl,
-                    isUnlocked: false,
-                    isCurrent: false,
-                    currentScore: totalScore,
+                  (lvl) => SliverToBoxAdapter(
+                    child: _buildLevelRow(
+                      level: lvl,
+                      isUnlocked: false,
+                      isCurrent: false,
+                      currentScore: totalScore,
+                    ),
                   ),
                 ),
 
