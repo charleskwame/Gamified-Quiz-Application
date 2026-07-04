@@ -29,13 +29,6 @@ class AnalyticsCard extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(24),
           border: Border.all(color: const Color(0xFFE6EAF2)),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x08121826),
-              blurRadius: 16,
-              offset: Offset(0, 6),
-            ),
-          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

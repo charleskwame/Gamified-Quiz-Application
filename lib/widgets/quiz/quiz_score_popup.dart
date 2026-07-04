@@ -82,9 +82,9 @@ class _QuizScorePopupState extends State<QuizScorePopup>
                   (widget.isTimed
                           ? const Color(0xFFF59E0B)
                           : const Color(0xFF4ADE80))
-                      .withValues(alpha: 0.4),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
+                      .withValues(alpha: 0.08),
+              blurRadius: 3,
+              offset: const Offset(0, 1),
             ),
           ],
         ),

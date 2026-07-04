@@ -205,13 +205,6 @@ class _StreakCardModalState extends State<StreakCardModal> {
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(24),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 15,
-                    offset: Offset(0, 8),
-                  ),
-                ],
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -227,13 +220,6 @@ class _StreakCardModalState extends State<StreakCardModal> {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(color: Colors.white, width: 3),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Colors.black26,
-                              blurRadius: 8,
-                              offset: Offset(0, 4),
-                            ),
-                          ],
                         ),
                         child: ClipOval(
                           child:
@@ -276,13 +262,6 @@ class _StreakCardModalState extends State<StreakCardModal> {
                               end: Alignment.bottomRight,
                             ),
                             border: Border.all(color: Colors.white, width: 2.5),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Colors.black26,
-                                blurRadius: 4,
-                                offset: Offset(0, 2),
-                              ),
-                            ],
                           ),
                           child: const Icon(
                             Icons.local_fire_department_rounded,

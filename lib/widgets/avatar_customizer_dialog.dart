@@ -155,14 +155,9 @@ class _AvatarCustomizerDialogState extends State<AvatarCustomizerDialog>
               border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.4),
-                  blurRadius: 24,
-                  offset: const Offset(0, 12),
-                ),
-                BoxShadow(
-                  color: const Color(0xFF6366F1).withValues(alpha: 0.15),
-                  blurRadius: 20,
-                  spreadRadius: -4,
+                  color: const Color(0xFF6366F1).withValues(alpha: 0.04),
+                  blurRadius: 4,
+                  spreadRadius: 0,
                 ),
               ],
             ),
@@ -233,9 +228,9 @@ class _AvatarCustomizerDialogState extends State<AvatarCustomizerDialog>
                               BoxShadow(
                                 color: const Color(
                                   0xFF6366F1,
-                                ).withValues(alpha: 0.4),
-                                blurRadius: 16,
-                                spreadRadius: 1,
+                                ).withValues(alpha: 0.06),
+                                blurRadius: 3,
+                                spreadRadius: 0,
                               ),
                             ],
                           ),

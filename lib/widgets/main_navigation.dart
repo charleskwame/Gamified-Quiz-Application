@@ -69,7 +69,7 @@ class _MainNavigationState extends State<MainNavigation> {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(32),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+          filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
           child: Container(
             decoration: BoxDecoration(
               color: const Color(0xFF1E1E2E).withOpacity(0.7),

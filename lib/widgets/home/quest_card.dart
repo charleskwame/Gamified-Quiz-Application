@@ -33,13 +33,6 @@ class QuestCard extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: color1.withValues(alpha: 0.25),
-              blurRadius: 16,
-              offset: const Offset(0, 8),
-            ),
-          ],
         ),
         child: Material(
           color: Colors.transparent,
@@ -162,14 +155,14 @@ class _PulsingGlowState extends State<_PulsingGlow>
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
-        final glowValue = 0.08 + _controller.value * 0.10;
+        final glowValue = 0.02 + _controller.value * 0.03;
         return Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
                 color: widget.color.withValues(alpha: glowValue),
-                blurRadius: 12,
+                blurRadius: 4,
                 spreadRadius: 0,
               ),
             ],

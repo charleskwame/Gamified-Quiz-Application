@@ -25,13 +25,6 @@ class ScoreDashboardCard extends StatelessWidget {
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(24),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x1F000000),
-              blurRadius: 18,
-              offset: Offset(0, 8),
-            ),
-          ],
         ),
         child: Row(
           children: [

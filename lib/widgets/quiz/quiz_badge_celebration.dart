@@ -220,9 +220,9 @@ class _TopToastWidgetState extends State<_TopToastWidget>
           border: Border.all(color: const Color(0xFF0D3F45), width: 1.5),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF09262A).withValues(alpha: 0.15),
-              blurRadius: 16,
-              offset: const Offset(0, 8),
+              color: const Color(0xFF09262A).withValues(alpha: 0.04),
+              blurRadius: 3,
+              offset: const Offset(0, 2),
             ),
           ],
         ),

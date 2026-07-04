@@ -207,9 +207,9 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: badge.color.withValues(alpha: 0.3),
-                            blurRadius: 15,
-                            offset: const Offset(0, 8),
+                            color: badge.color.withValues(alpha: 0.06),
+                            blurRadius: 3,
+                            offset: const Offset(0, 2),
                           ),
                         ],
                       ),
@@ -505,13 +505,6 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
         ),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
       ),
       child: Column(
         children: [
@@ -610,13 +603,13 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
         boxShadow: [
           if (isSelected)
             BoxShadow(
-              color: const Color(0xFF6366F1).withValues(alpha: 0.2),
-              blurRadius: 12,
+              color: const Color(0xFF6366F1).withValues(alpha: 0.06),
+              blurRadius: 3,
             ),
           if (isUnlocked && !isSelected)
             BoxShadow(
-              color: badge.color.withValues(alpha: 0.08),
-              blurRadius: 8,
+              color: badge.color.withValues(alpha: 0.03),
+              blurRadius: 2,
             ),
         ],
       ),

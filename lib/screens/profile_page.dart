@@ -373,13 +373,6 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -423,8 +416,8 @@ class _ProfilePageState extends State<ProfilePage> {
                               BoxShadow(
                                 color: const Color(
                                   0xFF6366F1,
-                                ).withValues(alpha: 0.4),
-                                blurRadius: 8,
+                                ).withValues(alpha: 0.08),
+                                blurRadius: 2,
                               ),
                             ],
                           ),
@@ -583,9 +576,9 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF6366F1).withValues(alpha: 0.4),
-            blurRadius: 16,
-            spreadRadius: 1,
+            color: const Color(0xFF6366F1).withValues(alpha: 0.06),
+            blurRadius: 3,
+            spreadRadius: 0,
           ),
         ],
       ),
@@ -642,8 +635,10 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF4ADE80).withValues(alpha: 0.5),
-                          blurRadius: 6,
+                          color: const Color(
+                            0xFF4ADE80,
+                          ).withValues(alpha: 0.08),
+                          blurRadius: 2,
                         ),
                       ],
                     ),

@@ -135,9 +135,9 @@ class _QuizGameOptionState extends State<QuizGameOption>
           boxShadow: [
             if (widget.isAnswered && _isCorrectOption)
               BoxShadow(
-                color: const Color(0xFF4ADE80).withValues(alpha: 0.2),
-                blurRadius: 12,
-                spreadRadius: 1,
+                color: const Color(0xFF4ADE80).withValues(alpha: 0.06),
+                blurRadius: 3,
+                spreadRadius: 0,
               ),
           ],
         ),

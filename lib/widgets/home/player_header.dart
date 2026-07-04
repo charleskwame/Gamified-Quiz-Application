@@ -57,9 +57,9 @@ class PlayerHeader extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF6366F1).withValues(alpha: 0.4),
-            blurRadius: 16,
-            spreadRadius: 1,
+            color: const Color(0xFF6366F1).withValues(alpha: 0.08),
+            blurRadius: 4,
+            spreadRadius: 0,
           ),
         ],
       ),
@@ -149,8 +149,8 @@ class PlayerHeader extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF6366F1).withValues(alpha: 0.4),
-            blurRadius: 8,
+            color: const Color(0xFF6366F1).withValues(alpha: 0.08),
+            blurRadius: 2,
           ),
         ],
       ),
@@ -203,8 +203,8 @@ class PlayerHeader extends StatelessWidget {
                             BoxShadow(
                               color: const Color(
                                 0xFF4ADE80,
-                              ).withValues(alpha: 0.5),
-                              blurRadius: 6,
+                              ).withValues(alpha: 0.08),
+                              blurRadius: 2,
                             ),
                           ],
                         ),

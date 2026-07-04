@@ -24,8 +24,8 @@ class QuizStreakBadge extends StatelessWidget {
       builder: (context, child) {
         final double pulse = animationController.value;
         final double scale = 0.92 + (pulse * 0.12);
-        final double glowRadius = 10.0 + (pulse * 8.0);
-        final double glowAlpha = 0.28 + (pulse * 0.22);
+        final double glowRadius = 2.0 + (pulse * 2.0);
+        final double glowAlpha = 0.04 + (pulse * 0.04);
 
         return Container(
           width: 130,
@@ -36,7 +36,7 @@ class QuizStreakBadge extends StatelessWidget {
               BoxShadow(
                 color: const Color(0xFFFF4500).withValues(alpha: glowAlpha),
                 blurRadius: glowRadius,
-                offset: const Offset(0, 3),
+                offset: const Offset(0, 1),
               ),
             ],
           ),
@@ -67,16 +67,11 @@ class QuizStreakBadge extends StatelessWidget {
                           fontSize: 20,
                           fontWeight: FontWeight.w900,
                           height: 1.0,
-                          shadows: [
+                          shadows: const [
                             Shadow(
-                              color: Colors.black,
-                              blurRadius: 8,
-                              offset: Offset(0, 2),
-                            ),
-                            Shadow(
-                              color: Colors.black54,
-                              blurRadius: 2,
-                              offset: Offset(0, 0),
+                              color: Colors.black26,
+                              blurRadius: 1,
+                              offset: Offset(0, 1),
                             ),
                           ],
                         ),

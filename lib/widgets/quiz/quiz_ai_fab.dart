@@ -30,9 +30,9 @@ class QuizAiFab extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.15),
-                    blurRadius: 6,
-                    offset: const Offset(0, 3),
+                    color: Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 2,
+                    offset: const Offset(0, 1),
                   ),
                 ],
               ),
@@ -59,9 +59,9 @@ class QuizAiFab extends StatelessWidget {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF141053).withValues(alpha: 0.4),
-                      blurRadius: 10 * animationController.value,
-                      spreadRadius: 3 * animationController.value,
+                      color: const Color(0xFF141053).withValues(alpha: 0.06),
+                      blurRadius: 2 * animationController.value,
+                      spreadRadius: 0,
                     ),
                   ],
                 ),

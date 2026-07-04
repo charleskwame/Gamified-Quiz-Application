@@ -27,9 +27,9 @@ class BadgeCard extends StatelessWidget {
         boxShadow: [
           if (isUnlocked)
             BoxShadow(
-              color: badge.color.withValues(alpha: 0.12),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
+              color: badge.color.withValues(alpha: 0.04),
+              blurRadius: 3,
+              offset: const Offset(0, 1),
             ),
         ],
       ),

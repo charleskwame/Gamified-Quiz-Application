@@ -27,13 +27,6 @@ class XpVaultCard extends StatelessWidget {
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFFFFD700).withValues(alpha: 0.08),
-                blurRadius: 24,
-                offset: const Offset(0, 8),
-              ),
-            ],
           ),
           child: Row(
             children: [
@@ -47,8 +40,8 @@ class XpVaultCard extends StatelessWidget {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFFFFD700).withValues(alpha: 0.3),
-                      blurRadius: 12,
+                      color: const Color(0xFFFFD700).withValues(alpha: 0.06),
+                      blurRadius: 3,
                     ),
                   ],
                 ),
@@ -168,11 +161,11 @@ class _ShimmerGoldBorderState extends State<_ShimmerGoldBorder>
             boxShadow: [
               BoxShadow(
                 color: Color.lerp(
-                  const Color(0xFFFFD700).withValues(alpha: 0.15),
-                  const Color(0xFFFFD700).withValues(alpha: 0.05),
+                  const Color(0xFFFFD700).withValues(alpha: 0.04),
+                  const Color(0xFFFFD700).withValues(alpha: 0.01),
                   (_controller.value * 2).clamp(0.0, 1.0),
                 )!,
-                blurRadius: 12,
+                blurRadius: 3,
               ),
             ],
           ),

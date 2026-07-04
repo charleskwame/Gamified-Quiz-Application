@@ -336,9 +336,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF6366F1).withValues(alpha: 0.35),
-            blurRadius: 20,
-            spreadRadius: 2,
+            color: const Color(0xFF6366F1).withValues(alpha: 0.06),
+            blurRadius: 4,
+            spreadRadius: 0,
           ),
         ],
       ),

@@ -206,8 +206,8 @@ class _RankingsPageState extends State<RankingsPage> {
                           BoxShadow(
                             color: const Color(
                               0xFF6366F1,
-                            ).withValues(alpha: 0.3),
-                            blurRadius: 12,
+                            ).withValues(alpha: 0.06),
+                            blurRadius: 3,
                           ),
                         ]
                       : null,
@@ -280,13 +280,6 @@ class _RankingsPageState extends State<RankingsPage> {
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-        ],
       ),
       child: Row(
         children: [

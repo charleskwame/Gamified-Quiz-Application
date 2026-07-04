@@ -615,13 +615,6 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
         color: const Color(0xFF2A2F5A),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: const Color(0xFF3D4375)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x33000000),
-            blurRadius: 20,
-            offset: Offset(0, 8),
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

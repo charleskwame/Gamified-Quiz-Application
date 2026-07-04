@@ -32,9 +32,9 @@ class ModernCourseCard extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: color1.withValues(alpha: 0.25),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
+            color: color1.withValues(alpha: 0.04),
+            blurRadius: 3,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
