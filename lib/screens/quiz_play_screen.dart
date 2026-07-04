@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:confetti/confetti.dart';
 import '../models/question.dart';
@@ -11,6 +12,7 @@ import '../widgets/home/particle_background.dart';
 import '../widgets/quiz/quiz_loading_view.dart';
 import '../widgets/quiz/quiz_error_view.dart';
 import '../widgets/quiz/quiz_results_view.dart';
+import '../widgets/quiz/quiz_level_up_screen.dart';
 import '../widgets/quiz/quiz_badge_celebration.dart';
 import '../widgets/quiz/quiz_ai_chat_sheet.dart';
 import '../widgets/quiz/quiz_streak_badge.dart';
@@ -77,6 +79,12 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
   // Random quote for completion screen
   String? _randomQuoteText;
   String? _randomQuoteAuthor;
+
+  // Level-up tracking
+  int _oldLevel = 1;
+  int _updatedTotalScore = 0;
+  String _displayName = 'Scholar';
+  String? _avatarUrl;
 
   // ─── Lifecycle ─────────────────────────────────────────────────────────────
 
@@ -284,8 +292,24 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
 
     final user = FirebaseAuth.instance.currentUser;
     List<String> unlocked = [];
+    int oldLevel = 1;
+    int updatedTotalScore = _score;
+    String displayName = 'Scholar';
+    String? avatarUrl;
+
     if (user != null && !widget.isOffline) {
       try {
+        // Read old score before processing
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+        final userData = userDoc.data();
+        final oldScore = userData?['score'] ?? 0;
+        oldLevel = (oldScore ~/ 100) + 1;
+        displayName = userData?['displayName'] ?? 'Scholar';
+        avatarUrl = userData?['avatarUrl'] as String?;
+
         unlocked = await _db.processQuizCompletion(
           uid: user.uid,
           category: widget.category,
@@ -294,6 +318,14 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
           answeredIncrement: _questions.length,
           isTimed: widget.isTimed,
         );
+
+        // Read updated score after processing
+        final updatedDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+        final updatedData = updatedDoc.data();
+        updatedTotalScore = updatedData?['score'] ?? _score;
 
         // Record rank history entry after successful quiz completion
         // Calculate rank letter based on session performance percentage
@@ -331,6 +363,12 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
     _randomQuoteText = quote?.$1;
     _randomQuoteAuthor = quote?.$2;
 
+    // Store level data for results screen
+    _oldLevel = oldLevel;
+    _updatedTotalScore = updatedTotalScore;
+    _displayName = displayName;
+    _avatarUrl = avatarUrl;
+
     if (mounted) {
       setState(() {
         _isLoading = false;
@@ -347,6 +385,28 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
             }
           });
         }
+      }
+
+      // Check for level-up after a short delay (after badge dialogs dismiss)
+      final newLevel = (updatedTotalScore ~/ 100) + 1;
+      if (newLevel > oldLevel) {
+        Future.delayed(const Duration(milliseconds: 1500), () {
+          if (mounted) {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => QuizLevelUpScreen(
+                  data: LevelUpData(
+                    oldLevel: oldLevel,
+                    newLevel: newLevel,
+                    totalScore: updatedTotalScore,
+                    avatarUrl: avatarUrl,
+                    displayName: displayName,
+                  ),
+                ),
+              ),
+            );
+          }
+        });
       }
     }
   }
@@ -427,6 +487,10 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
         quoteText: _randomQuoteText,
         quoteAuthor: _randomQuoteAuthor,
         onBack: () => Navigator.pop(context),
+        oldLevel: _oldLevel,
+        updatedTotalScore: _updatedTotalScore,
+        avatarUrl: _avatarUrl,
+        displayName: _displayName,
       );
     }
 

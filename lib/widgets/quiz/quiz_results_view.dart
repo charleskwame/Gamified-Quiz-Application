@@ -13,6 +13,10 @@ class QuizResultsView extends StatefulWidget {
   final String? quoteText;
   final String? quoteAuthor;
   final VoidCallback onBack;
+  final int oldLevel;
+  final int updatedTotalScore;
+  final String? avatarUrl;
+  final String displayName;
 
   const QuizResultsView({
     super.key,
@@ -24,6 +28,10 @@ class QuizResultsView extends StatefulWidget {
     required this.quoteText,
     required this.quoteAuthor,
     required this.onBack,
+    required this.oldLevel,
+    required this.updatedTotalScore,
+    this.avatarUrl,
+    this.displayName = 'Scholar',
   });
 
   @override
