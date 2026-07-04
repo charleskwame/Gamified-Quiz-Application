@@ -296,11 +296,30 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
         );
 
         // Record rank history entry after successful quiz completion
-        final rank = await _db.getCurrentRank(user.uid);
+        // Calculate rank letter based on session performance percentage
+        final totalQuestions = _questions.length;
+        final percentage = totalQuestions > 0
+            ? (_correctAnswers / totalQuestions) * 100
+            : 0.0;
+        final String rankLetter;
+        if (percentage >= 90) {
+          rankLetter = 'S';
+        } else if (percentage >= 80) {
+          rankLetter = 'A';
+        } else if (percentage >= 70) {
+          rankLetter = 'B';
+        } else if (percentage >= 60) {
+          rankLetter = 'C';
+        } else if (percentage >= 50) {
+          rankLetter = 'D';
+        } else {
+          rankLetter = 'E';
+        }
         await _db.recordRankHistoryEntry(
           uid: user.uid,
+          rank: rankLetter,
           category: widget.category,
-          rank: rank,
+          percentage: percentage,
         );
       } catch (e) {
         // Silently catch network failures or write problems in offline context

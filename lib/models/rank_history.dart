@@ -2,14 +2,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class RankHistoryEntry {
   final String id;
-  final int rank;
+  final String rank;
   final String category;
+  final double percentage;
   final DateTime timestamp;
 
   RankHistoryEntry({
     required this.id,
     required this.rank,
     required this.category,
+    required this.percentage,
     required this.timestamp,
   });
 
@@ -17,8 +19,9 @@ class RankHistoryEntry {
     final data = doc.data() as Map<String, dynamic>;
     return RankHistoryEntry(
       id: doc.id,
-      rank: data['rank'] ?? 0,
+      rank: data['rank'] ?? 'E',
       category: data['category'] ?? '',
+      percentage: (data['percentage'] ?? 0.0).toDouble(),
       timestamp: (data['timestamp'] as Timestamp).toDate(),
     );
   }
@@ -27,6 +30,7 @@ class RankHistoryEntry {
     return {
       'rank': rank,
       'category': category,
+      'percentage': percentage,
       'timestamp': FieldValue.serverTimestamp(),
     };
   }

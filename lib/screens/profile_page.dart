@@ -23,6 +23,21 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   final AuthService _authService = AuthService();
+  final DatabaseService _dbService = DatabaseService();
+  bool _rankHistoryRepaired = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // One-time cleanup of corrupted rank history entries (stored as rank=2 from a buggy getCurrentRank)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final currentUser = _authService.currentUser;
+      if (currentUser != null && !_rankHistoryRepaired) {
+        _rankHistoryRepaired = true;
+        _dbService.repairRankHistory(currentUser.uid);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -761,31 +776,35 @@ class _ProfilePageState extends State<ProfilePage> {
           itemBuilder: (context, index) {
             final entry = entries[index];
 
-            // Determine rank letter and color
-            late final String rankLetter;
+            // Determine rank color based on the letter
             late final Color rankColor;
             late final Color rankBgColor;
 
-            if (entry.rank == 1) {
-              rankLetter = 'S';
-              rankColor = const Color(0xFFFFD700);
-              rankBgColor = const Color(0xFFFFD700).withValues(alpha: 0.15);
-            } else if (entry.rank <= 3) {
-              rankLetter = 'A';
-              rankColor = const Color(0xFF4ADE80);
-              rankBgColor = const Color(0xFF4ADE80).withValues(alpha: 0.15);
-            } else if (entry.rank <= 10) {
-              rankLetter = 'B';
-              rankColor = const Color(0xFF6366F1);
-              rankBgColor = const Color(0xFF6366F1).withValues(alpha: 0.15);
-            } else if (entry.rank <= 50) {
-              rankLetter = 'C';
-              rankColor = const Color(0xFFF59E0B);
-              rankBgColor = const Color(0xFFF59E0B).withValues(alpha: 0.15);
-            } else {
-              rankLetter = 'D';
-              rankColor = const Color(0xFF9CA3AF);
-              rankBgColor = const Color(0xFF9CA3AF).withValues(alpha: 0.15);
+            switch (entry.rank) {
+              case 'S':
+                rankColor = const Color(0xFFFFD700);
+                rankBgColor = const Color(0xFFFFD700).withValues(alpha: 0.15);
+                break;
+              case 'A':
+                rankColor = const Color(0xFF4ADE80);
+                rankBgColor = const Color(0xFF4ADE80).withValues(alpha: 0.15);
+                break;
+              case 'B':
+                rankColor = const Color(0xFF6366F1);
+                rankBgColor = const Color(0xFF6366F1).withValues(alpha: 0.15);
+                break;
+              case 'C':
+                rankColor = const Color(0xFFF59E0B);
+                rankBgColor = const Color(0xFFF59E0B).withValues(alpha: 0.15);
+                break;
+              case 'D':
+                rankColor = const Color(0xFF94A3B8);
+                rankBgColor = const Color(0xFF94A3B8).withValues(alpha: 0.15);
+                break;
+              default: // E
+                rankColor = const Color(0xFF9CA3AF);
+                rankBgColor = const Color(0xFF9CA3AF).withValues(alpha: 0.15);
+                break;
             }
 
             final dateStr = DateFormat(
@@ -814,7 +833,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     child: Center(
                       child: Text(
-                        rankLetter,
+                        entry.rank,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w900,
@@ -837,12 +856,27 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                         ),
                         const SizedBox(height: 2),
-                        Text(
-                          dateStr,
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.white.withValues(alpha: 0.4),
-                          ),
+                        Row(
+                          children: [
+                            Text(
+                              '${entry.percentage.round()}%',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: rankColor,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                dateStr,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.white.withValues(alpha: 0.4),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),

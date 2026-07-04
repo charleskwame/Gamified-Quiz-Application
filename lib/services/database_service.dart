@@ -373,31 +373,17 @@ class DatabaseService {
     return 'Seeding Results:\n${details.join('\n')}\nTotal new questions added: $totalAdded';
   }
 
-  // Calculate the user's current global rank (1-based) based on score
-  Future<int> getCurrentRank(String uid) async {
-    final userDoc = await _db.collection('users').doc(uid).get();
-    if (!userDoc.exists) return 0;
-
-    final userScore = userDoc.data()?['score'] ?? 0;
-
-    final countQuery = await _db
-        .collection('users')
-        .where('score', isGreaterThan: userScore)
-        .count()
-        .get();
-
-    return (countQuery.count ?? 0) + 1;
-  }
-
   // Record a single rank history entry after quiz completion
   Future<void> recordRankHistoryEntry({
     required String uid,
+    required String rank,
     required String category,
-    required int rank,
+    required double percentage,
   }) async {
     await _db.collection('users').doc(uid).collection('rankHistory').add({
       'rank': rank,
       'category': category,
+      'percentage': percentage,
       'timestamp': FieldValue.serverTimestamp(),
     });
   }
@@ -415,6 +401,21 @@ class DatabaseService {
               .map((doc) => RankHistoryEntry.fromFirestore(doc))
               .toList(),
         );
+  }
+
+  // Delete all existing rank history entries for cleanup (used to remove bad data from buggy getCurrentRank)
+  Future<void> repairRankHistory(String uid) async {
+    final historySnap = await _db
+        .collection('users')
+        .doc(uid)
+        .collection('rankHistory')
+        .get();
+
+    final batch = _db.batch();
+    for (final doc in historySnap.docs) {
+      batch.delete(doc.reference);
+    }
+    await batch.commit();
   }
 
   // Deletes user account data from Firestore and SharedPreferences offline questions
