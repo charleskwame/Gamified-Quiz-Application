@@ -147,6 +147,38 @@ class BadgeDefinition {
       case 'speedy_genius':
         return latestCorrect == 10 && isTimed;
 
+      // Level-based badges
+      case 'level_rookie':
+        return score >= 0;
+      case 'level_amateur':
+        return score >= 100;
+      case 'level_scholar':
+        return score >= 300;
+      case 'level_apprentice':
+        return score >= 600;
+      case 'level_specialist':
+        return score >= 1000;
+      case 'level_expert':
+        return score >= 1500;
+      case 'level_master':
+        return score >= 2200;
+      case 'level_grandmaster':
+        return score >= 3000;
+      case 'level_legend':
+        return score >= 4000;
+      case 'level_mythic':
+        return score >= 5500;
+      case 'level_transcendent':
+        return score >= 7500;
+      case 'level_immortal':
+        return score >= 10000;
+      case 'level_cosmic':
+        return score >= 13000;
+      case 'level_celestial':
+        return score >= 17000;
+      case 'level_divine':
+        return score >= 22000;
+
       default:
         return false;
     }
@@ -517,5 +549,112 @@ const List<BadgeDefinition> allBadges = [
     description: 'Scored a perfect 10/10 correct answers in Timed Mode',
     icon: Icons.bolt_rounded,
     color: Color(0xFFFF5722),
+  ),
+
+  // Level-based badges
+  BadgeDefinition(
+    id: 'level_rookie',
+    name: 'Rookie',
+    description: 'Reach Level 1 — Rookie (0 XP)',
+    icon: Icons.egg_rounded,
+    color: Color(0xFF6366F1),
+  ),
+  BadgeDefinition(
+    id: 'level_amateur',
+    name: 'Amateur',
+    description: 'Reach Level 2 — Amateur (100 XP)',
+    icon: Icons.self_improvement_rounded,
+    color: Color(0xFF8C52FF),
+  ),
+  BadgeDefinition(
+    id: 'level_scholar',
+    name: 'Scholar',
+    description: 'Reach Level 3 — Scholar (300 XP)',
+    icon: Icons.school_rounded,
+    color: Color(0xFF3B82F6),
+  ),
+  BadgeDefinition(
+    id: 'level_apprentice',
+    name: 'Apprentice',
+    description: 'Reach Level 4 — Apprentice (600 XP)',
+    icon: Icons.construction_rounded,
+    color: Color(0xFF06B6D4),
+  ),
+  BadgeDefinition(
+    id: 'level_specialist',
+    name: 'Specialist',
+    description: 'Reach Level 5 — Specialist (1000 XP)',
+    icon: Icons.precision_manufacturing_rounded,
+    color: Color(0xFF10B981),
+  ),
+  BadgeDefinition(
+    id: 'level_expert',
+    name: 'Expert',
+    description: 'Reach Level 6 — Expert (1500 XP)',
+    icon: Icons.verified_rounded,
+    color: Color(0xFF34D399),
+  ),
+  BadgeDefinition(
+    id: 'level_master',
+    name: 'Master',
+    description: 'Reach Level 7 — Master (2200 XP)',
+    icon: Icons.workspace_premium_rounded,
+    color: Color(0xFFF59E0B),
+  ),
+  BadgeDefinition(
+    id: 'level_grandmaster',
+    name: 'Grandmaster',
+    description: 'Reach Level 8 — Grandmaster (3000 XP)',
+    icon: Icons.military_tech_rounded,
+    color: Color(0xFFF97316),
+  ),
+  BadgeDefinition(
+    id: 'level_legend',
+    name: 'Legend',
+    description: 'Reach Level 9 — Legend (4000 XP)',
+    icon: Icons.auto_awesome_rounded,
+    color: Color(0xFFEF4444),
+  ),
+  BadgeDefinition(
+    id: 'level_mythic',
+    name: 'Mythic',
+    description: 'Reach Level 10 — Mythic (5500 XP)',
+    icon: Icons.diamond_rounded,
+    color: Color(0xFFEC4899),
+  ),
+  BadgeDefinition(
+    id: 'level_transcendent',
+    name: 'Transcendent',
+    description: 'Reach Level 11 — Transcendent (7500 XP)',
+    icon: Icons.flight_takeoff_rounded,
+    color: Color(0xFFD946EF),
+  ),
+  BadgeDefinition(
+    id: 'level_immortal',
+    name: 'Immortal',
+    description: 'Reach Level 12 — Immortal (10000 XP)',
+    icon: Icons.rocket_launch_rounded,
+    color: Color(0xFFA855F7),
+  ),
+  BadgeDefinition(
+    id: 'level_cosmic',
+    name: 'Cosmic',
+    description: 'Reach Level 13 — Cosmic (13000 XP)',
+    icon: Icons.auto_awesome_motion_rounded,
+    color: Color(0xFFFFD700),
+  ),
+  BadgeDefinition(
+    id: 'level_celestial',
+    name: 'Celestial',
+    description: 'Reach Level 14 — Celestial (17000 XP)',
+    icon: Icons.stars_rounded,
+    color: Color(0xFFFF8C00),
+  ),
+  BadgeDefinition(
+    id: 'level_divine',
+    name: 'Divine',
+    description: 'Reach Level 15 — Divine (22000 XP)',
+    icon: Icons.gps_fixed_rounded,
+    color: Color(0xFFFFFFFF),
   ),
 ];

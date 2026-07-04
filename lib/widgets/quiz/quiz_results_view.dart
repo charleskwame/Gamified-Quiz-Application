@@ -117,7 +117,8 @@ class _QuizResultsViewState extends State<QuizResultsView>
     if (accuracy >= 0.80) return 'A';
     if (accuracy >= 0.65) return 'B';
     if (accuracy >= 0.50) return 'C';
-    return 'D';
+    if (accuracy >= 0.30) return 'D';
+    return 'E';
   }
 
   Widget _buildRankMedal() {
@@ -136,7 +137,8 @@ class _QuizResultsViewState extends State<QuizResultsView>
     if (accuracy >= 80) return 'A Rank';
     if (accuracy >= 65) return 'B Rank';
     if (accuracy >= 50) return 'C Rank';
-    return 'D Rank';
+    if (accuracy >= 30) return 'D Rank';
+    return 'E Rank';
   }
 
   Color _getGradeColor() {
@@ -146,7 +148,8 @@ class _QuizResultsViewState extends State<QuizResultsView>
     if (accuracy >= 80) return const Color(0xFF4ADE80);
     if (accuracy >= 65) return const Color(0xFF6366F1);
     if (accuracy >= 50) return const Color(0xFFF59E0B);
-    return const Color(0xFFEF4444);
+    if (accuracy >= 30) return const Color(0xFFEF4444);
+    return const Color(0xFF6B7280);
   }
 
   @override
