@@ -21,22 +21,29 @@ Deno.serve(async (req) => {
     const body = await req.json()
     const { systemPrompt, messages, stream } = body
 
+    // Build the messages array for DeepSeek
     let formattedMessages = [
       ...(systemPrompt ? [{ role: 'system', content: systemPrompt }] : []),
       ...(messages || []),
     ]
 
-    // If no user/assistant messages provided, add a default user message
-    // so DeepSeek has something to respond to
-    if (formattedMessages.length <= 1 && messages && messages.length === 0) {
+    // If no user/assistant messages provided (only system prompt exists),
+    // add a default user message so DeepSeek has something to respond to
+    if (formattedMessages.length === 0) {
       formattedMessages.push({
         role: 'user',
-        content: systemPrompt || 'Hello, please respond with study tips.',
+        content: 'Hello, please provide study tips.',
+      })
+    } else if (formattedMessages.length === 1 && formattedMessages[0].role === 'system') {
+      // Only a system prompt exists; add a default user message
+      formattedMessages.push({
+        role: 'user',
+        content: 'Please provide study tips based on my quiz results.',
       })
     }
 
     // 5. Make the secure server-to-server call to DeepSeek
-    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+    const deepseekResponse = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -49,14 +56,20 @@ Deno.serve(async (req) => {
       }),
     })
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      throw new Error(`DeepSeek API error (${response.status}): ${errorText || 'no body'}`)
+    // Read the response content-type from DeepSeek
+    const deepseekContentType = deepseekResponse.headers.get('content-type') || ''
+
+    // If DeepSeek returns an error status OR returns JSON (error body even with 200), handle it
+    if (!deepseekResponse.ok || deepseekContentType.includes('application/json')) {
+      const errorBody = await deepseekResponse.text()
+      throw new Error(
+        `DeepSeek API error (${deepseekResponse.status}): ${errorBody || 'no body'}`,
+      )
     }
 
     // 6. If streaming, pass the SSE body directly through to the client
-    if (stream === true && response.body) {
-      return new Response(response.body, {
+    if (stream === true && deepseekResponse.body) {
+      return new Response(deepseekResponse.body, {
         headers: {
           ...corsHeaders,
           'Content-Type': 'text/event-stream',
@@ -73,7 +86,7 @@ Deno.serve(async (req) => {
       throw new Error('Streaming requested but response body is empty from DeepSeek')
     }
 
-    const data = await response.json()
+    const data = await deepseekResponse.json()
     return new Response(JSON.stringify(data), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
