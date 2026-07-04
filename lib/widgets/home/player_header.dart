@@ -10,7 +10,9 @@ class PlayerHeader extends StatelessWidget {
   final int level;
   final double xpProgress; // 0.0 to 1.0
   final String? avatarUrl;
+  final String levelName;
   final VoidCallback onStreakTap;
+  final VoidCallback? onLevelTap;
 
   const PlayerHeader({
     super.key,
@@ -20,7 +22,9 @@ class PlayerHeader extends StatelessWidget {
     required this.level,
     required this.xpProgress,
     this.avatarUrl,
+    required this.levelName,
     required this.onStreakTap,
+    this.onLevelTap,
   });
 
   @override
@@ -140,34 +144,37 @@ class PlayerHeader extends StatelessWidget {
   }
 
   Widget _buildLevelBadge() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF6366F1), Color(0xFF8C52FF)],
-        ),
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF6366F1).withValues(alpha: 0.08),
-            blurRadius: 2,
+    return GestureDetector(
+      onTap: onLevelTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF6366F1), Color(0xFF8C52FF)],
           ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.auto_awesome, color: Colors.white, size: 12),
-          const SizedBox(width: 3),
-          Text(
-            'Lv.$level',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 11,
-              fontWeight: FontWeight.w900,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF6366F1).withValues(alpha: 0.08),
+              blurRadius: 2,
             ),
-          ),
-        ],
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.auto_awesome, color: Colors.white, size: 12),
+            const SizedBox(width: 3),
+            Text(
+              levelName,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 11,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -269,7 +276,7 @@ class PlayerHeader extends StatelessWidget {
               ),
               const SizedBox(width: 4),
               Text(
-                'day${streakNumber > 1 ? 's' : ''}',
+                'completion${streakNumber > 1 ? 's' : ''}',
                 style: TextStyle(
                   color: const Color(0xFFFF5722).withValues(alpha: 0.7),
                   fontSize: 11,

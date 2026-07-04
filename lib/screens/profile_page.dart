@@ -6,10 +6,12 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import '../models/badge.dart';
 import '../models/rank_history.dart';
+import '../models/level_system.dart';
 import '../services/auth_service.dart';
 import '../services/database_service.dart';
 import '../widgets/home/badge_card.dart';
 import '../widgets/home/particle_background.dart';
+import '../widgets/main_navigation.dart';
 import 'auth_screen.dart';
 import 'earned_badges_screen.dart';
 import 'settings_screen.dart';
@@ -23,21 +25,6 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   final AuthService _authService = AuthService();
-  final DatabaseService _dbService = DatabaseService();
-  bool _rankHistoryRepaired = false;
-
-  @override
-  void initState() {
-    super.initState();
-    // One-time cleanup of corrupted rank history entries (stored as rank=2 from a buggy getCurrentRank)
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final currentUser = _authService.currentUser;
-      if (currentUser != null && !_rankHistoryRepaired) {
-        _rankHistoryRepaired = true;
-        _dbService.repairRankHistory(currentUser.uid);
-      }
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -115,9 +102,8 @@ class _ProfilePageState extends State<ProfilePage> {
     required int totalScore,
   }) {
     final previewBadges = allBadges.take(4).toList();
-    final level = (totalScore ~/ 100) + 1;
-    final xpInCurrentLevel = totalScore % 100;
-    final xpProgress = xpInCurrentLevel / 100.0;
+    final level = LevelSystem.getLevelNumber(totalScore);
+    final xpProgress = LevelSystem.getXpProgress(totalScore);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -326,7 +312,13 @@ class _ProfilePageState extends State<ProfilePage> {
                           onPressed: () async {
                             await _authService.logOut();
                             if (context.mounted) {
-                              Navigator.pop(context);
+                              Navigator.of(context).pop();
+                              Navigator.of(context).pushAndRemoveUntil(
+                                MaterialPageRoute(
+                                  builder: (_) => const MainNavigation(),
+                                ),
+                                (route) => false,
+                              );
                             }
                           },
                           child: const Text('Log Out'),
@@ -446,7 +438,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               ),
                               const SizedBox(width: 3),
                               Text(
-                                'Lv.$level',
+                                '${LevelSystem.getLevelName(totalScore)}',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 11,
@@ -519,7 +511,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      'day${streakNumber > 1 ? 's' : ''}',
+                      'completion${streakNumber > 1 ? 's' : ''}',
                       style: TextStyle(
                         color: const Color(0xFFFF5722).withValues(alpha: 0.7),
                         fontSize: 11,

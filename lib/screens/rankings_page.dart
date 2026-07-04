@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../models/badge.dart';
+import '../models/level_system.dart';
 import '../models/user_rank.dart';
 import '../services/database_service.dart';
 
@@ -340,15 +341,23 @@ class _RankingsPageState extends State<RankingsPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Name row
-                Text(
-                  rank.name,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                  overflow: TextOverflow.ellipsis,
+                // Name row with level badge
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        rank.name,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    _buildLevelBadge(rank.score),
+                  ],
                 ),
                 // Badges
                 if (rank.selectedBadges.isNotEmpty) ...[
@@ -445,6 +454,27 @@ class _RankingsPageState extends State<RankingsPage> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  /// Builds a small level badge for ranking cards
+  Widget _buildLevelBadge(int score) {
+    final level = LevelSystem.getLevelByScore(score);
+    final colors = LevelSystem.getLevelColors(level.level);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(colors: colors),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        level.name,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 8,
+          fontWeight: FontWeight.w900,
+        ),
       ),
     );
   }

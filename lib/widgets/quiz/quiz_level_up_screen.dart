@@ -7,6 +7,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
+import '../../models/level_system.dart';
 
 /// Data model for level-up information
 class LevelUpData {
@@ -24,9 +25,13 @@ class LevelUpData {
     required this.displayName,
   });
 
-  int get xpInCurrentLevel => totalScore % 100;
-  double get xpProgress => xpInCurrentLevel / 100.0;
-  int get xpToNextLevel => 100;
+  String get oldLevelName =>
+      LevelSystem.levels[oldLevel >= 1 ? oldLevel - 1 : 0].name;
+  String get newLevelName => LevelSystem.getLevelName(totalScore);
+  int get xpInCurrentLevel =>
+      totalScore - LevelSystem.getLevelByScore(totalScore).xpRequired;
+  double get xpProgress => LevelSystem.getXpProgress(totalScore);
+  int get xpToNextLevel => LevelSystem.getXpToNextLevel(totalScore);
 }
 
 /// Full-screen level-up celebration with organic particle effects.

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../models/level_system.dart';
 import '../widgets/home/player_header.dart';
 import '../widgets/home/game_stat_panel.dart';
 import '../widgets/home/xp_vault_card.dart';
 import '../widgets/home/quest_card.dart';
 import '../widgets/home/leaderboard_carousel.dart';
+import '../widgets/levels_overview_modal.dart';
 import '../widgets/streak_card_modal.dart';
 import 'challenge_select_screen.dart';
 
@@ -84,10 +86,8 @@ class QuizHomePage extends StatelessWidget {
     required int totalScore,
     String? avatarUrl,
   }) {
-    // Calculate level and XP progress (100 XP per level)
-    final level = (totalScore ~/ 100) + 1;
-    final xpInCurrentLevel = totalScore % 100;
-    final xpProgress = xpInCurrentLevel / 100.0;
+    final level = LevelSystem.getLevelNumber(totalScore);
+    final xpProgress = LevelSystem.getXpProgress(totalScore);
 
     return SafeArea(
       child: _buildScrollContent(
@@ -130,11 +130,20 @@ class QuizHomePage extends StatelessWidget {
               level: level,
               xpProgress: xpProgress,
               avatarUrl: avatarUrl,
+              levelName: LevelSystem.getLevelName(totalScore),
               onStreakTap: () {
                 StreakCardModal.show(
                   context,
                   streakNumber,
                   avatarUrl: avatarUrl,
+                );
+              },
+              onLevelTap: () {
+                LevelsOverviewModal.show(
+                  context: context,
+                  totalScore: totalScore,
+                  avatarUrl: avatarUrl,
+                  displayName: displayName,
                 );
               },
             ),

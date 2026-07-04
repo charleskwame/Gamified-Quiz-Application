@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'level_system.dart';
+
 class UserRank {
   final String id;
   final String name;
@@ -22,6 +24,12 @@ class UserRank {
     required this.streakNumber,
     this.avatarUrl,
   });
+
+  /// The user's current level name based on their score.
+  String get levelName => LevelSystem.getLevelName(score);
+
+  /// The user's current level number based on their score.
+  int get levelNumber => LevelSystem.getLevelNumber(score);
 
   factory UserRank.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
