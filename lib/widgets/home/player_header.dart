@@ -163,8 +163,6 @@ class PlayerHeader extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.auto_awesome, color: Colors.white, size: 12),
-            const SizedBox(width: 3),
             Text(
               levelName,
               style: const TextStyle(

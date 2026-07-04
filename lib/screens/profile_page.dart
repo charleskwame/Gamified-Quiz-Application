@@ -431,12 +431,6 @@ class _ProfilePageState extends State<ProfilePage> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(
-                                Icons.auto_awesome,
-                                color: Colors.white,
-                                size: 12,
-                              ),
-                              const SizedBox(width: 3),
                               Text(
                                 '${LevelSystem.getLevelName(totalScore)}',
                                 style: const TextStyle(
