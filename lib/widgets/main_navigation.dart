@@ -1,3 +1,4 @@
+import 'dart:ui'; // <-- ADDED for ImageFilter.blur
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -60,77 +61,86 @@ class _MainNavigationState extends State<MainNavigation> {
     );
   }
 
+  Widget _buildNavBar() {
+    return Positioned(
+      bottom: 16,
+      left: 24,
+      right: 24,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(32),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+          child: Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E1E2E).withOpacity(0.7),
+              borderRadius: BorderRadius.circular(32),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.1),
+                width: 1,
+              ),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            child: GNav(
+              selectedIndex: _selectedIndex,
+              onTabChange: (index) {
+                setState(() => _selectedIndex = index);
+              },
+              color: Colors.white.withOpacity(0.55),
+              activeColor: Colors.white,
+              tabBackgroundColor: const Color(0xFF6366F1).withOpacity(0.25),
+              gap: 8,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              tabBorderRadius: 20,
+              tabs: [
+                GButton(
+                  icon: Icons.home_rounded,
+                  text: 'Home',
+                  iconActiveColor: Colors.white,
+                  textColor: Colors.white,
+                ),
+                GButton(
+                  icon: Icons.emoji_events_rounded,
+                  text: 'Rankings',
+                  iconActiveColor: const Color(0xFFFFD700),
+                  textColor: Colors.white,
+                ),
+                GButton(
+                  icon: Icons.person_rounded,
+                  text: 'Profile',
+                  iconActiveColor: Colors.white,
+                  textColor: Colors.white,
+                  leading: _buildProfileIcon(),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ParticleBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        extendBody: true,
-        body: IndexedStack(
-          index: _selectedIndex,
+        body: Stack(
           children: [
-            QuizHomePage(
-              onNavigateToRanks: () {
-                setState(() => _selectedIndex = 1);
-              },
+            IndexedStack(
+              index: _selectedIndex,
+              children: [
+                QuizHomePage(
+                  onNavigateToRanks: () {
+                    setState(() => _selectedIndex = 1);
+                  },
+                ),
+                const RankingsPage(),
+                const ProfilePage(),
+              ],
             ),
-            const RankingsPage(),
-            const ProfilePage(),
+            if (showNavBar) _buildNavBar(),
           ],
         ),
-        bottomNavigationBar: showNavBar
-            ? Padding(
-                padding: const EdgeInsets.only(bottom: 16, left: 24, right: 24),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1E1E2E),
-                    borderRadius: BorderRadius.circular(32),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 6,
-                  ),
-                  child: GNav(
-                    selectedIndex: _selectedIndex,
-                    onTabChange: (index) {
-                      setState(() => _selectedIndex = index);
-                    },
-                    color: Colors.white.withValues(alpha: 0.55),
-                    activeColor: Colors.white,
-                    tabBackgroundColor: const Color(
-                      0xFF6366F1,
-                    ).withValues(alpha: 0.25),
-                    gap: 8,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 14,
-                    ),
-                    tabBorderRadius: 20,
-                    tabs: [
-                      GButton(
-                        icon: Icons.home_rounded,
-                        text: 'Home',
-                        iconActiveColor: Colors.white,
-                        textColor: Colors.white,
-                      ),
-                      GButton(
-                        icon: Icons.emoji_events_rounded,
-                        text: 'Rankings',
-                        iconActiveColor: const Color(0xFFFFD700),
-                        textColor: Colors.white,
-                      ),
-                      GButton(
-                        icon: Icons.person_rounded,
-                        text: 'Profile',
-                        iconActiveColor: Colors.white,
-                        textColor: Colors.white,
-                        leading: _buildProfileIcon(),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            : null,
       ),
     );
   }
