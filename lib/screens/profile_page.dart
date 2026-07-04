@@ -823,14 +823,11 @@ class _ProfilePageState extends State<ProfilePage> {
                       color: rankBgColor,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Center(
-                      child: Text(
-                        entry.rank,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w900,
-                          color: rankColor,
-                        ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: SvgPicture.asset(
+                        'lib/assets/rank_icons/${entry.rank.toLowerCase()}-rank-medal.svg',
+                        fit: BoxFit.contain,
                       ),
                     ),
                   ),

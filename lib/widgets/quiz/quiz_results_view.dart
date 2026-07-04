@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:confetti/confetti.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../models/badge.dart';
 
 /// Displays the quiz completion/results screen with game-like UI.
@@ -110,13 +111,22 @@ class _QuizResultsViewState extends State<QuizResultsView>
     return 0;
   }
 
-  String _getMedalEmoji() {
+  String _getRankFromAccuracy() {
     final accuracy = widget.correctAnswers / widget.totalQuestions;
-    if (accuracy >= 0.95) return '🏆';
-    if (accuracy >= 0.80) return '🥇';
-    if (accuracy >= 0.65) return '🥈';
-    if (accuracy >= 0.50) return '🥉';
-    return '🎯';
+    if (accuracy >= 0.95) return 'S';
+    if (accuracy >= 0.80) return 'A';
+    if (accuracy >= 0.65) return 'B';
+    if (accuracy >= 0.50) return 'C';
+    return 'D';
+  }
+
+  Widget _buildRankMedal() {
+    final rank = _getRankFromAccuracy().toLowerCase();
+    return SvgPicture.asset(
+      'lib/assets/rank_icons/$rank-rank-medal.svg',
+      height: 80,
+      width: 80,
+    );
   }
 
   String _getGradeText() {
@@ -173,11 +183,8 @@ class _QuizResultsViewState extends State<QuizResultsView>
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            // ─── Medal / Trophy ──────────────────────────
-                            Text(
-                              _getMedalEmoji(),
-                              style: const TextStyle(fontSize: 80),
-                            ),
+                            // ─── Rank Medal ──────────────────────────
+                            _buildRankMedal(),
                             const SizedBox(height: 16),
 
                             // ─── Grade Text ─────────────────────────────
