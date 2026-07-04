@@ -7,7 +7,7 @@ import '../models/question.dart';
 import '../services/database_service.dart';
 import '../services/quiz_engine.dart';
 import '../services/quote_service.dart';
-import '../widgets/quiz/quiz_animated_background.dart';
+import '../widgets/home/particle_background.dart';
 import '../widgets/quiz/quiz_loading_view.dart';
 import '../widgets/quiz/quiz_error_view.dart';
 import '../widgets/quiz/quiz_results_view.dart';
@@ -415,7 +415,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
     final question = _questions[_currentIndex];
     final bool showStreakBadge = widget.isTimed && _consecutiveCorrect >= 2;
 
-    return QuizAnimatedBackground(
+    return ParticleBackground(
       isActive: true,
       child: Scaffold(
         backgroundColor: Colors.transparent,
