@@ -18,9 +18,13 @@ class AvatarCustomizerDialog extends StatefulWidget {
   State<AvatarCustomizerDialog> createState() => _AvatarCustomizerDialogState();
 }
 
-class _AvatarCustomizerDialogState extends State<AvatarCustomizerDialog> {
+class _AvatarCustomizerDialogState extends State<AvatarCustomizerDialog>
+    with SingleTickerProviderStateMixin {
   late Map<String, String> _values;
   bool _isSaving = false;
+  late AnimationController _animController;
+  late Animation<double> _fadeAnim;
+  late Animation<Offset> _slideAnim;
 
   String get _avatarUrl => AvatarOptions.buildUrl(_values);
 
@@ -28,6 +32,31 @@ class _AvatarCustomizerDialogState extends State<AvatarCustomizerDialog> {
   void initState() {
     super.initState();
     _values = AvatarOptions.initialValues(widget.initialDetails);
+
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+    _fadeAnim = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(
+        parent: _animController,
+        curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
+      ),
+    );
+    _slideAnim = Tween<Offset>(begin: const Offset(0, 0.12), end: Offset.zero)
+        .animate(
+          CurvedAnimation(
+            parent: _animController,
+            curve: const Interval(0.0, 0.7, curve: Curves.easeOutCubic),
+          ),
+        );
+    _animController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
   }
 
   void _randomize() {
@@ -50,23 +79,52 @@ class _AvatarCustomizerDialogState extends State<AvatarCustomizerDialog> {
         children: [
           Text(
             category.label,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
+              color: Colors.white,
+            ),
           ),
           const SizedBox(height: 4),
           DropdownButtonFormField<String>(
             initialValue: currentValue,
             items: category.options.map((opt) {
-              return DropdownMenuItem(value: opt.value, child: Text(opt.label));
+              return DropdownMenuItem(
+                value: opt.value,
+                child: Text(
+                  opt.label,
+                  style: const TextStyle(color: Colors.white),
+                ),
+              );
             }).toList(),
             onChanged: (val) => _update(category.key, val),
+            dropdownColor: const Color(0xFF1E293B),
             decoration: InputDecoration(
               isDense: true,
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 12,
                 vertical: 10,
               ),
+              filled: true,
+              fillColor: Colors.white.withValues(alpha: 0.06),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: Colors.white.withValues(alpha: 0.1),
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: Colors.white.withValues(alpha: 0.1),
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                  color: Color(0xFF6366F1),
+                  width: 1.5,
+                ),
               ),
             ),
           ),
@@ -77,128 +135,242 @@ class _AvatarCustomizerDialogState extends State<AvatarCustomizerDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      insetPadding: const EdgeInsets.symmetric(
-        horizontal: 16.0,
-        vertical: 24.0,
-      ),
-      title: const Text(
-        'Customize Avatar',
-        style: TextStyle(fontWeight: FontWeight.bold),
-      ),
-      content: SizedBox(
-        width: double.maxFinite,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Preview
-              Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: const Color(0xFFE6EAF2),
-                    width: 1.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
+    return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      backgroundColor: Colors.transparent,
+      child: FadeTransition(
+        opacity: _fadeAnim,
+        child: SlideTransition(
+          position: _slideAnim,
+          child: Container(
+            width: double.maxFinite,
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.4),
+                  blurRadius: 24,
+                  offset: const Offset(0, 12),
+                ),
+                BoxShadow(
+                  color: const Color(0xFF6366F1).withValues(alpha: 0.15),
+                  blurRadius: 20,
+                  spreadRadius: -4,
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // ── Header ──
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Customize Avatar',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 20,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.06),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.08),
+                        ),
+                      ),
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.close_rounded,
+                          color: Colors.white60,
+                          size: 20,
+                        ),
+                        padding: const EdgeInsets.all(8),
+                        constraints: const BoxConstraints(
+                          minWidth: 34,
+                          minHeight: 34,
+                        ),
+                        onPressed: () => Navigator.pop(context),
+                      ),
                     ),
                   ],
                 ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(14),
-                  child: SvgPicture.network(
-                    _avatarUrl,
-                    fit: BoxFit.cover,
-                    placeholderBuilder: (context) => const Center(
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.5,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          Color(0xFF141053),
+                const SizedBox(height: 20),
+
+                // ── Scrollable content ──
+                Flexible(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // ── Preview with glowing ring ──
+                        Container(
+                          width: 120,
+                          height: 120,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: const SweepGradient(
+                              colors: [
+                                Color(0xFF6366F1),
+                                Color(0xFF8C52FF),
+                                Color(0xFFFFD700),
+                                Color(0xFF4ADE80),
+                                Color(0xFF6366F1),
+                              ],
+                              stops: [0.0, 0.25, 0.5, 0.75, 1.0],
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(
+                                  0xFF6366F1,
+                                ).withValues(alpha: 0.4),
+                                blurRadius: 16,
+                                spreadRadius: 1,
+                              ),
+                            ],
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(3),
+                            child: Container(
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF0A0E21),
+                                shape: BoxShape.circle,
+                              ),
+                              child: ClipOval(
+                                child: SvgPicture.network(
+                                  _avatarUrl,
+                                  fit: BoxFit.cover,
+                                  placeholderBuilder: (context) => const Center(
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.5,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Color(0xFF6366F1),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
+                        const SizedBox(height: 16),
+
+                        // ── Randomize button ──
+                        SizedBox(
+                          height: 38,
+                          child: FilledButton.icon(
+                            onPressed: _randomize,
+                            icon: const Icon(Icons.casino_rounded, size: 16),
+                            label: const Text('Randomize'),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: const Color(0xFF6366F1),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // ── Category dropdowns ──
+                        for (final cat in AvatarOptions.categories)
+                          if (!cat.optional ||
+                              (_values['clothing'] ?? 'none') != 'none')
+                            _buildDropdown(cat),
+                      ],
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
+                const SizedBox(height: 8),
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: _randomize,
-                    icon: const Icon(Icons.casino_rounded, size: 16),
-                    label: const Text('Randomize'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey.shade200,
-                      foregroundColor: Colors.grey.shade800,
-                      elevation: 0,
+                // ── Action buttons ──
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: _isSaving
+                          ? null
+                          : () => Navigator.pop(context),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.white60,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text('Cancel'),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-
-              // Category dropdowns
-              for (final cat in AvatarOptions.categories)
-                if (!cat.optional || (_values['clothing'] ?? 'none') != 'none')
-                  _buildDropdown(cat),
-            ],
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      height: 44,
+                      child: FilledButton(
+                        onPressed: _isSaving
+                            ? null
+                            : () async {
+                                final navigator = Navigator.of(context);
+                                setState(() => _isSaving = true);
+                                final Map<String, dynamic> details = {
+                                  for (final cat in AvatarOptions.categories)
+                                    cat.key: _values[cat.key],
+                                };
+                                details['seed'] = _values['seed'];
+                                try {
+                                  await widget.onSave(_avatarUrl, details);
+                                  if (mounted) {
+                                    navigator.pop();
+                                  }
+                                } catch (e) {
+                                  debugPrint('Error saving avatar: $e');
+                                } finally {
+                                  if (mounted) {
+                                    setState(() => _isSaving = false);
+                                  }
+                                }
+                              },
+                        style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFF6366F1),
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: _isSaving
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
+                                ),
+                              )
+                            : const Text('Save'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: _isSaving ? null : () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        FilledButton(
-          onPressed: _isSaving
-              ? null
-              : () async {
-                  final navigator = Navigator.of(context);
-                  setState(() => _isSaving = true);
-                  // Reconstruct the details map to exclude internal keys like 'seed'
-                  final Map<String, dynamic> details = {
-                    for (final cat in AvatarOptions.categories)
-                      cat.key: _values[cat.key],
-                  };
-                  details['seed'] = _values['seed'];
-                  try {
-                    await widget.onSave(_avatarUrl, details);
-                    if (mounted) {
-                      navigator.pop();
-                    }
-                  } catch (e) {
-                    debugPrint('Error saving avatar: $e');
-                  } finally {
-                    if (mounted) {
-                      setState(() => _isSaving = false);
-                    }
-                  }
-                },
-          style: FilledButton.styleFrom(
-            backgroundColor: const Color(0xFF141053),
-          ),
-          child: _isSaving
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                  ),
-                )
-              : const Text('Save'),
-        ),
-      ],
     );
   }
 }
