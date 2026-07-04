@@ -73,7 +73,11 @@ class AuthService {
       }
     } on FirebaseAuthException catch (e) {
       // If the credentials are invalid (e.g. password changed), clear them.
-      if (e.code == 'wrong-password' || e.code == 'user-not-found' || e.code == 'user-disabled' || e.code == 'invalid-credential' || e.code == 'invalid-email') {
+      if (e.code == 'wrong-password' ||
+          e.code == 'user-not-found' ||
+          e.code == 'user-disabled' ||
+          e.code == 'invalid-credential' ||
+          e.code == 'invalid-email') {
         await _clearCredentials();
       }
     } catch (_) {
@@ -83,13 +87,13 @@ class AuthService {
     return null;
   }
 
-  /// Persist the “session active” flag so we know a previous sign-in existed.
+  /// Persist the "session active" flag so we know a previous sign-in existed.
   Future<void> _markSessionActive() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_sessionKey, true);
   }
 
-  /// Clear the “session active” flag.
+  /// Clear the "session active" flag.
   Future<void> _clearSession() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_sessionKey);
@@ -186,7 +190,8 @@ class AuthService {
       }
 
       final currentEmail = user.email ?? '';
-      final oldPassword = await _secureStorage.read(key: _securePasswordKey) ?? '';
+      final oldPassword =
+          await _secureStorage.read(key: _securePasswordKey) ?? '';
 
       if (displayName != null && displayName.isNotEmpty) {
         await user.updateDisplayName(displayName);
@@ -204,8 +209,12 @@ class AuthService {
       }
 
       // Update cached credentials if they changed
-      final updatedEmail = (email != null && email.isNotEmpty) ? email : currentEmail;
-      final updatedPassword = (password != null && password.isNotEmpty) ? password : oldPassword;
+      final updatedEmail = (email != null && email.isNotEmpty)
+          ? email
+          : currentEmail;
+      final updatedPassword = (password != null && password.isNotEmpty)
+          ? password
+          : oldPassword;
       if (updatedEmail.isNotEmpty && updatedPassword.isNotEmpty) {
         await _saveCredentials(updatedEmail, updatedPassword);
       }
@@ -219,13 +228,58 @@ class AuthService {
     }
   }
 
-  // Delete the current user's Firebase Auth account
-  Future<void> deleteAccount() async {
+  /// Reauthenticate the current user with their password.
+  ///
+  /// Throws a [FirebaseAuthException] if reauthentication fails (e.g.,
+  /// wrong password, user not found, etc.).
+  Future<void> reauthenticate(String password) async {
     final user = _auth.currentUser;
     if (user == null) {
       throw Exception('No user is currently logged in.');
     }
+    final email = user.email;
+    if (email == null || email.isEmpty) {
+      throw Exception('No email address associated with this account.');
+    }
+
+    final credential = EmailAuthProvider.credential(
+      email: email,
+      password: password,
+    );
+    await user.reauthenticateWithCredential(credential);
+  }
+
+  /// Permanently delete the user account and ALL associated data.
+  ///
+  /// [password] is required to reauthenticate before deletion for security.
+  ///
+  /// Deletion order (safe — auth deleted FIRST so any failure leaves Firestore intact):
+  ///   1. Reauthenticate (throws if wrong password)
+  ///   2. Delete Firebase Auth account
+  ///   3. Delete Firestore user document & subcollections
+  ///   4. Clear local offline question cache (SharedPreferences)
+  ///   5. Clear local session data (SharedPreferences + SecureStorage)
+  ///
+  /// If step 2 fails (e.g. network error), steps 3–5 are never reached,
+  /// preserving the user's Firestore data.
+  Future<void> deleteAccount({required String password}) async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw Exception('No user is currently logged in.');
+    }
+
+    // 1. Reauthenticate (will throw on wrong password / expired session)
+    await reauthenticate(password);
+
+    final uid = user.uid;
+
+    // 2. Delete Firebase Auth account FIRST — if this fails, Firestore is untouched
     await user.delete();
+
+    // 3. Clean up Firestore data
+    await DatabaseService().deleteUserAccount(uid);
+
+    // 4. Clear local session data
     await _clearSession();
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../services/auth_service.dart';
 import '../services/database_service.dart';
@@ -98,6 +99,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final user = _authService.currentUser;
     if (user == null) return;
 
+    // Step 1: Confirmation dialog
     final navigator = Navigator.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
@@ -136,6 +138,102 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     if (confirmed != true) return;
 
+    // Step 2: Password reauthentication dialog
+    final password = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        final controller = TextEditingController();
+        String? errorText;
+
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFF1E2246),
+              title: const Text(
+                'Confirm Password',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'For security, please enter your password to confirm account deletion.',
+                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: controller,
+                    obscureText: true,
+                    autofocus: true,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      labelText: 'Password',
+                      labelStyle: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.5),
+                      ),
+                      errorText: errorText,
+                      filled: true,
+                      fillColor: Colors.white.withValues(alpha: 0.06),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(
+                          color: Colors.white.withValues(alpha: 0.1),
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(
+                          color: Colors.white.withValues(alpha: 0.1),
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(
+                          color: Color(0xFFEF4444),
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, null),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(color: Colors.white60),
+                  ),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    final pw = controller.text.trim();
+                    if (pw.isEmpty) {
+                      setDialogState(() {
+                        errorText = 'Password is required';
+                      });
+                      return;
+                    }
+                    Navigator.pop(context, pw);
+                  },
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFFEF4444),
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text('Delete Permanently'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (password == null || password.isEmpty) return;
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -143,17 +241,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
 
     try {
-      final uid = user.uid;
-      await DatabaseService().deleteUserAccount(uid);
-      await user.delete();
-      await _authService.logOut();
+      await _authService.deleteAccount(password: password);
       if (mounted) {
         navigator.pop();
       }
+    } on FirebaseAuthException catch (e) {
+      String message;
+      switch (e.code) {
+        case 'wrong-password':
+          message = 'Incorrect password. Please try again.';
+          break;
+        case 'requires-recent-login':
+          message =
+              'This operation requires a recent login. Please log out, log back in, and try again.';
+          break;
+        case 'user-not-found':
+          message = 'User account no longer exists.';
+          break;
+        case 'too-many-requests':
+          message = 'Too many attempts. Please wait a moment and try again.';
+          break;
+        default:
+          message = e.message ?? 'Failed to delete account.';
+      }
+      setState(() {
+        _errorMessage = message;
+      });
     } catch (e) {
       setState(() {
-        _errorMessage =
-            'Failed to delete account: $e. For security, please log out, log back in, and try again.';
+        _errorMessage = 'Failed to delete account: $e. Please try again later.';
       });
     } finally {
       setState(() {
