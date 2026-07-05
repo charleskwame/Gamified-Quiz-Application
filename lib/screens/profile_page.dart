@@ -15,6 +15,7 @@ import '../widgets/main_navigation.dart';
 import 'auth_screen.dart';
 import 'earned_badges_screen.dart';
 import 'settings_screen.dart';
+import 'bug_report_screen.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -271,6 +272,19 @@ class _ProfilePageState extends State<ProfilePage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (user != null) ...[
+              _buildIconButton(
+                icon: Icons.bug_report_rounded,
+                color: Colors.white70,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const BugReportScreen(),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(width: 4),
               _buildIconButton(
                 icon: Icons.settings_rounded,
                 color: Colors.white70,
