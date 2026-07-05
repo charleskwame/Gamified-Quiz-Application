@@ -9,7 +9,7 @@ import 'package:flutter/services.dart';
 /// Deployed script appends rows to a Google Sheet with columns:
 /// Timestamp, Email, Bug Report, Expected Behavior, App Version, Status
 const String _bugReportUrl =
-    'https://script.google.com/macros/s/AKfycbwWkmUg8AHf0blf-KiiDuKK2kONHVPYti8paEzY4UyBTJGxn9TMberfbMYPxm2RlBH1/exec';
+    'https://script.google.com/macros/s/AKfycbxyRT4kl53fNkvXQTLp4inBBcbfBOSsWfa5UOX0RlUAygZbyBSkabuJAq6o6sucpHbb/exec';
 
 class BugReportScreen extends StatefulWidget {
   const BugReportScreen({super.key});
@@ -60,6 +60,10 @@ class _BugReportScreenState extends State<BugReportScreen> {
         'appVersion': appVersion,
       };
 
+      // Using http.post directly. It automatically follows 302 redirects by converting 
+      // POST to GET on redirect. Since Google Apps Script processes doPost on the 
+      // initial POST and returns the result at the redirect target via GET, this is 
+      // the correct behavior to read the JSON response.
       final response = await http.post(
         Uri.parse(_bugReportUrl),
         headers: {'Content-Type': 'application/json'},
@@ -68,7 +72,9 @@ class _BugReportScreenState extends State<BugReportScreen> {
 
       if (!mounted) return;
 
-      if (response.statusCode == 200) {
+      // Google Apps Script returns 302 on redirect, or 200 when followed.
+      // Any 2xx or 3xx status code indicates the server successfully received the request.
+      if (response.statusCode >= 200 && response.statusCode < 400) {
         _showSnackBar('Bug report submitted successfully! Thank you.');
         Navigator.pop(context);
       } else {
