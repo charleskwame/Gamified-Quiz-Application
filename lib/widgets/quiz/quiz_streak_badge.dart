@@ -67,7 +67,7 @@ class QuizStreakBadge extends StatelessWidget {
                           fontSize: 20,
                           fontWeight: FontWeight.w900,
                           height: 1.0,
-                          shadows: const [
+                          shadows: [
                             Shadow(
                               color: Colors.black26,
                               blurRadius: 1,

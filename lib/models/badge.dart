@@ -15,6 +15,8 @@ class BadgeDefinition {
     required this.color,
   });
 
+  
+
   // Check if this badge is unlocked based on current user stats and latest quiz results
   bool checkUnlock({
     required int score,

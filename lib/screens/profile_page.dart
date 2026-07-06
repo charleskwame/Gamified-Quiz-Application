@@ -446,7 +446,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                '${LevelSystem.getLevelName(totalScore)}',
+                                LevelSystem.getLevelName(totalScore),
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 11,

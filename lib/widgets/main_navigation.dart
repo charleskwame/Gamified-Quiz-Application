@@ -72,10 +72,10 @@ class _MainNavigationState extends State<MainNavigation> {
           filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
           child: Container(
             decoration: BoxDecoration(
-              color: const Color(0xFF1E1E2E).withOpacity(0.7),
+              color: const Color(0xFF1E1E2E).withValues(alpha: 0.7),
               borderRadius: BorderRadius.circular(32),
               border: Border.all(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 width: 1,
               ),
             ),
@@ -85,9 +85,11 @@ class _MainNavigationState extends State<MainNavigation> {
               onTabChange: (index) {
                 setState(() => _selectedIndex = index);
               },
-              color: Colors.white.withOpacity(0.55),
+              color: Colors.white.withValues(alpha: 0.55),
               activeColor: Colors.white,
-              tabBackgroundColor: const Color(0xFF6366F1).withOpacity(0.25),
+              tabBackgroundColor: const Color(
+                0xFF6366F1,
+              ).withValues(alpha: 0.25),
               gap: 8,
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
               tabBorderRadius: 20,
