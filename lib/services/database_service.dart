@@ -476,6 +476,32 @@ class DatabaseService {
     }
   }
 
+  // Increment the incorrect answer counter for a specific question in the global
+  // "[subject]_questions_gotten_incorrectly" collection.
+  // Only called for normal and timed (challenge) modes, NOT offline mode.
+  Future<void> incrementIncorrectQuestion({
+    required String category,
+    required String questionId,
+  }) async {
+    final collectionName =
+        '${category.toLowerCase().replaceAll(' ', '_')}_questions_gotten_incorrectly';
+    final docRef = _db.collection(collectionName).doc(questionId);
+
+    await _db.runTransaction((transaction) async {
+      final snapshot = await transaction.get(docRef);
+      if (snapshot.exists) {
+        transaction.update(docRef, {
+          'number_of_wrong': FieldValue.increment(1),
+        });
+      } else {
+        transaction.set(docRef, {
+          'questionId': questionId,
+          'number_of_wrong': 1,
+        });
+      }
+    });
+  }
+
   // Get percentage of users who have a specific streak or higher
   Future<double> getStreakPercentage(int streakNumber) async {
     if (streakNumber == 0) return 100.0;

@@ -206,6 +206,17 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
       _answerResults.add(false);
       _showScorePopup = false;
     });
+
+    // Track this timed-out question as incorrect for lecturer insights
+    if (!widget.isOffline) {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        _db.incrementIncorrectQuestion(
+          category: widget.category,
+          questionId: currentQuestion.id,
+        );
+      }
+    }
   }
 
   // ─── Answer Selection ──────────────────────────────────────────────────────
@@ -249,6 +260,18 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
         _consecutiveIncorrect++;
         _incorrectQuestions.add(currentQuestion);
         _showScorePopup = false;
+
+        // Track this incorrect answer in Firestore for lecturer insights
+        // (only for normal and timed modes, not offline)
+        if (!widget.isOffline) {
+          final user = FirebaseAuth.instance.currentUser;
+          if (user != null) {
+            _db.incrementIncorrectQuestion(
+              category: widget.category,
+              questionId: currentQuestion.id,
+            );
+          }
+        }
       }
     });
 
