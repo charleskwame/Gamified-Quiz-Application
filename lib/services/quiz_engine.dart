@@ -33,6 +33,6 @@ class QuizEngine {
   static int timedScoreIncrement(int consecutiveCorrect) {
     final double bonusMultiplier = (consecutiveCorrect - 1) * 0.5;
     final double totalMultiplier = 1.0 + bonusMultiplier;
-    return (3 * totalMultiplier).round();
+    return (10 * totalMultiplier).round();
   }
 }

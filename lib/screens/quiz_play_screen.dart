@@ -258,8 +258,8 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
             _consecutiveCorrect,
           );
         } else {
-          _score += 1;
-          _lastScoreIncrement = 1;
+          _score += 5;
+          _lastScoreIncrement = 5;
         }
         _showScorePopup = true;
 
