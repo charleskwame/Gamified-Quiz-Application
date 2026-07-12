@@ -215,7 +215,7 @@ class _QuizLevelUpScreenState extends State<QuizLevelUpScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: const Color(0xFF0F172A),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -251,59 +251,68 @@ class _QuizLevelUpScreenState extends State<QuizLevelUpScreen>
             RepaintBoundary(
               key: _repaintKey,
               child: SafeArea(
-                child: Center(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const SizedBox(height: 40),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight,
+                        ),
+                        child: IntrinsicHeight(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const SizedBox(height: 40),
 
-                        // Avatar
-                        _buildAvatar(),
-                        const SizedBox(height: 12),
+                              // Avatar
+                              _buildAvatar(),
+                              const SizedBox(height: 12),
 
-                        // Player name
-                        Text(
-                          widget.data.displayName,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFFD1D5DB),
-                            letterSpacing: 0.5,
+                              // Player name
+                              Text(
+                                widget.data.displayName,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFFD1D5DB),
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                              const SizedBox(height: 32),
+
+                              // Badge: "LEVEL UP!"
+                              if (_badgeVisible)
+                                AnimatedBuilder(
+                                  animation: _badgeScale,
+                                  builder: (context, _) {
+                                    return Transform.scale(
+                                      scale: _badgeScale.value,
+                                      child: _buildLevelUpBadge(),
+                                    );
+                                  },
+                                ),
+
+                              const SizedBox(height: 40),
+
+                              // Level counter: LV. OLD → NEW
+                              if (_levelCounterVisible) _buildLevelCounter(),
+
+                              const SizedBox(height: 32),
+
+                              // XP Progress bar
+                              if (_xpBarVisible) _buildXpBar(),
+                              const SizedBox(height: 48),
+
+                              // Buttons
+                              if (_buttonsVisible) _buildButtons(),
+
+                              const SizedBox(height: 40),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 32),
-
-                        // Badge: "LEVEL UP!"
-                        if (_badgeVisible)
-                          AnimatedBuilder(
-                            animation: _badgeScale,
-                            builder: (context, _) {
-                              return Transform.scale(
-                                scale: _badgeScale.value,
-                                child: _buildLevelUpBadge(),
-                              );
-                            },
-                          ),
-
-                        const SizedBox(height: 40),
-
-                        // Level counter: LV. OLD → NEW
-                        if (_levelCounterVisible) _buildLevelCounter(),
-
-                        const SizedBox(height: 32),
-
-                        // XP Progress bar
-                        if (_xpBarVisible) _buildXpBar(),
-                        const SizedBox(height: 48),
-
-                        // Buttons
-                        if (_buttonsVisible) _buildButtons(),
-
-                        const SizedBox(height: 40),
-                      ],
-                    ),
-                  ),
+                      ),
+                    );
+                  },
                 ),
               ),
             ),
