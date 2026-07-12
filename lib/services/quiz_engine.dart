@@ -1,8 +1,17 @@
 import 'dart:math';
+import '../models/level_system.dart';
 
 /// Pure business logic for quiz scoring and shuffling.
 /// No Flutter or state dependencies.
 class QuizEngine {
+  /// Returns the blanket score multiplier for a given total score (XP).
+  /// Rookie (level 1) = x10, Amateur (level 2) = x15, Scholar (level 3) = x20, etc.
+  /// Formula: multiplier = (level * 5) + 5
+  static int rankMultiplier(int totalScore) {
+    final level = LevelSystem.getLevelNumber(totalScore);
+    return (level * 5) + 5;
+  }
+
   /// Fisher-Yates Shuffle Algorithm to ensure uniform random distribution.
   static void fisherYatesShuffle<T>(List<T> list) {
     final random = Random();

@@ -89,6 +89,10 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
   String _displayName = 'Scholar';
   String? _avatarUrl;
 
+  // Rank multiplier tracking
+  int _rankMultiplier = 1;
+  int _baseSessionScore = 0;
+
   // ─── Lifecycle ─────────────────────────────────────────────────────────────
   @override
   void initState() {
@@ -340,6 +344,8 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
     int updatedTotalScore = 0;
     String displayName = 'Scholar';
     String? avatarUrl;
+    int rankMultiplier = 1;
+    int baseSessionScore = 0;
 
     if (user != null && !widget.isOffline) {
       try {
@@ -354,18 +360,26 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
         displayName = userData?['displayName'] ?? 'Scholar';
         avatarUrl = userData?['avatarUrl'] as String?;
 
+        // Apply rank-based blanket score multiplier (Rookie x10, Amateur x15, etc.)
+        final multiplier = QuizEngine.rankMultiplier(oldTotalScore);
+        final multipliedScore = _score * multiplier;
+        rankMultiplier = multiplier;
+        baseSessionScore = _score;
+        _score =
+            multipliedScore; // Update _score so QuizResultsView shows the multiplied amount
+
         unlocked = await _db.processQuizCompletion(
           uid: user.uid,
           category: widget.category,
-          scoreIncrement: _score,
+          scoreIncrement: multipliedScore,
           correctIncrement: _correctAnswers,
           answeredIncrement: _questions.length,
           isTimed: widget.isTimed,
         );
 
-        // Compute updated total score locally: old total + net session score
-        // (net session score already accounts for penalty deductions)
-        updatedTotalScore = oldTotalScore + _score;
+        // Compute updated total score locally: old total + multiplied session score
+        // The rank multiplier is a blanket bonus on the entire session
+        updatedTotalScore = oldTotalScore + multipliedScore;
 
         // Record rank history entry after successful quiz completion
         // Calculate rank letter based on session performance percentage
@@ -409,6 +423,8 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
     _updatedTotalScore = updatedTotalScore;
     _displayName = displayName;
     _avatarUrl = avatarUrl;
+    _rankMultiplier = rankMultiplier;
+    _baseSessionScore = baseSessionScore;
 
     if (mounted) {
       setState(() {
@@ -534,6 +550,8 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
         avatarUrl: _avatarUrl,
         displayName: _displayName,
         penaltyDeductions: _penaltyDeductions,
+        rankMultiplier: _rankMultiplier,
+        baseSessionScore: _baseSessionScore,
       );
     }
 

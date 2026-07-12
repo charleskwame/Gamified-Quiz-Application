@@ -22,6 +22,8 @@ class QuizResultsView extends StatefulWidget {
   final String? avatarUrl;
   final String displayName;
   final int penaltyDeductions;
+  final int rankMultiplier;
+  final int baseSessionScore;
 
   const QuizResultsView({
     super.key,
@@ -39,6 +41,8 @@ class QuizResultsView extends StatefulWidget {
     this.avatarUrl,
     this.displayName = 'Scholar',
     this.penaltyDeductions = 0,
+    this.rankMultiplier = 1,
+    this.baseSessionScore = 0,
   });
 
   @override
@@ -434,6 +438,47 @@ class _QuizResultsViewState extends State<QuizResultsView>
                                             '${widget.penaltyDeductions} pts deducted',
                                             style: const TextStyle(
                                               color: Color(0xFFEF4444),
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                  // ── Rank Multiplier Badge ────────────
+                                  if (widget.rankMultiplier > 1 &&
+                                      !widget.isOffline) ...[
+                                    const SizedBox(height: 12),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 8,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: const Color(
+                                          0xFF6366F1,
+                                        ).withValues(alpha: 0.15),
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(
+                                          color: const Color(
+                                            0xFF6366F1,
+                                          ).withValues(alpha: 0.3),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(
+                                            Icons.auto_awesome_rounded,
+                                            color: Color(0xFF818CF8),
+                                            size: 14,
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            '${widget.baseSessionScore} × ${widget.rankMultiplier} = ${widget.score} XP',
+                                            style: const TextStyle(
+                                              color: Color(0xFF818CF8),
                                               fontSize: 12,
                                               fontWeight: FontWeight.w700,
                                             ),
