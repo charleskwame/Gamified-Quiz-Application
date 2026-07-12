@@ -42,7 +42,6 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
   final DatabaseService _db = DatabaseService();
 
   // ─── State ─────────────────────────────────────────────────────────────────
-
   int _consecutiveIncorrect = 0;
   int _consecutiveCorrect = 0;
   AnimationController? _aiButtonAnimationController;
@@ -80,14 +79,17 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
   String? _randomQuoteText;
   String? _randomQuoteAuthor;
 
+  // Penalty tracking
+  int _penaltyDeductions = 0;
+
   // Level-up tracking
   int _oldLevel = 1;
+  int _oldTotalScore = 0;
   int _updatedTotalScore = 0;
   String _displayName = 'Scholar';
   String? _avatarUrl;
 
   // ─── Lifecycle ─────────────────────────────────────────────────────────────
-
   @override
   void initState() {
     super.initState();
@@ -204,7 +206,16 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
       _consecutiveCorrect = 0;
       _incorrectQuestions.add(currentQuestion);
       _answerResults.add(false);
-      _showScorePopup = false;
+
+      // Apply penalty if 2+ consecutive incorrect
+      if (_consecutiveIncorrect >= 2 && _score > 0) {
+        _score -= 1;
+        _penaltyDeductions++;
+        _lastScoreIncrement = -1;
+        _showScorePopup = true;
+      } else {
+        _showScorePopup = false;
+      }
     });
 
     // Track this timed-out question as incorrect for lecturer insights
@@ -259,7 +270,16 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
         _consecutiveCorrect = 0;
         _consecutiveIncorrect++;
         _incorrectQuestions.add(currentQuestion);
-        _showScorePopup = false;
+
+        // Apply penalty if 2+ consecutive incorrect
+        if (_consecutiveIncorrect >= 2 && _score > 0) {
+          _score -= 1;
+          _penaltyDeductions++;
+          _lastScoreIncrement = -1;
+          _showScorePopup = true;
+        } else {
+          _showScorePopup = false;
+        }
 
         // Track this incorrect answer in Firestore for lecturer insights
         // (only for normal and timed modes, not offline)
@@ -316,6 +336,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
     final user = FirebaseAuth.instance.currentUser;
     List<String> unlocked = [];
     int oldLevel = 1;
+    int oldTotalScore = 0;
     int updatedTotalScore = _score;
     String displayName = 'Scholar';
     String? avatarUrl;
@@ -328,8 +349,8 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
             .doc(user.uid)
             .get();
         final userData = userDoc.data();
-        final oldScore = userData?['score'] ?? 0;
-        oldLevel = (oldScore ~/ 100) + 1;
+        oldTotalScore = userData?['score'] ?? 0;
+        oldLevel = (oldTotalScore ~/ 100) + 1;
         displayName = userData?['displayName'] ?? 'Scholar';
         avatarUrl = userData?['avatarUrl'] as String?;
 
@@ -388,6 +409,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
 
     // Store level data for results screen
     _oldLevel = oldLevel;
+    _oldTotalScore = oldTotalScore;
     _updatedTotalScore = updatedTotalScore;
     _displayName = displayName;
     _avatarUrl = avatarUrl;
@@ -511,9 +533,11 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
         quoteAuthor: _randomQuoteAuthor,
         onBack: () => Navigator.pop(context),
         oldLevel: _oldLevel,
+        oldTotalScore: _oldTotalScore,
         updatedTotalScore: _updatedTotalScore,
         avatarUrl: _avatarUrl,
         displayName: _displayName,
+        penaltyDeductions: _penaltyDeductions,
       );
     }
 

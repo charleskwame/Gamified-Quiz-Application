@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// A floating "+X pts" popup that animates upward and fades out.
+/// Supports negative values for penalty deductions (shown in red with minus).
 class QuizScorePopup extends StatefulWidget {
   final int points;
   final bool isTimed;
@@ -56,6 +57,25 @@ class _QuizScorePopupState extends State<QuizScorePopup>
     super.dispose();
   }
 
+  bool get _isPenalty => widget.points < 0;
+
+  Color get _popupColor {
+    if (_isPenalty) return const Color(0xFFEF4444); // Red for deductions
+    if (widget.isTimed) return const Color(0xFFF59E0B); // Amber for timed
+    return const Color(0xFF4ADE80); // Green for normal correct
+  }
+
+  IconData get _popupIcon {
+    if (_isPenalty) return Icons.remove_rounded;
+    if (widget.isTimed) return Icons.bolt_rounded;
+    return Icons.add_rounded;
+  }
+
+  String get _popupText {
+    if (_isPenalty) return '${widget.points} pts';
+    return '+${widget.points} pts';
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -72,17 +92,11 @@ class _QuizScorePopupState extends State<QuizScorePopup>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: widget.isTimed
-              ? const Color(0xFFF59E0B)
-              : const Color(0xFF4ADE80),
+          color: _popupColor,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color:
-                  (widget.isTimed
-                          ? const Color(0xFFF59E0B)
-                          : const Color(0xFF4ADE80))
-                      .withValues(alpha: 0.08),
+              color: _popupColor.withValues(alpha: 0.08),
               blurRadius: 3,
               offset: const Offset(0, 1),
             ),
@@ -91,14 +105,10 @@ class _QuizScorePopupState extends State<QuizScorePopup>
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              widget.isTimed ? Icons.bolt_rounded : Icons.add_rounded,
-              color: Colors.white,
-              size: 16,
-            ),
+            Icon(_popupIcon, color: Colors.white, size: 16),
             const SizedBox(width: 4),
             Text(
-              '+${widget.points} pts',
+              _popupText,
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 15,
