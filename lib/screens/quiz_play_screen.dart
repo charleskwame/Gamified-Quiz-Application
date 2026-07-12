@@ -337,7 +337,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
     List<String> unlocked = [];
     int oldLevel = 1;
     int oldTotalScore = 0;
-    int updatedTotalScore = _score;
+    int updatedTotalScore = 0;
     String displayName = 'Scholar';
     String? avatarUrl;
 
@@ -363,13 +363,9 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
           isTimed: widget.isTimed,
         );
 
-        // Read updated score after processing
-        final updatedDoc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .get();
-        final updatedData = updatedDoc.data();
-        updatedTotalScore = updatedData?['score'] ?? _score;
+        // Compute updated total score locally: old total + net session score
+        // (net session score already accounts for penalty deductions)
+        updatedTotalScore = oldTotalScore + _score;
 
         // Record rank history entry after successful quiz completion
         // Calculate rank letter based on session performance percentage
