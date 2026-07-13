@@ -7,7 +7,9 @@ import '../screens/quiz_home_screen.dart';
 import '../screens/rankings_page.dart';
 import '../screens/profile_page.dart';
 import '../services/auth_service.dart';
+import '../services/update_service.dart';
 import 'home/particle_background.dart';
+import 'update_notification.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -18,7 +20,10 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   final AuthService _authService = AuthService();
+  final UpdateService _updateService = UpdateService();
   int _selectedIndex = 0;
+  UpdateInfo? _updateInfo;
+  bool _dismissedUpdate = false;
 
   /// Set to false to temporarily hide the bottom navigation bar.
   /// For debugging purposes only remove after use
@@ -122,22 +127,46 @@ class _MainNavigationState extends State<MainNavigation> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _checkForUpdate();
+  }
+
+  Future<void> _checkForUpdate() async {
+    final info = await _updateService.checkForUpdate();
+    if (mounted && info.available) {
+      setState(() => _updateInfo = info);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return ParticleBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: Stack(
           children: [
-            IndexedStack(
-              index: _selectedIndex,
+            Column(
               children: [
-                QuizHomePage(
-                  onNavigateToRanks: () {
-                    setState(() => _selectedIndex = 1);
-                  },
+                if (_updateInfo != null && !_dismissedUpdate)
+                  UpdateBanner(
+                    updateInfo: _updateInfo!,
+                    onDismiss: () => setState(() => _dismissedUpdate = true),
+                  ),
+                Expanded(
+                  child: IndexedStack(
+                    index: _selectedIndex,
+                    children: [
+                      QuizHomePage(
+                        onNavigateToRanks: () {
+                          setState(() => _selectedIndex = 1);
+                        },
+                      ),
+                      const RankingsPage(),
+                      const ProfilePage(),
+                    ],
+                  ),
                 ),
-                const RankingsPage(),
-                const ProfilePage(),
               ],
             ),
             if (showNavBar) _buildNavBar(),
