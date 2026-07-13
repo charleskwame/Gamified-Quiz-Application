@@ -17,14 +17,10 @@ jobs:
         run: |
           echo "${{ secrets.KEY_STORE }}" | base64 --decode > android/key.properties
           sed -i 's|^storeFile=.*|storeFile=upload-keystore.jks|' android/key.properties
-          sed -i 's|^storeType=.*|storeType=jks|' android/key.properties
-          if ! grep -q '^storeType=' android/key.properties; then echo 'storeType=jks' >> android/key.properties; fi
-          echo "${{ secrets.KEYSTORE_FILE }}" | base64 --decode > android/app/upload-keystore.p12
+          sed -i 's|^storeType=.*|storeType=pkcs12|' android/key.properties
+          if ! grep -q '^storeType=' android/key.properties; then echo 'storeType=pkcs12' >> android/key.properties; fi
+          echo "${{ secrets.KEYSTORE_FILE }}" | base64 --decode > android/app/upload-keystore.jks
           echo "${{ secrets.GOOGLE_SERVICES }}" | base64 --decode > android/app/google-services.json
-          STORE_PASSWORD=$(grep '^storePassword=' android/key.properties | cut -d'=' -f2-)
-          KEY_PASSWORD=$(grep '^keyPassword=' android/key.properties | cut -d'=' -f2-)
-          keytool -importkeystore -srckeystore android/app/upload-keystore.p12 -srcstoretype PKCS12 -destkeystore android/app/upload-keystore.jks -deststoretype JKS -srcstorepass "$STORE_PASSWORD" -deststorepass "$STORE_PASSWORD" -srcalias upload -destalias upload -srckeypass "$KEY_PASSWORD" -destkeypass "$KEY_PASSWORD" -noprompt
-          rm android/app/upload-keystore.p12
 
       - name: 🎯 Setup Flutter SDK
         uses: subosito/flutter-action@v2
