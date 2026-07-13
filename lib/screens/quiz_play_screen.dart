@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:confetti/confetti.dart';
 import '../models/question.dart';
+import '../models/level_system.dart';
 import '../services/database_service.dart';
 import '../services/quiz_engine.dart';
 import '../services/quote_service.dart';
@@ -88,10 +89,6 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
   int _updatedTotalScore = 0;
   String _displayName = 'Scholar';
   String? _avatarUrl;
-
-  // Rank multiplier tracking
-  int _rankMultiplier = 1;
-  int _baseSessionScore = 0;
 
   // ─── Lifecycle ─────────────────────────────────────────────────────────────
   @override
@@ -203,19 +200,21 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
 
   void _handleTimeOut() {
     final currentQuestion = _questions[_currentIndex];
+    _consecutiveIncorrect++; // Increment BEFORE computing penalty
+    final penalty = QuizEngine.timeoutPenalty(_consecutiveIncorrect);
     setState(() {
       _isAnswered = true;
       _selectedOption = '';
-      _consecutiveIncorrect++;
       _consecutiveCorrect = 0;
       _incorrectQuestions.add(currentQuestion);
       _answerResults.add(false);
 
-      // Apply penalty if 2+ consecutive incorrect
-      if (_consecutiveIncorrect >= 2 && _score > 0) {
-        _score -= 1;
-        _penaltyDeductions++;
-        _lastScoreIncrement = -1;
+      // Apply penalty (floor at 0 so score never goes negative)
+      final deduction = penalty.clamp(0, _score);
+      if (deduction > 0) {
+        _score -= deduction;
+        _penaltyDeductions += deduction;
+        _lastScoreIncrement = -deduction;
         _showScorePopup = true;
       } else {
         _showScorePopup = false;
@@ -257,13 +256,13 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
         _consecutiveIncorrect = 0;
 
         if (widget.isTimed) {
-          _score += QuizEngine.timedScoreIncrement(_consecutiveCorrect);
-          _lastScoreIncrement = QuizEngine.timedScoreIncrement(
-            _consecutiveCorrect,
-          );
+          final increment = QuizEngine.timedScoreIncrement(_consecutiveCorrect);
+          _score += increment;
+          _lastScoreIncrement = increment;
         } else {
-          _score += 5;
-          _lastScoreIncrement = 5;
+          final increment = QuizEngine.normalScoreIncrement();
+          _score += increment;
+          _lastScoreIncrement = increment;
         }
         _showScorePopup = true;
 
@@ -275,11 +274,16 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
         _consecutiveIncorrect++;
         _incorrectQuestions.add(currentQuestion);
 
-        // Apply penalty if 2+ consecutive incorrect
-        if (_consecutiveIncorrect >= 2 && _score > 0) {
-          _score -= 1;
-          _penaltyDeductions++;
-          _lastScoreIncrement = -1;
+        // Apply immediate penalty for wrong answer (compounds with consecutive wrongs)
+        final penalty = QuizEngine.incorrectPenalty(
+          _consecutiveIncorrect,
+          isTimed: widget.isTimed,
+        );
+        final deduction = penalty.clamp(0, _score);
+        if (deduction > 0) {
+          _score -= deduction;
+          _penaltyDeductions += deduction;
+          _lastScoreIncrement = -deduction;
           _showScorePopup = true;
         } else {
           _showScorePopup = false;
@@ -344,8 +348,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
     int updatedTotalScore = 0;
     String displayName = 'Scholar';
     String? avatarUrl;
-    int rankMultiplier = 1;
-    int baseSessionScore = 0;
+    int finalSessionScore = 0;
 
     if (user != null && !widget.isOffline) {
       try {
@@ -356,30 +359,24 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
             .get();
         final userData = userDoc.data();
         oldTotalScore = userData?['score'] ?? 0;
-        oldLevel = (oldTotalScore ~/ 100) + 1;
         displayName = userData?['displayName'] ?? 'Scholar';
         avatarUrl = userData?['avatarUrl'] as String?;
 
-        // Apply rank-based blanket score multiplier (Rookie x10, Amateur x15, etc.)
-        final multiplier = QuizEngine.rankMultiplier(oldTotalScore);
-        final multipliedScore = _score * multiplier;
-        rankMultiplier = multiplier;
-        baseSessionScore = _score;
-        _score =
-            multipliedScore; // Update _score so QuizResultsView shows the multiplied amount
+        // Apply session XP cap: the session score cannot exceed 30% of XP needed for next level
+        final sessionXpCap = QuizEngine.sessionXpCap(oldTotalScore);
+        finalSessionScore = _score.clamp(0, sessionXpCap);
 
         unlocked = await _db.processQuizCompletion(
           uid: user.uid,
           category: widget.category,
-          scoreIncrement: multipliedScore,
+          scoreIncrement: finalSessionScore,
           correctIncrement: _correctAnswers,
           answeredIncrement: _questions.length,
           isTimed: widget.isTimed,
         );
 
-        // Compute updated total score locally: old total + multiplied session score
-        // The rank multiplier is a blanket bonus on the entire session
-        updatedTotalScore = oldTotalScore + multipliedScore;
+        // Compute updated total score locally: old total + session score (capped)
+        updatedTotalScore = oldTotalScore + finalSessionScore;
 
         // Record rank history entry after successful quiz completion
         // Calculate rank letter based on session performance percentage
@@ -417,14 +414,17 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
     _randomQuoteText = quote?.$1;
     _randomQuoteAuthor = quote?.$2;
 
+    // Compute old level from the LevelSystem (not a simple division anymore)
+    oldLevel = LevelSystem.getLevelNumber(oldTotalScore);
+
     // Store level data for results screen
     _oldLevel = oldLevel;
     _oldTotalScore = oldTotalScore;
     _updatedTotalScore = updatedTotalScore;
     _displayName = displayName;
     _avatarUrl = avatarUrl;
-    _rankMultiplier = rankMultiplier;
-    _baseSessionScore = baseSessionScore;
+    _score =
+        finalSessionScore; // Update _score to the capped amount for display
 
     if (mounted) {
       setState(() {
@@ -445,7 +445,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
       }
 
       // Check for level-up after a short delay (after badge dialogs dismiss)
-      final newLevel = (updatedTotalScore ~/ 100) + 1;
+      final newLevel = LevelSystem.getLevelNumber(updatedTotalScore);
       if (newLevel > oldLevel) {
         Future.delayed(const Duration(milliseconds: 1500), () {
           if (mounted) {
@@ -550,8 +550,6 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
         avatarUrl: _avatarUrl,
         displayName: _displayName,
         penaltyDeductions: _penaltyDeductions,
-        rankMultiplier: _rankMultiplier,
-        baseSessionScore: _baseSessionScore,
       );
     }
 

@@ -15,9 +15,9 @@ class QuizStreakBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double bonusMultiplier = (consecutiveCorrect - 1) * 0.5;
-    final double totalMultiplier = 1.0 + bonusMultiplier;
-    final String multiplierText = totalMultiplier.toStringAsFixed(1);
+    // Additive streak bonus: each consecutive correct beyond 1st adds 1 bonus point.
+    final int streakBonus = consecutiveCorrect - 1;
+    final String multiplierText = '+$streakBonus';
 
     return AnimatedBuilder(
       animation: animationController,
