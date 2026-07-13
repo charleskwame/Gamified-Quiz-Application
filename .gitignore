@@ -44,3 +44,6 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# Keystore file for release signing (not committed)
+/android/app/upload-keystore.jks
+
