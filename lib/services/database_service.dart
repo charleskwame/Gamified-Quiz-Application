@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/avatar_options.dart';
@@ -515,48 +516,59 @@ class DatabaseService {
   }
 
   // One-time migration: grants 100 starting quiz coins to all existing users
-  // who have less than 100 coins. Handles batches of 500 (Firestore limit).
+  // who have less than 100 coins. Uses pagination to handle large collections.
+  // Filters out lecturers in-memory (avoids needing a composite index).
   // Returns the number of users updated.
   Future<int> seedInitialCoinsForAllUsers() async {
     int totalUpdated = 0;
 
     try {
-      final snapshot = await _db
-          .collection('users')
-          .where('role', isNotEqualTo: 'lecturer')
-          .get();
+      DocumentSnapshot? lastDoc;
+      bool hasMore = true;
 
-      final batches = <WriteBatch>[];
-      WriteBatch currentBatch = _db.batch();
-      int batchCount = 0;
+      while (hasMore) {
+        Query query = _db.collection('users').orderBy('__name__').limit(500);
 
-      for (final doc in snapshot.docs) {
-        final data = doc.data();
-        final currentCoins = data['quizCoins'] as int? ?? 0;
+        if (lastDoc != null) {
+          query = query.startAfterDocument(lastDoc);
+        }
 
-        if (currentCoins < 100) {
-          currentBatch.update(doc.reference, {'quizCoins': 100});
-          batchCount++;
-          totalUpdated++;
+        final snapshot = await query.get();
 
-          if (batchCount >= 450) {
-            batches.add(currentBatch);
-            currentBatch = _db.batch();
-            batchCount = 0;
+        if (snapshot.docs.isEmpty) {
+          hasMore = false;
+          break;
+        }
+
+        lastDoc = snapshot.docs.last;
+
+        // Filter out lecturers in-memory and build the batch
+        final WriteBatch batch = _db.batch();
+        int batchCount = 0;
+
+        for (final doc in snapshot.docs) {
+          final data = doc.data() as Map<String, dynamic>?;
+          if (data == null) continue;
+          final role = data['role'] as String?;
+          // Skip lecturers
+          if (role == 'lecturer') continue;
+
+          final currentCoins = data['quizCoins'] as int? ?? 0;
+          if (currentCoins < 100) {
+            batch.update(doc.reference, {'quizCoins': 100});
+            batchCount++;
+            totalUpdated++;
           }
         }
-      }
 
-      // Commit remaining batch
-      if (batchCount > 0) {
-        batches.add(currentBatch);
-      }
+        if (batchCount > 0) {
+          await batch.commit();
+        }
 
-      // Commit all batches sequentially
-      for (final batch in batches) {
-        await batch.commit();
+        hasMore = snapshot.docs.length >= 500;
       }
     } catch (e) {
+      debugPrint('seedInitialCoinsForAllUsers error: $e');
       // Return whatever count we got so far
     }
 
