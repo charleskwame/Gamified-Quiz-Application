@@ -5,121 +5,248 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../services/database_service.dart';
 import '../models/shop_item.dart';
 
-/// Placeholder shop screen displaying cosmetic power-up items.
-/// All items are for display only — no purchase logic is implemented yet.
-/// Displays live coin balance streamed from Firestore.
-class ShopScreen extends StatelessWidget {
+/// Shop screen displaying purchasable power-up items.
+/// Shows live coin balance and item counts from Firestore.
+/// Users can tap BUY to purchase items with quiz coins.
+class ShopScreen extends StatefulWidget {
   const ShopScreen({super.key});
+
+  @override
+  State<ShopScreen> createState() => _ShopScreenState();
+}
+
+class _ShopScreenState extends State<ShopScreen> {
+  final DatabaseService _db = DatabaseService();
+  final Set<String> _purchasing = {}; // Track which items are being purchased
+
+  Future<void> _buyItem(ShopItem item, String uid) async {
+    if (_purchasing.contains(item.id)) return;
+
+    setState(() => _purchasing.add(item.id));
+
+    try {
+      final success = await _db.purchaseItem(
+        uid: uid,
+        itemId: item.id,
+        price: item.price,
+        maxItems: 3,
+      );
+
+      if (!mounted) return;
+
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('✅ Purchased ${item.name}!'),
+            backgroundColor: const Color(0xFF4ADE80),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.only(bottom: 100, left: 20, right: 20),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Not enough coins or at max capacity (3)!'),
+            backgroundColor: const Color(0xFFEF4444),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.only(bottom: 100, left: 20, right: 20),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Purchase failed: $e'),
+          backgroundColor: const Color(0xFFEF4444),
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.only(bottom: 100, left: 20, right: 20),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _purchasing.remove(item.id));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
+    final uid = user?.uid;
 
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 24, 20, 100),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ─── Header ─────────────────────────────────
-            const Text(
-              '🏪 Shop',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.w900,
-                color: Colors.white,
-              ),
+    // If not logged in, show a simple message
+    if (uid == null) {
+      return SafeArea(
+        child: Center(
+          child: Text(
+            'Sign in to access the shop',
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.5),
+              fontSize: 16,
             ),
-            const SizedBox(height: 6),
-            const Text(
-              'Power-ups and items to enhance your quiz experience',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF9CA3AF),
-              ),
-            ),
-            const SizedBox(height: 28),
+          ),
+        ),
+      );
+    }
 
-            // ─── Coin Balance (live from Firestore) ─────
-            _buildCoinBalance(user?.uid),
-            const SizedBox(height: 28),
+    // Stream user data for live balances
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .snapshots(),
+      builder: (context, snapshot) {
+        final data = snapshot.data?.data() as Map<String, dynamic>?;
+        final coins = data?['quizCoins'] as int? ?? 0;
+        final shieldCount = data?['shieldCount'] as int? ?? 0;
+        final skipCount = data?['skipCount'] as int? ?? 0;
+        final pauseCount = data?['pauseTimerCount'] as int? ?? 0;
 
-            // ─── Shop Items ─────────────────────────────
-            ...List.generate(ShopItem.placeholderItems.length, (index) {
-              return _buildAnimatedSection(
-                index: index,
-                child: _ShopItemCard(item: ShopItem.placeholderItems[index]),
-              );
-            }),
+        // Map item IDs to their current count
+        int getCount(String itemId) {
+          switch (itemId) {
+            case 'shield':
+              return shieldCount;
+            case 'skip_question':
+              return skipCount;
+            case 'no_deductions':
+              return pauseCount;
+            default:
+              return 0;
+          }
+        }
 
-            const SizedBox(height: 32),
-
-            // ─── Footer note ────────────────────────────
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1E2246).withValues(alpha: 0.6),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: const Color(0xFF2D3361).withValues(alpha: 0.5),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.info_outline_rounded,
-                    color: const Color(0xFF6366F1).withValues(alpha: 0.7),
-                    size: 20,
+        return SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 24, 20, 100),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ─── Header ─────────────────────────────────
+                const Text(
+                  '🏪 Shop',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Items will be purchasable with Quiz Coins 🪙 in a future update. Stay tuned!',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: const Color(0xFF9CA3AF).withValues(alpha: 0.8),
-                        height: 1.4,
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Power-ups and items to enhance your quiz experience',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF9CA3AF),
+                  ),
+                ),
+                const SizedBox(height: 28),
+
+                // ─── Coin Balance (live from Firestore) ─────
+                _buildCoinBalance(coins),
+                const SizedBox(height: 28),
+
+                // ─── Shop Items ─────────────────────────────
+                ...List.generate(ShopItem.placeholderItems.length, (index) {
+                  final item = ShopItem.placeholderItems[index];
+                  final count = getCount(item.id);
+                  return _buildAnimatedSection(
+                    index: index,
+                    child: _ShopItemCard(
+                      item: item,
+                      ownedCount: count,
+                      canAfford: coins >= item.price,
+                      isPurchasing: _purchasing.contains(item.id),
+                      onBuy: () => _buyItem(item, uid),
+                    ),
+                  );
+                }),
+
+                const SizedBox(height: 32),
+
+                // ─── Footer note ────────────────────────────
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E2246).withValues(alpha: 0.6),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: const Color(0xFF2D3361).withValues(alpha: 0.5),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.info_outline_rounded,
+                        color: const Color(0xFF6366F1).withValues(alpha: 0.7),
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'You can hold a maximum of 3 of each item at a time.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: const Color(
+                              0xFF9CA3AF,
+                            ).withValues(alpha: 0.8),
+                            height: 1.4,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // ─── Debug: Seed coins for all users (debug mode only) ──
+                if (kDebugMode) ...[
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () => _seedAllCoins(context),
+                      icon: const Icon(Icons.auto_fix_high_rounded, size: 16),
+                      label: const Text(
+                        '🪙 Give 100 coins to all existing users',
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFFFFD700),
+                        side: const BorderSide(
+                          color: Color(0xFFFFD700),
+                          width: 1,
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                   ),
                 ],
-              ),
+              ],
             ),
-
-            // ─── Debug: Seed coins for all users (debug mode only) ──
-            if (kDebugMode) ...[
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: () => _seedAllCoins(context),
-                  icon: const Icon(Icons.auto_fix_high_rounded, size: 16),
-                  label: const Text('🪙 Give 100 coins to all existing users'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFFFFD700),
-                    side: const BorderSide(color: Color(0xFFFFD700), width: 1),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
   Future<void> _seedAllCoins(BuildContext context) async {
-    final db = DatabaseService();
     final scaffold = ScaffoldMessenger.of(context);
     try {
-      final count = await db.seedInitialCoinsForAllUsers();
+      final count = await _db.seedInitialCoinsForAllUsers();
       if (!context.mounted) return;
       scaffold.showSnackBar(
         SnackBar(
@@ -149,101 +276,81 @@ class ShopScreen extends StatelessWidget {
     }
   }
 
-  Widget _buildCoinBalance(String? uid) {
-    // Stream live coin balance from Firestore
-    Stream<int> coinStream() {
-      if (uid == null) return Stream.value(0);
-      return FirebaseFirestore.instance
-          .collection('users')
-          .doc(uid)
-          .snapshots()
-          .map((snap) => snap.data()?['quizCoins'] as int? ?? 0);
-    }
-
-    return StreamBuilder<int>(
-      stream: coinStream(),
-      builder: (context, snapshot) {
-        final coins = snapshot.data ?? 0;
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF1E2246), Color(0xFF2D3361)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+  Widget _buildCoinBalance(int coins) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF1E2246), Color(0xFF2D3361)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: const Color(0xFF3D4375).withValues(alpha: 0.5),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFD700).withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(14),
             ),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: const Color(0xFF3D4375).withValues(alpha: 0.5),
+            child: const Center(
+              child: Text('🪙', style: TextStyle(fontSize: 24)),
             ),
           ),
-          child: Row(
+          const SizedBox(width: 14),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFD700).withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: const Center(
-                  child: Text('🪙', style: TextStyle(fontSize: 24)),
+              const Text(
+                'Quiz Coins',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF6B7280),
+                  letterSpacing: 0.5,
                 ),
               ),
-              const SizedBox(width: 14),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Quiz Coins',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF6B7280),
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '$coins 🪙',
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w900,
-                      color: Color(0xFFFFD700),
-                    ),
-                  ),
-                ],
-              ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF6366F1).withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: const Color(0xFF6366F1).withValues(alpha: 0.3),
-                  ),
-                ),
-                child: const Text(
-                  'Earn more',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF818CF8),
-                  ),
+              const SizedBox(height: 2),
+              Text(
+                '$coins 🪙',
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFFFFD700),
                 ),
               ),
             ],
           ),
-        );
-      },
+          const Spacer(),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: const Color(0xFF6366F1).withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: const Color(0xFF6366F1).withValues(alpha: 0.3),
+              ),
+            ),
+            child: const Text(
+              'Earn more',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF818CF8),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  /// Wraps content in a staggered slide-up animation (matching home screen style).
   Widget _buildAnimatedSection({required int index, required Widget child}) {
     return _StaggeredFadeSlide(index: index + 1, child: child);
   }
@@ -253,11 +360,23 @@ class ShopScreen extends StatelessWidget {
 
 class _ShopItemCard extends StatelessWidget {
   final ShopItem item;
+  final int ownedCount;
+  final bool canAfford;
+  final bool isPurchasing;
+  final VoidCallback onBuy;
 
-  const _ShopItemCard({required this.item});
+  const _ShopItemCard({
+    required this.item,
+    required this.ownedCount,
+    required this.canAfford,
+    required this.isPurchasing,
+    required this.onBuy,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final bool isMaxed = ownedCount >= 3;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Container(
@@ -305,12 +424,25 @@ class _ShopItemCard extends StatelessWidget {
                         height: 1.3,
                       ),
                     ),
+                    if (ownedCount > 0) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        'Owned: $ownedCount / 3',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: isMaxed
+                              ? const Color(0xFFFFD700)
+                              : item.color.withValues(alpha: 0.8),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
               const SizedBox(width: 12),
 
-              // ─── Price & Status ────────────────────
+              // ─── Price & Buy Button ────────────────
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -345,29 +477,68 @@ class _ShopItemCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
 
-                  // Coming Soon badge
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 3,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEF4444).withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: const Color(0xFFEF4444).withValues(alpha: 0.3),
+                  // Buy button or status
+                  if (isMaxed)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFD700).withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: const Color(0xFFFFD700).withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: const Text(
+                        'MAXED',
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFFFFD700),
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                    )
+                  else if (isPurchasing)
+                    const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  else
+                    SizedBox(
+                      width: 60,
+                      height: 32,
+                      child: FilledButton(
+                        onPressed: canAfford ? onBuy : null,
+                        style: FilledButton.styleFrom(
+                          backgroundColor: canAfford
+                              ? item.color
+                              : Colors.grey.withValues(alpha: 0.3),
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.zero,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          disabledBackgroundColor: Colors.grey.withValues(
+                            alpha: 0.15,
+                          ),
+                          disabledForegroundColor: Colors.grey.withValues(
+                            alpha: 0.5,
+                          ),
+                        ),
+                        child: Text(
+                          canAfford ? 'BUY' : '💸',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1,
+                          ),
+                        ),
                       ),
                     ),
-                    child: const Text(
-                      'COMING SOON',
-                      style: TextStyle(
-                        fontSize: 9,
-                        fontWeight: FontWeight.w900,
-                        color: Color(0xFFEF4444),
-                        letterSpacing: 0.8,
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ],

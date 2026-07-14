@@ -26,7 +26,7 @@ class ShopItem {
       description: 'Protects you from one wrong answer penalty',
       icon: Icons.shield_rounded,
       color: Color(0xFF6366F1),
-      price: 500,
+      price: 50,
     ),
     ShopItem(
       id: 'skip_question',
@@ -34,7 +34,7 @@ class ShopItem {
       description: 'Skip a difficult question without penalty',
       icon: Icons.skip_next_rounded,
       color: Color(0xFF4ADE80),
-      price: 350,
+      price: 50,
     ),
     ShopItem(
       id: 'no_deductions',
@@ -42,7 +42,7 @@ class ShopItem {
       description: 'Negates all point deductions for one quiz',
       icon: Icons.block_rounded,
       color: Color(0xFFF59E0B),
-      price: 750,
+      price: 75,
     ),
   ];
 }

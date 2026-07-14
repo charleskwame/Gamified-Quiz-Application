@@ -515,6 +515,63 @@ class DatabaseService {
     });
   }
 
+  // Purchases an item from the shop using a Firestore transaction.
+  // Deducts coins and increments the item count atomically.
+  // Returns true on success, false if insufficient coins or at max capacity.
+  // maxItems is the maximum number the user can hold (default 3).
+  Future<bool> purchaseItem({
+    required String uid,
+    required String itemId,
+    required int price,
+    int maxItems = 3,
+  }) async {
+    final userRef = _db.collection('users').doc(uid);
+    bool success = false;
+
+    try {
+      await _db.runTransaction((transaction) async {
+        final userSnap = await transaction.get(userRef);
+        if (!userSnap.exists) return;
+
+        final data = userSnap.data() as Map<String, dynamic>;
+        final currentCoins = data['quizCoins'] as int? ?? 0;
+
+        if (currentCoins < price) return; // Not enough coins
+
+        // Map item IDs to their Firestore field names
+        String countField;
+        switch (itemId) {
+          case 'shield':
+            countField = 'shieldCount';
+            break;
+          case 'skip_question':
+            countField = 'skipCount';
+            break;
+          case 'no_deductions':
+            countField = 'pauseTimerCount';
+            break;
+          default:
+            return; // Unknown item
+        }
+
+        final currentCount = data[countField] as int? ?? 0;
+        if (currentCount >= maxItems) return; // At max capacity
+
+        transaction.update(userRef, {
+          'quizCoins': FieldValue.increment(-price),
+          countField: FieldValue.increment(1),
+        });
+
+        success = true;
+      });
+    } catch (e) {
+      debugPrint('purchaseItem error: $e');
+      success = false;
+    }
+
+    return success;
+  }
+
   // One-time migration: grants 100 starting quiz coins to all existing users
   // who have less than 100 coins. Uses pagination to handle large collections.
   // Filters out lecturers in-memory (avoids needing a composite index).
