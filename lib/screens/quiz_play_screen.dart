@@ -921,49 +921,43 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
                 ),
               ),
 
-            // Pause timer indicator (bottom-left, top of stack)
-            if (showPause)
-              Positioned(
-                left: 8,
-                bottom: MediaQuery.of(context).padding.bottom + 164,
-                child: IgnorePointer(
-                  ignoring: _isAnswered,
-                  child: QuizPauseIndicator(
-                    pauseCount: _pauseTimerCount,
-                    isPaused: _timerPaused,
-                    onTap: _usePauseTimer,
-                    animationController: _pauseAnimationController!,
-                  ),
-                ),
-              ),
-
-            // Skip indicator (bottom-left, middle of stack)
-            if (showSkip)
-              Positioned(
-                left: 8,
-                bottom: MediaQuery.of(context).padding.bottom + 86,
-                child: IgnorePointer(
-                  ignoring: _isAnswered,
-                  child: QuizSkipIndicator(
-                    skipCount: _skipCount,
-                    onTap: _useSkip,
-                    animationController: _skipAnimationController!,
-                  ),
-                ),
-              ),
-
-            // Shield indicator (bottom-left, bottom of stack)
-            if (showShield)
+            // Shop items row (bottom-left, horizontal alignment)
+            if (showShield || showSkip || showPause)
               Positioned(
                 left: 8,
                 bottom: MediaQuery.of(context).padding.bottom + 8,
                 child: IgnorePointer(
                   ignoring: _isAnswered,
-                  child: QuizShieldIndicator(
-                    shieldsRemaining: _shieldsRemaining,
-                    isShieldActive: _shieldActive,
-                    onTap: _activateShield,
-                    animationController: _shieldAnimationController!,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (showPause)
+                        QuizPauseIndicator(
+                          pauseCount: _pauseTimerCount,
+                          isPaused: _timerPaused,
+                          onTap: _usePauseTimer,
+                          animationController: _pauseAnimationController!,
+                        ),
+                      if (showSkip)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8),
+                          child: QuizSkipIndicator(
+                            skipCount: _skipCount,
+                            onTap: _useSkip,
+                            animationController: _skipAnimationController!,
+                          ),
+                        ),
+                      if (showShield)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8),
+                          child: QuizShieldIndicator(
+                            shieldsRemaining: _shieldsRemaining,
+                            isShieldActive: _shieldActive,
+                            onTap: _activateShield,
+                            animationController: _shieldAnimationController!,
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ),
