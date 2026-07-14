@@ -8,6 +8,7 @@ import '../models/question.dart';
 import '../models/level_system.dart';
 import '../services/database_service.dart';
 import '../services/quiz_engine.dart';
+import '../services/coin_service.dart';
 import '../services/quote_service.dart';
 import '../widgets/home/particle_background.dart';
 import '../widgets/quiz/quiz_loading_view.dart';
@@ -21,6 +22,9 @@ import '../widgets/quiz/quiz_ai_fab.dart';
 import '../widgets/quiz/quiz_game_option.dart';
 import '../widgets/quiz/quiz_score_popup.dart';
 import '../widgets/quiz/quiz_circular_timer.dart';
+import '../widgets/quiz/quiz_shield_indicator.dart';
+import '../widgets/quiz/quiz_skip_indicator.dart';
+import '../widgets/quiz/quiz_pause_indicator.dart';
 
 class QuizPlayScreen extends StatefulWidget {
   final String category;
@@ -48,6 +52,9 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
   AnimationController? _aiButtonAnimationController;
   AnimationController? _progressAnimationController;
   AnimationController? _flameAnimationController;
+  AnimationController? _shieldAnimationController;
+  AnimationController? _skipAnimationController;
+  AnimationController? _pauseAnimationController;
   AnimationController? _questionSlideController;
   final List<Question> _incorrectQuestions = [];
 
@@ -83,6 +90,25 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
   // Penalty tracking
   int _penaltyDeductions = 0;
 
+  // Shield tracking
+  int _shieldsRemaining = 0;
+  bool _shieldActive = false;
+  int _shieldsConsumed = 0;
+
+  // Skip tracking
+  int _skipCount = 0;
+  int _skipsConsumed = 0;
+
+  // Pause timer tracking
+  int _pauseTimerCount = 0;
+  bool _timerPaused = false;
+  int _pauseTimersConsumed = 0;
+
+  // Coin tracking
+  int _coinsEarned = 0;
+  int _currentStreakLength = 0;
+  final List<int> _streakSegments = [];
+
   // Level-up tracking
   int _oldLevel = 1;
   int _oldTotalScore = 0;
@@ -106,6 +132,18 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
       vsync: this,
       duration: const Duration(milliseconds: 800),
     )..repeat(reverse: true);
+    _shieldAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    )..repeat(reverse: true);
+    _skipAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    )..repeat(reverse: true);
+    _pauseAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    )..repeat(reverse: true);
     _questionSlideController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 350),
@@ -118,6 +156,9 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
     _progressAnimationController?.dispose();
     _aiButtonAnimationController?.dispose();
     _flameAnimationController?.dispose();
+    _shieldAnimationController?.dispose();
+    _skipAnimationController?.dispose();
+    _pauseAnimationController?.dispose();
     _questionSlideController?.dispose();
     _confettiController.dispose();
     super.dispose();
@@ -146,6 +187,9 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
         _isLoading = false;
       });
 
+      // Fetch item counts from Firestore
+      _fetchItemCounts();
+
       if (widget.isTimed) {
         _startTimer();
       }
@@ -156,6 +200,119 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
         _isLoading = false;
       });
     }
+  }
+
+  // ─── Item Counts ───────────────────────────────────────────────────────────
+
+  void _fetchItemCounts() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null || widget.isOffline) return;
+    FirebaseFirestore.instance.collection('users').doc(user.uid).get().then((
+      snap,
+    ) {
+      if (mounted) {
+        final data = snap.data();
+        setState(() {
+          _shieldsRemaining = data?['shieldCount'] as int? ?? 0;
+          _skipCount = data?['skipCount'] as int? ?? 0;
+          _pauseTimerCount = data?['pauseTimerCount'] as int? ?? 0;
+        });
+      }
+    });
+  }
+
+  void _activateShield() {
+    if (_isAnswered) return;
+    if (_shieldsRemaining <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('No shields remaining!'),
+          backgroundColor: const Color(0xFFEF4444),
+          duration: const Duration(milliseconds: 1200),
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.only(bottom: 100, left: 20, right: 20),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+      return;
+    }
+    setState(() {
+      _shieldActive = !_shieldActive;
+    });
+  }
+
+  void _useSkip() {
+    if (_isAnswered) return;
+    if (_skipCount <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('No skips remaining!'),
+          backgroundColor: const Color(0xFFEF4444),
+          duration: const Duration(milliseconds: 1200),
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.only(bottom: 100, left: 20, right: 20),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+      return;
+    }
+
+    // Consume a skip and advance immediately
+    _timer?.cancel();
+    _progressAnimationController?.stop();
+    _confettiController.stop();
+    _skipCount--;
+    _skipsConsumed++;
+
+    if (_currentIndex < _questions.length - 1) {
+      _questionSlideController?.forward(from: 0.0);
+      setState(() {
+        _currentIndex++;
+        _selectedOption = null;
+        _isAnswered = false;
+        _showScorePopup = false;
+        _shieldActive = false;
+      });
+      if (widget.isTimed) {
+        _startTimer();
+      }
+    } else {
+      _finishQuiz();
+    }
+  }
+
+  void _usePauseTimer() {
+    if (_isAnswered) return;
+    if (!widget.isTimed) return;
+    if (_pauseTimerCount <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('No pause timers remaining!'),
+          backgroundColor: const Color(0xFFEF4444),
+          duration: const Duration(milliseconds: 1200),
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.only(bottom: 100, left: 20, right: 20),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+      return;
+    }
+    if (_timerPaused) return; // Already paused
+
+    // Freeze the timer
+    _timer?.cancel();
+    _progressAnimationController?.stop();
+    _pauseTimerCount--;
+    _pauseTimersConsumed++;
+    setState(() {
+      _timerPaused = true;
+    });
   }
 
   // ─── Timer ─────────────────────────────────────────────────────────────────
@@ -179,6 +336,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
 
     setState(() {
       _timeLeft = 15;
+      _timerPaused = false;
     });
 
     _progressAnimationController!.forward(from: 0.0);
@@ -199,27 +357,47 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
   }
 
   void _handleTimeOut() {
+    // If timer was paused, skip the timeout
+    if (_timerPaused) return;
+
     final currentQuestion = _questions[_currentIndex];
     _consecutiveIncorrect++; // Increment BEFORE computing penalty
-    final penalty = QuizEngine.timeoutPenalty(_consecutiveIncorrect);
-    setState(() {
-      _isAnswered = true;
-      _selectedOption = '';
-      _consecutiveCorrect = 0;
-      _incorrectQuestions.add(currentQuestion);
-      _answerResults.add(false);
 
-      // Apply penalty (floor at 0 so score never goes negative)
-      final deduction = penalty.clamp(0, _score);
-      if (deduction > 0) {
-        _score -= deduction;
-        _penaltyDeductions += deduction;
-        _lastScoreIncrement = -deduction;
-        _showScorePopup = true;
-      } else {
+    // Check shield first
+    if (_shieldActive && _shieldsRemaining > 0) {
+      setState(() {
+        _isAnswered = true;
+        _selectedOption = '';
+        _consecutiveCorrect = 0;
+        _incorrectQuestions.add(currentQuestion);
+        _answerResults.add(false);
+        _shieldActive = false;
+        _shieldsRemaining--;
+        _shieldsConsumed++;
         _showScorePopup = false;
-      }
-    });
+        _lastScoreIncrement = 0;
+      });
+    } else {
+      final penalty = QuizEngine.timeoutPenalty(_consecutiveIncorrect);
+      setState(() {
+        _isAnswered = true;
+        _selectedOption = '';
+        _consecutiveCorrect = 0;
+        _incorrectQuestions.add(currentQuestion);
+        _answerResults.add(false);
+
+        // Apply penalty (floor at 0 so score never goes negative)
+        final deduction = penalty.clamp(0, _score);
+        if (deduction > 0) {
+          _score -= deduction;
+          _penaltyDeductions += deduction;
+          _lastScoreIncrement = -deduction;
+          _showScorePopup = true;
+        } else {
+          _showScorePopup = false;
+        }
+      });
+    }
 
     // Track this timed-out question as incorrect for lecturer insights
     if (!widget.isOffline) {
@@ -240,6 +418,10 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
     _timer?.cancel();
     _progressAnimationController?.stop();
 
+    setState(() {
+      _timerPaused = false;
+    });
+
     final currentQuestion = _questions[_currentIndex];
     final bool isCorrect = QuizEngine.isOptionCorrect(
       option,
@@ -253,6 +435,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
         _answerResults.add(true);
         _correctAnswers++;
         _consecutiveCorrect++;
+        _currentStreakLength++;
         _consecutiveIncorrect = 0;
 
         if (widget.isTimed) {
@@ -266,27 +449,44 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
         }
         _showScorePopup = true;
 
+        // Deactivate shield if it was active (not consumed since correct)
+        _shieldActive = false;
+
         // Trigger confetti for correct answers
         _confettiController.play();
       } else {
         _answerResults.add(false);
+        // Record the streak segment before resetting
+        if (_currentStreakLength > 0) {
+          _streakSegments.add(_currentStreakLength);
+          _currentStreakLength = 0;
+        }
         _consecutiveCorrect = 0;
         _consecutiveIncorrect++;
         _incorrectQuestions.add(currentQuestion);
 
-        // Apply immediate penalty for wrong answer (compounds with consecutive wrongs)
-        final penalty = QuizEngine.incorrectPenalty(
-          _consecutiveIncorrect,
-          isTimed: widget.isTimed,
-        );
-        final deduction = penalty.clamp(0, _score);
-        if (deduction > 0) {
-          _score -= deduction;
-          _penaltyDeductions += deduction;
-          _lastScoreIncrement = -deduction;
-          _showScorePopup = true;
-        } else {
+        // Check if shield is active — absorb penalty
+        if (_shieldActive && _shieldsRemaining > 0) {
+          _shieldsRemaining--;
+          _shieldsConsumed++;
+          _shieldActive = false;
+          _lastScoreIncrement = 0;
           _showScorePopup = false;
+        } else {
+          // Apply immediate penalty for wrong answer (compounds with consecutive wrongs)
+          final penalty = QuizEngine.incorrectPenalty(
+            _consecutiveIncorrect,
+            isTimed: widget.isTimed,
+          );
+          final deduction = penalty.clamp(0, _score);
+          if (deduction > 0) {
+            _score -= deduction;
+            _penaltyDeductions += deduction;
+            _lastScoreIncrement = -deduction;
+            _showScorePopup = true;
+          } else {
+            _showScorePopup = false;
+          }
         }
 
         // Track this incorrect answer in Firestore for lecturer insights
@@ -324,6 +524,8 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
         _selectedOption = null;
         _isAnswered = false;
         _showScorePopup = false;
+        _shieldActive = false; // Reset shield for next question
+        _timerPaused = false; // Reset pause for next question
       });
       if (widget.isTimed) {
         _startTimer();
@@ -349,6 +551,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
     String displayName = 'Scholar';
     String? avatarUrl;
     int finalSessionScore = 0;
+    int coinsEarned = 0;
 
     if (user != null && !widget.isOffline) {
       try {
@@ -366,6 +569,17 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
         final sessionXpCap = QuizEngine.sessionXpCap(oldTotalScore);
         finalSessionScore = _score.clamp(0, sessionXpCap);
 
+        // Calculate coins earned for this session
+        // Add any remaining streak segment not yet recorded
+        if (_currentStreakLength > 0) {
+          _streakSegments.add(_currentStreakLength);
+        }
+        coinsEarned = CoinService.totalCoinsWithBreaks(
+          _streakSegments,
+          widget.isTimed,
+        );
+        _coinsEarned = coinsEarned;
+
         unlocked = await _db.processQuizCompletion(
           uid: user.uid,
           category: widget.category,
@@ -373,6 +587,10 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
           correctIncrement: _correctAnswers,
           answeredIncrement: _questions.length,
           isTimed: widget.isTimed,
+          coinsEarned: coinsEarned,
+          shieldChange: -_shieldsConsumed,
+          skipChange: -_skipsConsumed,
+          pauseTimerChange: -_pauseTimersConsumed,
         );
 
         // Compute updated total score locally: old total + session score (capped)
@@ -550,12 +768,20 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
         avatarUrl: _avatarUrl,
         displayName: _displayName,
         penaltyDeductions: _penaltyDeductions,
+        coinsEarned: _coinsEarned,
       );
     }
 
     // ─── Quiz Question View ──────────────────────────────────────────────────
     final question = _questions[_currentIndex];
     final bool showStreakBadge = widget.isTimed && _consecutiveCorrect >= 2;
+    final bool showShield =
+        !widget.isOffline && _shieldAnimationController != null;
+    final bool showSkip = !widget.isOffline && _skipAnimationController != null;
+    final bool showPause =
+        widget.isTimed &&
+        !widget.isOffline &&
+        _pauseAnimationController != null;
 
     return ParticleBackground(
       isActive: true,
@@ -691,6 +917,53 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
                       points: _lastScoreIncrement,
                       isTimed: widget.isTimed,
                     ),
+                  ),
+                ),
+              ),
+
+            // Pause timer indicator (bottom-left, top of stack)
+            if (showPause)
+              Positioned(
+                left: 8,
+                bottom: MediaQuery.of(context).padding.bottom + 164,
+                child: IgnorePointer(
+                  ignoring: _isAnswered,
+                  child: QuizPauseIndicator(
+                    pauseCount: _pauseTimerCount,
+                    isPaused: _timerPaused,
+                    onTap: _usePauseTimer,
+                    animationController: _pauseAnimationController!,
+                  ),
+                ),
+              ),
+
+            // Skip indicator (bottom-left, middle of stack)
+            if (showSkip)
+              Positioned(
+                left: 8,
+                bottom: MediaQuery.of(context).padding.bottom + 86,
+                child: IgnorePointer(
+                  ignoring: _isAnswered,
+                  child: QuizSkipIndicator(
+                    skipCount: _skipCount,
+                    onTap: _useSkip,
+                    animationController: _skipAnimationController!,
+                  ),
+                ),
+              ),
+
+            // Shield indicator (bottom-left, bottom of stack)
+            if (showShield)
+              Positioned(
+                left: 8,
+                bottom: MediaQuery.of(context).padding.bottom + 8,
+                child: IgnorePointer(
+                  ignoring: _isAnswered,
+                  child: QuizShieldIndicator(
+                    shieldsRemaining: _shieldsRemaining,
+                    isShieldActive: _shieldActive,
+                    onTap: _activateShield,
+                    animationController: _shieldAnimationController!,
                   ),
                 ),
               ),

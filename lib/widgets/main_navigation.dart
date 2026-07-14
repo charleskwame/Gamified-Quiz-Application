@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import '../screens/quiz_home_screen.dart';
 import '../screens/rankings_page.dart';
+import '../screens/shop_screen.dart';
 import '../screens/profile_page.dart';
 import '../services/auth_service.dart';
 import 'home/particle_background.dart';
@@ -107,6 +108,12 @@ class _MainNavigationState extends State<MainNavigation> {
                   textColor: Colors.white,
                 ),
                 GButton(
+                  icon: Icons.store_rounded,
+                  text: 'Shop',
+                  iconActiveColor: const Color(0xFF4ADE80),
+                  textColor: Colors.white,
+                ),
+                GButton(
                   icon: Icons.person_rounded,
                   text: 'Profile',
                   iconActiveColor: Colors.white,
@@ -137,6 +144,7 @@ class _MainNavigationState extends State<MainNavigation> {
                   },
                 ),
                 const RankingsPage(),
+                const ShopScreen(),
                 const ProfilePage(),
               ],
             ),

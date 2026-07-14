@@ -6,7 +6,7 @@ import '../../models/badge.dart';
 import '../../models/level_system.dart';
 
 /// Displays the quiz completion/results screen with game-like UI.
-/// Includes animated XP progress bar, total score counter, and penalty info.
+/// Includes animated XP progress bar, total score counter, penalty info, and coins earned.
 class QuizResultsView extends StatefulWidget {
   final int score;
   final int correctAnswers;
@@ -22,6 +22,7 @@ class QuizResultsView extends StatefulWidget {
   final String? avatarUrl;
   final String displayName;
   final int penaltyDeductions;
+  final int coinsEarned;
 
   const QuizResultsView({
     super.key,
@@ -39,6 +40,7 @@ class QuizResultsView extends StatefulWidget {
     this.avatarUrl,
     this.displayName = 'Scholar',
     this.penaltyDeductions = 0,
+    this.coinsEarned = 0,
   });
 
   @override
@@ -402,6 +404,46 @@ class _QuizResultsViewState extends State<QuizResultsView>
                                       ),
                                     ],
                                   ),
+                                  // ── Coins Earned ───────────────────
+                                  if (widget.coinsEarned > 0) ...[
+                                    const SizedBox(height: 12),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: const Color(
+                                          0xFFFFD700,
+                                        ).withValues(alpha: 0.15),
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(
+                                          color: const Color(
+                                            0xFFFFD700,
+                                          ).withValues(alpha: 0.3),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Text(
+                                            '🪙',
+                                            style: TextStyle(fontSize: 14),
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            '+${widget.coinsEarned} coins earned',
+                                            style: const TextStyle(
+                                              color: Color(0xFFFFD700),
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+
                                   // ── Penalty Deductions ──────────────
                                   if (widget.penaltyDeductions > 0) ...[
                                     const SizedBox(height: 12),

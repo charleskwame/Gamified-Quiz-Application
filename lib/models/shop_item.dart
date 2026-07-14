@@ -1,0 +1,48 @@
+import 'package:flutter/material.dart';
+
+/// Represents a purchasable item in the quiz shop.
+class ShopItem {
+  final String id;
+  final String name;
+  final String description;
+  final IconData icon;
+  final Color color;
+  final int price;
+
+  const ShopItem({
+    required this.id,
+    required this.name,
+    required this.description,
+    required this.icon,
+    required this.color,
+    required this.price,
+  });
+
+  /// List of placeholder shop items available for display.
+  static const List<ShopItem> placeholderItems = [
+    ShopItem(
+      id: 'shield',
+      name: 'Shield',
+      description: 'Protects you from one wrong answer penalty',
+      icon: Icons.shield_rounded,
+      color: Color(0xFF6366F1),
+      price: 500,
+    ),
+    ShopItem(
+      id: 'skip_question',
+      name: 'Skip Question',
+      description: 'Skip a difficult question without penalty',
+      icon: Icons.skip_next_rounded,
+      color: Color(0xFF4ADE80),
+      price: 350,
+    ),
+    ShopItem(
+      id: 'no_deductions',
+      name: 'No Deductions',
+      description: 'Negates all point deductions for one quiz',
+      icon: Icons.block_rounded,
+      color: Color(0xFFF59E0B),
+      price: 750,
+    ),
+  ];
+}

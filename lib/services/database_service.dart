@@ -46,6 +46,10 @@ class DatabaseService {
       'displayName': displayName,
       'email': email,
       'score': 0,
+      'quizCoins': 0,
+      'shieldCount': 0,
+      'skipCount': 0,
+      'pauseTimerCount': 0,
       'emailVerified': false,
       'computerArchitecturePoints': 0,
       'caAnswered': 0,
@@ -150,6 +154,10 @@ class DatabaseService {
     required int correctIncrement,
     required int answeredIncrement,
     required bool isTimed,
+    int coinsEarned = 0,
+    int shieldChange = 0,
+    int skipChange = 0,
+    int pauseTimerChange = 0,
   }) async {
     final userRef = _db.collection('users').doc(uid);
     List<String> newlyUnlocked = [];
@@ -228,6 +236,10 @@ class DatabaseService {
       // Update in transaction
       transaction.update(userRef, {
         'score': score,
+        'quizCoins': FieldValue.increment(coinsEarned),
+        'shieldCount': FieldValue.increment(shieldChange),
+        'skipCount': FieldValue.increment(skipChange),
+        'pauseTimerCount': FieldValue.increment(pauseTimerChange),
         'computerArchitecturePoints': computerArchitecturePoints,
         'computerNetworkingPoints': computerNetworkingPoints,
         'softwareEngineeringPoints': softwareEngineeringPoints,
