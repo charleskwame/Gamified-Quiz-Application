@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../services/database_service.dart';
 import '../models/shop_item.dart';
 
 /// Placeholder shop screen displaying cosmetic power-up items.
@@ -86,10 +88,65 @@ class ShopScreen extends StatelessWidget {
                 ],
               ),
             ),
+
+            // ─── Debug: Seed coins for all users (debug mode only) ──
+            if (kDebugMode) ...[
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () => _seedAllCoins(context),
+                  icon: const Icon(Icons.auto_fix_high_rounded, size: 16),
+                  label: const Text('🪙 Give 100 coins to all existing users'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFFFFD700),
+                    side: const BorderSide(color: Color(0xFFFFD700), width: 1),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _seedAllCoins(BuildContext context) async {
+    final db = DatabaseService();
+    final scaffold = ScaffoldMessenger.of(context);
+    try {
+      final count = await db.seedInitialCoinsForAllUsers();
+      if (!context.mounted) return;
+      scaffold.showSnackBar(
+        SnackBar(
+          content: Text('✅ $count users received 100 🪙 each!'),
+          backgroundColor: const Color(0xFF4ADE80),
+          duration: const Duration(seconds: 3),
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.only(bottom: 100, left: 20, right: 20),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      scaffold.showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: const Color(0xFFEF4444),
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.only(bottom: 100, left: 20, right: 20),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+    }
   }
 
   Widget _buildCoinBalance(String? uid) {

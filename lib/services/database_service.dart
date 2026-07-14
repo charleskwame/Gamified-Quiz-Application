@@ -46,7 +46,7 @@ class DatabaseService {
       'displayName': displayName,
       'email': email,
       'score': 0,
-      'quizCoins': 0,
+      'quizCoins': 100,
       'shieldCount': 0,
       'skipCount': 0,
       'pauseTimerCount': 0,
@@ -512,6 +512,55 @@ class DatabaseService {
         });
       }
     });
+  }
+
+  // One-time migration: grants 100 starting quiz coins to all existing users
+  // who have less than 100 coins. Handles batches of 500 (Firestore limit).
+  // Returns the number of users updated.
+  Future<int> seedInitialCoinsForAllUsers() async {
+    int totalUpdated = 0;
+
+    try {
+      final snapshot = await _db
+          .collection('users')
+          .where('role', isNotEqualTo: 'lecturer')
+          .get();
+
+      final batches = <WriteBatch>[];
+      WriteBatch currentBatch = _db.batch();
+      int batchCount = 0;
+
+      for (final doc in snapshot.docs) {
+        final data = doc.data();
+        final currentCoins = data['quizCoins'] as int? ?? 0;
+
+        if (currentCoins < 100) {
+          currentBatch.update(doc.reference, {'quizCoins': 100});
+          batchCount++;
+          totalUpdated++;
+
+          if (batchCount >= 450) {
+            batches.add(currentBatch);
+            currentBatch = _db.batch();
+            batchCount = 0;
+          }
+        }
+      }
+
+      // Commit remaining batch
+      if (batchCount > 0) {
+        batches.add(currentBatch);
+      }
+
+      // Commit all batches sequentially
+      for (final batch in batches) {
+        await batch.commit();
+      }
+    } catch (e) {
+      // Return whatever count we got so far
+    }
+
+    return totalUpdated;
   }
 
   // Get percentage of users who have a specific streak or higher
