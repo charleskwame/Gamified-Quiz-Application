@@ -50,7 +50,7 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
               content: Text(
                 'You can select a maximum of 3 badges to display in rankings.',
               ),
-              backgroundColor: Color(0xFF931716),
+              backgroundColor: Color(0xFF5A3A3A),
             ),
           );
           return;
@@ -66,7 +66,7 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to update selections: $e'),
-            backgroundColor: const Color(0xFF931716),
+            backgroundColor: const Color(0xFF5A3A3A),
           ),
         );
       }
@@ -75,49 +75,33 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
 
   Future<void> _downloadBadgeCard(BadgeDefinition badge) async {
     setState(() => _isDownloading = true);
-
     try {
       await Future.delayed(const Duration(milliseconds: 300));
-
       final RenderRepaintBoundary? boundary =
           _repaintKey.currentContext?.findRenderObject()
               as RenderRepaintBoundary?;
-
-      if (boundary == null) {
-        throw Exception('Could not capture badge layout.');
-      }
-
+      if (boundary == null) throw Exception('Could not capture badge layout.');
       final ui.Image image = await boundary.toImage(pixelRatio: 3.0);
       final ByteData? byteData = await image.toByteData(
         format: ui.ImageByteFormat.png,
       );
-
-      if (byteData == null) {
-        throw Exception('Failed to generate PNG data.');
-      }
-
+      if (byteData == null) throw Exception('Failed to generate PNG data.');
       final Uint8List pngBytes = byteData.buffer.asUint8List();
-
       Directory? directory;
       if (Platform.isAndroid) {
         await Permission.storage.request();
         await Permission.photos.request();
-
         directory = Directory(
           '/storage/emulated/0/Pictures/Gamified Quiz App Badges',
         );
-        if (!await directory.exists()) {
-          await directory.create(recursive: true);
-        }
+        if (!await directory.exists()) await directory.create(recursive: true);
       } else {
         directory = await getApplicationDocumentsDirectory();
       }
-
       final String path =
           '${directory.path}/${badge.name.replaceAll(' ', '_')}_achievement.png';
       final File imgFile = File(path);
       await imgFile.writeAsBytes(pngBytes);
-
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -138,7 +122,7 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
                 ),
               ],
             ),
-            backgroundColor: const Color(0xFF09262A),
+            backgroundColor: const Color(0xFF242424),
             duration: const Duration(seconds: 5),
           ),
         );
@@ -148,14 +132,12 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Export failed: $e'),
-            backgroundColor: const Color(0xFF931716),
+            backgroundColor: const Color(0xFF5A3A3A),
           ),
         );
       }
     } finally {
-      if (mounted) {
-        setState(() => _isDownloading = false);
-      }
+      if (mounted) setState(() => _isDownloading = false);
     }
   }
 
@@ -181,7 +163,7 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
               });
             }
             return AlertDialog(
-              backgroundColor: const Color(0xFF1E2246),
+              backgroundColor: const Color(0xFF242424),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(28),
               ),
@@ -196,7 +178,7 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
+                          colors: [Color(0xFF242424), Color(0xFF1A1A1A)],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
@@ -287,9 +269,9 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
                               color: Colors.white.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(16),
                             ),
-                            child: Row(
+                            child: const Row(
                               mainAxisSize: MainAxisSize.min,
-                              children: const [
+                              children: [
                                 Icon(
                                   Icons.check_circle_outline,
                                   color: Colors.greenAccent,
@@ -352,7 +334,7 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
                             _isDownloading ? 'Saving...' : 'Save Card',
                           ),
                           style: FilledButton.styleFrom(
-                            backgroundColor: const Color(0xFF6366F1),
+                            backgroundColor: const Color(0xFF808080),
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 10),
                             shape: RoundedRectangleBorder(
@@ -388,20 +370,13 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── Header ──
                 _StaggeredFadeSlide(index: 0, child: _buildHeader()),
-
                 const SizedBox(height: 20),
-
-                // ── Progress Card ──
                 _StaggeredFadeSlide(
                   index: 1,
                   child: _buildProgressCard(unlockedCount, progress),
                 ),
-
                 const SizedBox(height: 32),
-
-                // ── Section Title ──
                 _StaggeredFadeSlide(
                   index: 2,
                   child: Text(
@@ -413,10 +388,7 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 16),
-
-                // ── Badge Grid ──
                 _StaggeredFadeSlide(
                   index: 3,
                   child: GridView.builder(
@@ -436,7 +408,6 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
                         badge.id,
                       );
                       final isSelected = _selectedBadges.contains(badge.id);
-
                       return _buildBadgeGridItem(
                         badge: badge,
                         isUnlocked: isUnlocked,
@@ -445,7 +416,6 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
                     },
                   ),
                 ),
-
                 const SizedBox(height: 16),
               ],
             ),
@@ -454,10 +424,6 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
       ),
     );
   }
-
-  // ──────────────────────────────────────────────
-  //  Header with back button
-  // ──────────────────────────────────────────────
 
   Widget _buildHeader() {
     return Row(
@@ -489,17 +455,13 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
     );
   }
 
-  // ──────────────────────────────────────────────
-  //  Progress Card
-  // ──────────────────────────────────────────────
-
   Widget _buildProgressCard(int unlockedCount, double progress) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
+          colors: [Color(0xFF242424), Color(0xFF1A1A1A)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -542,7 +504,7 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
                 ),
                 child: const Icon(
                   Icons.emoji_events_rounded,
-                  color: Color(0xFFFFD700),
+                  color: Color(0xFFE0E0E0),
                   size: 32,
                 ),
               ),
@@ -556,7 +518,7 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
               minHeight: 10,
               backgroundColor: Colors.white.withValues(alpha: 0.1),
               valueColor: const AlwaysStoppedAnimation<Color>(
-                Color(0xFF6366F1),
+                Color(0xFF808080),
               ),
             ),
           ),
@@ -575,10 +537,6 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
     );
   }
 
-  // ──────────────────────────────────────────────
-  //  Badge Grid Item
-  // ──────────────────────────────────────────────
-
   Widget _buildBadgeGridItem({
     required BadgeDefinition badge,
     required bool isUnlocked,
@@ -587,14 +545,14 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
     return Container(
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
+          colors: [Color(0xFF242424), Color(0xFF1A1A1A)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isSelected
-              ? const Color(0xFF6366F1)
+              ? const Color(0xFF808080)
               : (isUnlocked
                     ? badge.color.withValues(alpha: 0.25)
                     : Colors.white.withValues(alpha: 0.06)),
@@ -603,7 +561,7 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
         boxShadow: [
           if (isSelected)
             BoxShadow(
-              color: const Color(0xFF6366F1).withValues(alpha: 0.06),
+              color: const Color(0xFF808080).withValues(alpha: 0.06),
               blurRadius: 3,
             ),
           if (isUnlocked && !isSelected)
@@ -705,7 +663,7 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
               child: Container(
                 padding: const EdgeInsets.all(4),
                 decoration: const BoxDecoration(
-                  color: Color(0xFF6366F1),
+                  color: Color(0xFF808080),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -721,14 +679,9 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════
-//  Staggered Fade-Slide — matching app-wide entrance animation
-// ═══════════════════════════════════════════════════════════════
-
 class _StaggeredFadeSlide extends StatefulWidget {
   final int index;
   final Widget child;
-
   const _StaggeredFadeSlide({required this.index, required this.child});
 
   @override
@@ -748,7 +701,6 @@ class _StaggeredFadeSlideState extends State<_StaggeredFadeSlide>
       vsync: this,
       duration: const Duration(milliseconds: 600),
     );
-
     final startDelay = Duration(milliseconds: 100 * widget.index);
     _opacityAnim = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
@@ -763,7 +715,6 @@ class _StaggeredFadeSlideState extends State<_StaggeredFadeSlide>
             curve: const Interval(0.0, 0.7, curve: Curves.easeOutCubic),
           ),
         );
-
     Future.delayed(startDelay, () {
       if (mounted) _controller.forward();
     });

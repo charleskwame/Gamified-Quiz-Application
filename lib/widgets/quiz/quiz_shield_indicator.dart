@@ -46,8 +46,8 @@ class _QuizShieldIndicatorState extends State<QuizShieldIndicator> {
               boxShadow: [
                 BoxShadow(
                   color: active
-                      ? const Color(0xFFFFD700).withValues(alpha: glowAlpha)
-                      : const Color(0xFF6366F1).withValues(alpha: glowAlpha),
+                      ? Colors.white.withValues(alpha: glowAlpha)
+                      : const Color(0xFF808080).withValues(alpha: glowAlpha),
                   blurRadius: glowRadius,
                   offset: const Offset(0, 1),
                 ),
@@ -65,15 +65,15 @@ class _QuizShieldIndicatorState extends State<QuizShieldIndicator> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: active
-                          ? const Color(0xFFFFD700).withValues(alpha: 0.2)
+                          ? Colors.white.withValues(alpha: 0.2)
                           : hasShields
-                          ? const Color(0xFF6366F1).withValues(alpha: 0.15)
+                          ? const Color(0xFF808080).withValues(alpha: 0.15)
                           : Colors.grey.withValues(alpha: 0.1),
                       border: Border.all(
                         color: active
-                            ? const Color(0xFFFFD700).withValues(alpha: 0.8)
+                            ? Colors.white.withValues(alpha: 0.8)
                             : hasShields
-                            ? const Color(0xFF6366F1).withValues(alpha: 0.4)
+                            ? const Color(0xFF808080).withValues(alpha: 0.4)
                             : Colors.grey.withValues(alpha: 0.2),
                         width: active ? 2.5 : 1.5,
                       ),
@@ -81,9 +81,9 @@ class _QuizShieldIndicatorState extends State<QuizShieldIndicator> {
                     child: Icon(
                       active ? Icons.shield_rounded : Icons.shield_outlined,
                       color: active
-                          ? const Color(0xFFFFD700)
+                          ? Colors.white
                           : hasShields
-                          ? const Color(0xFF818CF8)
+                          ? const Color(0xFFB0B0B0)
                           : Colors.grey.withValues(alpha: 0.4),
                       size: 28,
                     ),
@@ -101,9 +101,9 @@ class _QuizShieldIndicatorState extends State<QuizShieldIndicator> {
                     ),
                     decoration: BoxDecoration(
                       color: active
-                          ? const Color(0xFFFFD700)
+                          ? Colors.white
                           : hasShields
-                          ? const Color(0xFF6366F1)
+                          ? const Color(0xFF808080)
                           : Colors.grey.withValues(alpha: 0.5),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
@@ -116,7 +116,7 @@ class _QuizShieldIndicatorState extends State<QuizShieldIndicator> {
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w900,
-                        color: active ? const Color(0xFF1E1B4B) : Colors.white,
+                        color: active ? const Color(0xFF1A1A1A) : Colors.white,
                         height: 1.0,
                       ),
                     ),
@@ -133,7 +133,7 @@ class _QuizShieldIndicatorState extends State<QuizShieldIndicator> {
                         vertical: 1,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFFD700).withValues(alpha: 0.9),
+                        color: Colors.white.withValues(alpha: 0.9),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: const Text(
@@ -141,7 +141,7 @@ class _QuizShieldIndicatorState extends State<QuizShieldIndicator> {
                         style: TextStyle(
                           fontSize: 7,
                           fontWeight: FontWeight.w900,
-                          color: Color(0xFF1E1B4B),
+                          color: Color(0xFF1A1A1A),
                           letterSpacing: 1,
                           height: 1.2,
                         ),

@@ -46,9 +46,9 @@ class _QuizPauseIndicatorState extends State<QuizPauseIndicator> {
               boxShadow: [
                 BoxShadow(
                   color: active
-                      ? const Color(0xFFF59E0B).withValues(alpha: glowAlpha)
+                      ? Colors.white.withValues(alpha: glowAlpha)
                       : hasPauses
-                      ? const Color(0xFFF59E0B).withValues(alpha: glowAlpha)
+                      ? const Color(0xFF808080).withValues(alpha: glowAlpha)
                       : Colors.grey.withValues(alpha: 0.02),
                   blurRadius: glowBlur,
                   offset: const Offset(0, 1),
@@ -67,15 +67,15 @@ class _QuizPauseIndicatorState extends State<QuizPauseIndicator> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: active
-                          ? const Color(0xFFF59E0B).withValues(alpha: 0.25)
+                          ? Colors.white.withValues(alpha: 0.25)
                           : hasPauses
-                          ? const Color(0xFFF59E0B).withValues(alpha: 0.15)
+                          ? const Color(0xFF808080).withValues(alpha: 0.15)
                           : Colors.grey.withValues(alpha: 0.1),
                       border: Border.all(
                         color: active
-                            ? const Color(0xFFF59E0B).withValues(alpha: 0.8)
+                            ? Colors.white.withValues(alpha: 0.8)
                             : hasPauses
-                            ? const Color(0xFFF59E0B).withValues(alpha: 0.4)
+                            ? const Color(0xFF808080).withValues(alpha: 0.4)
                             : Colors.grey.withValues(alpha: 0.2),
                         width: active ? 2.5 : 1.5,
                       ),
@@ -87,9 +87,9 @@ class _QuizPauseIndicatorState extends State<QuizPauseIndicator> {
                           ? Icons.pause_circle_rounded
                           : Icons.pause_circle_outline,
                       color: active
-                          ? const Color(0xFFF59E0B)
+                          ? Colors.white
                           : hasPauses
-                          ? const Color(0xFFFBBF24)
+                          ? const Color(0xFFB0B0B0)
                           : Colors.grey.withValues(alpha: 0.4),
                       size: 32,
                     ),
@@ -107,9 +107,9 @@ class _QuizPauseIndicatorState extends State<QuizPauseIndicator> {
                     ),
                     decoration: BoxDecoration(
                       color: active
-                          ? const Color(0xFFF59E0B)
+                          ? Colors.white
                           : hasPauses
-                          ? const Color(0xFFF59E0B)
+                          ? const Color(0xFF808080)
                           : Colors.grey.withValues(alpha: 0.5),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
@@ -119,10 +119,10 @@ class _QuizPauseIndicatorState extends State<QuizPauseIndicator> {
                     ),
                     child: Text(
                       '${widget.pauseCount}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w900,
-                        color: Colors.white,
+                        color: active ? const Color(0xFF1A1A1A) : Colors.white,
                         height: 1.0,
                       ),
                     ),
@@ -139,7 +139,7 @@ class _QuizPauseIndicatorState extends State<QuizPauseIndicator> {
                         vertical: 1,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF59E0B).withValues(alpha: 0.9),
+                        color: Colors.white.withValues(alpha: 0.9),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: const Text(
@@ -147,7 +147,7 @@ class _QuizPauseIndicatorState extends State<QuizPauseIndicator> {
                         style: TextStyle(
                           fontSize: 9,
                           fontWeight: FontWeight.w900,
-                          color: Color(0xFF1E1B4B),
+                          color: Color(0xFF1A1A1A),
                           height: 1.2,
                         ),
                       ),

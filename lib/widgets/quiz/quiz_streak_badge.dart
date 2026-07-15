@@ -34,7 +34,7 @@ class QuizStreakBadge extends StatelessWidget {
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFFFF4500).withValues(alpha: glowAlpha),
+                color: const Color(0xFF808080).withValues(alpha: glowAlpha),
                 blurRadius: glowRadius,
                 offset: const Offset(0, 1),
               ),
@@ -82,9 +82,9 @@ class QuizStreakBadge extends StatelessWidget {
                   Text(
                     'COMBO',
                     style: TextStyle(
-                      color: const Color(
-                        0xFFFFD700,
-                      ).withValues(alpha: 0.8 + (pulse * 0.2)),
+                      color: Colors.white.withValues(
+                        alpha: 0.8 + (pulse * 0.2),
+                      ),
                       fontSize: 8,
                       fontWeight: FontWeight.w900,
                       letterSpacing: 2,

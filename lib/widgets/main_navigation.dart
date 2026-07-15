@@ -73,7 +73,7 @@ class _MainNavigationState extends State<MainNavigation> {
           filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
           child: Container(
             decoration: BoxDecoration(
-              color: const Color(0xFF1E1E2E).withValues(alpha: 0.7),
+              color: const Color(0xFF1E1E1E).withValues(alpha: 0.85),
               borderRadius: BorderRadius.circular(32),
               border: Border.all(
                 color: Colors.white.withValues(alpha: 0.1),
@@ -89,7 +89,7 @@ class _MainNavigationState extends State<MainNavigation> {
               color: Colors.white.withValues(alpha: 0.55),
               activeColor: Colors.white,
               tabBackgroundColor: const Color(
-                0xFF6366F1,
+                0xFF808080,
               ).withValues(alpha: 0.25),
               gap: 8,
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
@@ -104,13 +104,13 @@ class _MainNavigationState extends State<MainNavigation> {
                 GButton(
                   icon: Icons.emoji_events_rounded,
                   text: 'Rankings',
-                  iconActiveColor: const Color(0xFFFFD700),
+                  iconActiveColor: Colors.white,
                   textColor: Colors.white,
                 ),
                 GButton(
                   icon: Icons.store_rounded,
                   text: 'Shop',
-                  iconActiveColor: const Color(0xFF4ADE80),
+                  iconActiveColor: Colors.white,
                   textColor: Colors.white,
                 ),
                 GButton(

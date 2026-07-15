@@ -234,6 +234,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           icon: const Icon(Icons.login_rounded),
                           label: const Text('Log In / Sign Up'),
                           style: FilledButton.styleFrom(
+                            backgroundColor: const Color(0xFF808080),
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(14),
@@ -300,12 +301,12 @@ class _ProfilePageState extends State<ProfilePage> {
               const SizedBox(width: 4),
               _buildIconButton(
                 icon: Icons.logout_rounded,
-                color: const Color(0xFFEF4444),
+                color: const Color(0xFF5A3A3A),
                 onPressed: () {
                   showDialog(
                     context: context,
                     builder: (context) => AlertDialog(
-                      backgroundColor: const Color(0xFF1E2246),
+                      backgroundColor: const Color(0xFF242424),
                       title: const Text(
                         'Log Out',
                         style: TextStyle(color: Colors.white),
@@ -388,7 +389,7 @@ class _ProfilePageState extends State<ProfilePage> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
+          colors: [Color(0xFF242424), Color(0xFF1A1A1A)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -430,13 +431,13 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
-                              colors: [Color(0xFF6366F1), Color(0xFF8C52FF)],
+                              colors: [Color(0xFF808080), Color(0xFFB0B0B0)],
                             ),
                             borderRadius: BorderRadius.circular(8),
                             boxShadow: [
                               BoxShadow(
                                 color: const Color(
-                                  0xFF6366F1,
+                                  0xFF808080,
                                 ).withValues(alpha: 0.08),
                                 blurRadius: 2,
                               ),
@@ -488,31 +489,31 @@ class _ProfilePageState extends State<ProfilePage> {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      const Color(0xFFFF5722).withValues(alpha: 0.2),
-                      const Color(0xFFFF5722).withValues(alpha: 0.08),
+                      const Color(0xFF808080).withValues(alpha: 0.2),
+                      const Color(0xFF808080).withValues(alpha: 0.08),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: const Color(0xFFFF5722).withValues(alpha: 0.4),
+                    color: const Color(0xFF808080).withValues(alpha: 0.4),
                     width: 1.5,
                   ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.local_fire_department_rounded,
-                      color: Color(0xFFFF5722),
+                      color: Colors.white.withValues(alpha: 0.7),
                       size: 18,
                     ),
                     const SizedBox(width: 4),
                     Text(
                       '$streakNumber',
-                      style: const TextStyle(
-                        color: Color(0xFFFF5722),
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.7),
                         fontWeight: FontWeight.w900,
                         fontSize: 14,
                       ),
@@ -521,7 +522,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     Text(
                       'completion${streakNumber > 1 ? 's' : ''}',
                       style: TextStyle(
-                        color: const Color(0xFFFF5722).withValues(alpha: 0.7),
+                        color: Colors.white.withValues(alpha: 0.5),
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                       ),
@@ -581,17 +582,17 @@ class _ProfilePageState extends State<ProfilePage> {
         shape: BoxShape.circle,
         gradient: const SweepGradient(
           colors: [
-            Color(0xFF6366F1),
-            Color(0xFF8C52FF),
-            Color(0xFFFFD700),
-            Color(0xFF4ADE80),
-            Color(0xFF6366F1),
+            Color(0xFF808080),
+            Color(0xFFB0B0B0),
+            Color(0xFFE0E0E0),
+            Color(0xFF909090),
+            Color(0xFF808080),
           ],
           stops: [0.0, 0.25, 0.5, 0.75, 1.0],
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF6366F1).withValues(alpha: 0.06),
+            color: const Color(0xFF808080).withValues(alpha: 0.06),
             blurRadius: 3,
             spreadRadius: 0,
           ),
@@ -646,12 +647,12 @@ class _ProfilePageState extends State<ProfilePage> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(6),
                       gradient: const LinearGradient(
-                        colors: [Color(0xFF4ADE80), Color(0xFF22C55E)],
+                        colors: [Color(0xFF808080), Color(0xFFB0B0B0)],
                       ),
                       boxShadow: [
                         BoxShadow(
                           color: const Color(
-                            0xFF4ADE80,
+                            0xFF808080,
                           ).withValues(alpha: 0.08),
                           blurRadius: 2,
                         ),
@@ -666,12 +667,12 @@ class _ProfilePageState extends State<ProfilePage> {
         const SizedBox(height: 4),
         Row(
           children: [
-            const Icon(Icons.stars_rounded, color: Color(0xFFFFD700), size: 14),
+            const Icon(Icons.stars_rounded, color: Color(0xFFE0E0E0), size: 14),
             const SizedBox(width: 4),
             Text(
               '$totalScore XP',
               style: const TextStyle(
-                color: Color(0xFFFFD700),
+                color: Color(0xFFE0E0E0),
                 fontSize: 12,
                 fontWeight: FontWeight.w800,
               ),
@@ -730,7 +731,7 @@ class _ProfilePageState extends State<ProfilePage> {
               icon: const Icon(Icons.arrow_forward_rounded, size: 16),
               label: const Text('See all'),
               style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFF6366F1),
+                foregroundColor: const Color(0xFF808080),
               ),
             ),
           ),
@@ -782,28 +783,28 @@ class _ProfilePageState extends State<ProfilePage> {
 
             switch (entry.rank) {
               case 'S':
-                rankColor = const Color(0xFFFFD700);
-                rankBgColor = const Color(0xFFFFD700).withValues(alpha: 0.15);
+                rankColor = const Color(0xFFE0E0E0);
+                rankBgColor = const Color(0xFFE0E0E0).withValues(alpha: 0.15);
                 break;
               case 'A':
-                rankColor = const Color(0xFF4ADE80);
-                rankBgColor = const Color(0xFF4ADE80).withValues(alpha: 0.15);
+                rankColor = const Color(0xFFB0B0B0);
+                rankBgColor = const Color(0xFFB0B0B0).withValues(alpha: 0.15);
                 break;
               case 'B':
-                rankColor = const Color(0xFF6366F1);
-                rankBgColor = const Color(0xFF6366F1).withValues(alpha: 0.15);
+                rankColor = const Color(0xFF909090);
+                rankBgColor = const Color(0xFF909090).withValues(alpha: 0.15);
                 break;
               case 'C':
-                rankColor = const Color(0xFFF59E0B);
-                rankBgColor = const Color(0xFFF59E0B).withValues(alpha: 0.15);
+                rankColor = const Color(0xFF707070);
+                rankBgColor = const Color(0xFF707070).withValues(alpha: 0.15);
                 break;
               case 'D':
-                rankColor = const Color(0xFF94A3B8);
-                rankBgColor = const Color(0xFF94A3B8).withValues(alpha: 0.15);
+                rankColor = const Color(0xFF606060);
+                rankBgColor = const Color(0xFF606060).withValues(alpha: 0.15);
                 break;
               default: // E
-                rankColor = const Color(0xFF9CA3AF);
-                rankBgColor = const Color(0xFF9CA3AF).withValues(alpha: 0.15);
+                rankColor = const Color(0xFF505050);
+                rankBgColor = const Color(0xFF505050).withValues(alpha: 0.15);
                 break;
             }
 
@@ -815,7 +816,7 @@ class _ProfilePageState extends State<ProfilePage> {
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
+                  colors: [Color(0xFF242424), Color(0xFF1A1A1A)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -893,7 +894,7 @@ class _ProfilePageState extends State<ProfilePage> {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
+          colors: [Color(0xFF242424), Color(0xFF1A1A1A)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),

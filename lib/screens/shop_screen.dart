@@ -54,7 +54,7 @@ class _ShopScreenState extends State<ShopScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('✅ Purchased ${item.name}!'),
-            backgroundColor: const Color(0xFF4ADE80),
+            backgroundColor: const Color(0xFF808080),
             duration: const Duration(seconds: 2),
             behavior: SnackBarBehavior.floating,
             margin: const EdgeInsets.only(bottom: 100, left: 20, right: 20),
@@ -67,7 +67,7 @@ class _ShopScreenState extends State<ShopScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('Not enough coins or at max capacity (3)!'),
-            backgroundColor: const Color(0xFFEF4444),
+            backgroundColor: const Color(0xFF5A3A3A),
             duration: const Duration(seconds: 2),
             behavior: SnackBarBehavior.floating,
             margin: const EdgeInsets.only(bottom: 100, left: 20, right: 20),
@@ -82,7 +82,7 @@ class _ShopScreenState extends State<ShopScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Purchase failed: $e'),
-          backgroundColor: const Color(0xFFEF4444),
+          backgroundColor: const Color(0xFF5A3A3A),
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.only(bottom: 100, left: 20, right: 20),
           shape: RoundedRectangleBorder(
@@ -163,7 +163,7 @@ class _ShopScreenState extends State<ShopScreen> {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: Color(0xFF9CA3AF),
+                    color: Color(0xFFB0B0B0),
                   ),
                 ),
                 const SizedBox(height: 28),
@@ -195,17 +195,17 @@ class _ShopScreenState extends State<ShopScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E2246).withValues(alpha: 0.6),
+                    color: const Color(0xFF242424).withValues(alpha: 0.6),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: const Color(0xFF2D3361).withValues(alpha: 0.5),
+                      color: const Color(0xFF333333).withValues(alpha: 0.5),
                     ),
                   ),
                   child: Row(
                     children: [
                       Icon(
                         Icons.info_outline_rounded,
-                        color: const Color(0xFF6366F1).withValues(alpha: 0.7),
+                        color: const Color(0xFF808080).withValues(alpha: 0.7),
                         size: 20,
                       ),
                       const SizedBox(width: 12),
@@ -216,7 +216,7 @@ class _ShopScreenState extends State<ShopScreen> {
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
                             color: const Color(
-                              0xFF9CA3AF,
+                              0xFFB0B0B0,
                             ).withValues(alpha: 0.8),
                             height: 1.4,
                           ),
@@ -238,9 +238,9 @@ class _ShopScreenState extends State<ShopScreen> {
                         '🪙 Give 100 coins to all existing users',
                       ),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFFFFD700),
+                        foregroundColor: const Color(0xFF808080),
                         side: const BorderSide(
-                          color: Color(0xFFFFD700),
+                          color: Color(0xFF808080),
                           width: 1,
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 12),
@@ -267,7 +267,7 @@ class _ShopScreenState extends State<ShopScreen> {
       scaffold.showSnackBar(
         SnackBar(
           content: Text('✅ $count users received 100 🪙 each!'),
-          backgroundColor: const Color(0xFF4ADE80),
+          backgroundColor: const Color(0xFF808080),
           duration: const Duration(seconds: 3),
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.only(bottom: 100, left: 20, right: 20),
@@ -281,7 +281,7 @@ class _ShopScreenState extends State<ShopScreen> {
       scaffold.showSnackBar(
         SnackBar(
           content: Text('Error: $e'),
-          backgroundColor: const Color(0xFFEF4444),
+          backgroundColor: const Color(0xFF5A3A3A),
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.only(bottom: 100, left: 20, right: 20),
           shape: RoundedRectangleBorder(
@@ -297,13 +297,13 @@ class _ShopScreenState extends State<ShopScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF1E2246), Color(0xFF2D3361)],
+          colors: [Color(0xFF242424), Color(0xFF333333)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: const Color(0xFF3D4375).withValues(alpha: 0.5),
+          color: const Color(0xFF444444).withValues(alpha: 0.5),
         ),
       ),
       child: Row(
@@ -312,7 +312,7 @@ class _ShopScreenState extends State<ShopScreen> {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: const Color(0xFFFFD700).withValues(alpha: 0.15),
+              color: const Color(0xFF808080).withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(14),
             ),
             child: const Center(
@@ -328,7 +328,7 @@ class _ShopScreenState extends State<ShopScreen> {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF6B7280),
+                  color: Color(0xFF707070),
                   letterSpacing: 0.5,
                 ),
               ),
@@ -338,7 +338,7 @@ class _ShopScreenState extends State<ShopScreen> {
                 style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.w900,
-                  color: Color(0xFFFFD700),
+                  color: Color(0xFFB0B0B0),
                 ),
               ),
             ],
@@ -347,10 +347,10 @@ class _ShopScreenState extends State<ShopScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: const Color(0xFF6366F1).withValues(alpha: 0.2),
+              color: const Color(0xFF808080).withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: const Color(0xFF6366F1).withValues(alpha: 0.3),
+                color: const Color(0xFF808080).withValues(alpha: 0.3),
               ),
             ),
             child: const Text(
@@ -358,7 +358,7 @@ class _ShopScreenState extends State<ShopScreen> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF818CF8),
+                color: Color(0xFFB0B0B0),
               ),
             ),
           ),
@@ -397,7 +397,7 @@ class _ShopItemCard extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 16),
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFF1E2246),
+          color: const Color(0xFF242424),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: item.color.withValues(alpha: 0.2)),
         ),
@@ -436,7 +436,7 @@ class _ShopItemCard extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
-                        color: Color(0xFF9CA3AF),
+                        color: Color(0xFFB0B0B0),
                         height: 1.3,
                       ),
                     ),
@@ -448,7 +448,7 @@ class _ShopItemCard extends StatelessWidget {
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
                           color: isMaxed
-                              ? const Color(0xFFFFD700)
+                              ? const Color(0xFFB0B0B0)
                               : item.color.withValues(alpha: 0.8),
                         ),
                       ),
@@ -469,10 +469,10 @@ class _ShopItemCard extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFFD700).withValues(alpha: 0.15),
+                      color: const Color(0xFF808080).withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: const Color(0xFFFFD700).withValues(alpha: 0.2),
+                        color: const Color(0xFF808080).withValues(alpha: 0.2),
                       ),
                     ),
                     child: Row(
@@ -485,7 +485,7 @@ class _ShopItemCard extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w800,
-                            color: Color(0xFFFFD700),
+                            color: Color(0xFFB0B0B0),
                           ),
                         ),
                       ],
@@ -501,10 +501,10 @@ class _ShopItemCard extends StatelessWidget {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFFD700).withValues(alpha: 0.15),
+                        color: const Color(0xFF808080).withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: const Color(0xFFFFD700).withValues(alpha: 0.3),
+                          color: const Color(0xFF808080).withValues(alpha: 0.3),
                         ),
                       ),
                       child: const Text(
@@ -512,7 +512,7 @@ class _ShopItemCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 9,
                           fontWeight: FontWeight.w900,
-                          color: Color(0xFFFFD700),
+                          color: Color(0xFFB0B0B0),
                           letterSpacing: 0.8,
                         ),
                       ),

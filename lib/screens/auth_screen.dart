@@ -125,7 +125,6 @@ class _AuthScreenState extends State<AuthScreen>
         final email = _emailController.text.trim();
         final password = _passwordController.text;
 
-        // Client-side email validation
         if (!_isValidEmail(email)) {
           setState(
             () => _errorMessage =
@@ -135,7 +134,6 @@ class _AuthScreenState extends State<AuthScreen>
           return;
         }
 
-        // Client-side password validation
         if (password.length < 6) {
           setState(
             () => _errorMessage =
@@ -151,7 +149,6 @@ class _AuthScreenState extends State<AuthScreen>
           displayName: _displayNameController.text.trim(),
         );
 
-        // After successful sign-up, navigate to email verification screen
         if (mounted) {
           Navigator.pushReplacement(
             context,
@@ -164,7 +161,6 @@ class _AuthScreenState extends State<AuthScreen>
       } else {
         final email = _emailController.text.trim();
 
-        // Client-side email validation for login too
         if (!_isValidEmail(email)) {
           setState(
             () => _errorMessage =
@@ -225,10 +221,10 @@ class _AuthScreenState extends State<AuthScreen>
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF060B1A),
-              Color(0xFF0A0E21),
-              Color(0xFF0F1832),
-              Color(0xFF141852),
+              Color(0xFF0A0A0A),
+              Color(0xFF121212),
+              Color(0xFF1A1A1A),
+              Color(0xFF222222),
             ],
             stops: [0.0, 0.3, 0.7, 1.0],
           ),
@@ -236,10 +232,7 @@ class _AuthScreenState extends State<AuthScreen>
         child: SafeArea(
           child: Stack(
             children: [
-              // Particle layer
               Positioned.fill(child: _ParticleOverlay()),
-
-              // Content
               Positioned.fill(
                 child: LayoutBuilder(
                   builder: (context, constraints) => SingleChildScrollView(
@@ -252,7 +245,6 @@ class _AuthScreenState extends State<AuthScreen>
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Back button row
                             if (showBackButton)
                               FadeTransition(
                                 opacity: _fadeSlide,
@@ -280,10 +272,7 @@ class _AuthScreenState extends State<AuthScreen>
                                   },
                                 ),
                               ),
-
                             const SizedBox(height: 32),
-
-                            // Title section
                             FadeTransition(
                               opacity: _fadeSlide,
                               child: Column(
@@ -317,10 +306,7 @@ class _AuthScreenState extends State<AuthScreen>
                                 ],
                               ),
                             ),
-
                             const SizedBox(height: 40),
-
-                            // Form card
                             FadeTransition(
                               opacity: _fadeSlide,
                               child: Container(
@@ -335,7 +321,6 @@ class _AuthScreenState extends State<AuthScreen>
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    // Mode toggle pills
                                     Center(
                                       child: Container(
                                         padding: const EdgeInsets.all(4),
@@ -357,24 +342,21 @@ class _AuthScreenState extends State<AuthScreen>
                                         ),
                                       ),
                                     ),
-
                                     const SizedBox(height: 28),
-
-                                    // Error message
                                     if (_errorMessage != null) ...[
                                       Container(
                                         width: double.infinity,
                                         padding: const EdgeInsets.all(12),
                                         decoration: BoxDecoration(
                                           color: const Color(
-                                            0xFFEF4444,
+                                            0xFF5A3A3A,
                                           ).withValues(alpha: 0.12),
                                           borderRadius: BorderRadius.circular(
                                             12,
                                           ),
                                           border: Border.all(
                                             color: const Color(
-                                              0xFFEF4444,
+                                              0xFF5A3A3A,
                                             ).withValues(alpha: 0.25),
                                           ),
                                         ),
@@ -382,7 +364,7 @@ class _AuthScreenState extends State<AuthScreen>
                                           children: [
                                             const Icon(
                                               Icons.error_outline_rounded,
-                                              color: Color(0xFFEF4444),
+                                              color: Color(0xFF5A3A3A),
                                               size: 20,
                                             ),
                                             const SizedBox(width: 10),
@@ -390,7 +372,7 @@ class _AuthScreenState extends State<AuthScreen>
                                               child: Text(
                                                 _errorMessage!,
                                                 style: const TextStyle(
-                                                  color: Color(0xFFEF4444),
+                                                  color: Color(0xFF5A3A3A),
                                                   fontSize: 13,
                                                   fontWeight: FontWeight.w500,
                                                 ),
@@ -401,8 +383,6 @@ class _AuthScreenState extends State<AuthScreen>
                                       ),
                                       const SizedBox(height: 20),
                                     ],
-
-                                    // Display name field (only for sign up)
                                     AnimatedSize(
                                       duration: const Duration(
                                         milliseconds: 300,
@@ -424,8 +404,6 @@ class _AuthScreenState extends State<AuthScreen>
                                             )
                                           : const SizedBox.shrink(),
                                     ),
-
-                                    // Email field
                                     _buildTextField(
                                       controller: _emailController,
                                       label: 'Email',
@@ -434,8 +412,6 @@ class _AuthScreenState extends State<AuthScreen>
                                       keyboardType: TextInputType.emailAddress,
                                     ),
                                     const SizedBox(height: 16),
-
-                                    // Password field
                                     _buildTextField(
                                       controller: _passwordController,
                                       label: 'Password',
@@ -444,8 +420,6 @@ class _AuthScreenState extends State<AuthScreen>
                                       isPassword: true,
                                     ),
                                     const SizedBox(height: 28),
-
-                                    // Submit button
                                     SizedBox(
                                       width: double.infinity,
                                       child: DecoratedBox(
@@ -455,14 +429,14 @@ class _AuthScreenState extends State<AuthScreen>
                                           ),
                                           gradient: const LinearGradient(
                                             colors: [
-                                              Color(0xFF6366F1),
-                                              Color(0xFF8C52FF),
+                                              Color(0xFF808080),
+                                              Color(0xFFB0B0B0),
                                             ],
                                           ),
                                           boxShadow: [
                                             BoxShadow(
                                               color: const Color(
-                                                0xFF6366F1,
+                                                0xFF808080,
                                               ).withValues(alpha: 0.3),
                                               blurRadius: 12,
                                               offset: const Offset(0, 4),
@@ -515,10 +489,7 @@ class _AuthScreenState extends State<AuthScreen>
                                 ),
                               ),
                             ),
-
                             const SizedBox(height: 24),
-
-                            // Bottom text
                             FadeTransition(
                               opacity: _toggleSlide,
                               child: Center(
@@ -533,7 +504,6 @@ class _AuthScreenState extends State<AuthScreen>
                                 ),
                               ),
                             ),
-
                             const Spacer(),
                           ],
                         ),
@@ -559,7 +529,7 @@ class _AuthScreenState extends State<AuthScreen>
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
         decoration: BoxDecoration(
           color: isSelected
-              ? const Color(0xFF6366F1).withValues(alpha: 0.3)
+              ? const Color(0xFF808080).withValues(alpha: 0.3)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(11),
         ),
@@ -592,7 +562,7 @@ class _AuthScreenState extends State<AuthScreen>
           obscureText: isPassword,
           keyboardType: keyboardType,
           style: const TextStyle(color: Colors.white, fontSize: 15),
-          cursorColor: const Color(0xFF6366F1),
+          cursorColor: const Color(0xFF808080),
           decoration: InputDecoration(
             labelText: label,
             hintText: hint,
@@ -626,7 +596,7 @@ class _AuthScreenState extends State<AuthScreen>
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
               borderSide: const BorderSide(
-                color: Color(0xFF6366F1),
+                color: Color(0xFF808080),
                 width: 1.5,
               ),
             ),
@@ -640,8 +610,6 @@ class _AuthScreenState extends State<AuthScreen>
     );
   }
 }
-
-// ── Particle Overlay ──
 
 class _ParticleOverlay extends StatefulWidget {
   @override

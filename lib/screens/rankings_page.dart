@@ -142,7 +142,7 @@ class _RankingsPageState extends State<RankingsPage> {
         ),
         Container(
           decoration: BoxDecoration(
-            color: const Color(0xFF1E2246).withValues(alpha: 0.7),
+            color: const Color(0xFF242424).withValues(alpha: 0.7),
             borderRadius: BorderRadius.circular(40),
             border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
           ),
@@ -151,7 +151,7 @@ class _RankingsPageState extends State<RankingsPage> {
               _descending
                   ? Icons.arrow_downward_rounded
                   : Icons.arrow_upward_rounded,
-              color: const Color(0xFFFFD700),
+              color: const Color(0xFFE0E0E0),
             ),
             tooltip: _descending ? 'Sort Ascending' : 'Sort Descending',
             onPressed: () {
@@ -188,14 +188,14 @@ class _RankingsPageState extends State<RankingsPage> {
                 decoration: BoxDecoration(
                   gradient: isSelected
                       ? const LinearGradient(
-                          colors: [Color(0xFF6366F1), Color(0xFF8C52FF)],
+                          colors: [Color(0xFF808080), Color(0xFFB0B0B0)],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         )
                       : null,
                   color: isSelected
                       ? null
-                      : const Color(0xFF1E2246).withValues(alpha: 0.6),
+                      : const Color(0xFF242424).withValues(alpha: 0.6),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: isSelected
@@ -206,7 +206,7 @@ class _RankingsPageState extends State<RankingsPage> {
                       ? [
                           BoxShadow(
                             color: const Color(
-                              0xFF6366F1,
+                              0xFF808080,
                             ).withValues(alpha: 0.06),
                             blurRadius: 3,
                           ),
@@ -235,7 +235,7 @@ class _RankingsPageState extends State<RankingsPage> {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
+          colors: [Color(0xFF242424), Color(0xFF1A1A1A)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -244,7 +244,7 @@ class _RankingsPageState extends State<RankingsPage> {
       ),
       child: const Column(
         children: [
-          Icon(Icons.emoji_events_rounded, color: Color(0xFFFFD700), size: 48),
+          Icon(Icons.emoji_events_rounded, color: Color(0xFFE0E0E0), size: 48),
           SizedBox(height: 12),
           Text(
             'No rankings yet. Start playing to get listed!',
@@ -275,7 +275,7 @@ class _RankingsPageState extends State<RankingsPage> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
+          colors: [Color(0xFF242424), Color(0xFF1A1A1A)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -414,7 +414,7 @@ class _RankingsPageState extends State<RankingsPage> {
                 children: [
                   const Icon(
                     Icons.stars_rounded,
-                    color: Color(0xFFFFD700),
+                    color: Color(0xFFE0E0E0),
                     size: 14,
                   ),
                   const SizedBox(width: 4),
@@ -423,7 +423,7 @@ class _RankingsPageState extends State<RankingsPage> {
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w800,
-                      color: Color(0xFFFFD700),
+                      color: Color(0xFFE0E0E0),
                     ),
                   ),
                 ],
@@ -436,7 +436,7 @@ class _RankingsPageState extends State<RankingsPage> {
                   children: [
                     Icon(
                       Icons.diamond_rounded,
-                      color: const Color(0xFF6366F1),
+                      color: const Color(0xFF808080),
                       size: 12,
                     ),
                     const SizedBox(width: 4),
@@ -445,7 +445,7 @@ class _RankingsPageState extends State<RankingsPage> {
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF6366F1),
+                        color: Color(0xFF808080),
                       ),
                     ),
                   ],
