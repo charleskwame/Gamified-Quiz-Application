@@ -115,8 +115,9 @@ class _ChallengeSelectScreenState extends State<ChallengeSelectScreen> {
                     description:
                         'Answer quiz questions with no timer limits. Recommended for learning.',
                     icon: Icons.hourglass_disabled_rounded,
-                    cardColor: const Color(0xFFECF8F8),
-                    glowColor: const Color(0xFFECF8F8),
+                    cardColor: Colors.white,
+                    glowColor: const Color(0xFF003F91),
+                    borderColor: const Color(0xFF003F91),
                     useDarkForeground: true,
                     onTap: () => _startQuiz(isTimed: false, isOffline: false),
                   ),
@@ -193,13 +194,15 @@ class _ChallengeSelectScreenState extends State<ChallengeSelectScreen> {
         child: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.06),
+            color: const Color(0xFF003F91).withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+            border: Border.all(
+              color: const Color(0xFF003F91).withValues(alpha: 0.3),
+            ),
           ),
           child: const Icon(
             Icons.arrow_back_rounded,
-            color: Colors.white,
+            color: Color(0xFF003F91),
             size: 22,
           ),
         ),
@@ -236,7 +239,7 @@ class _ChallengeSelectScreenState extends State<ChallengeSelectScreen> {
         Text(
           widget.category,
           style: const TextStyle(
-            color: Colors.white,
+            color: Color(0xFF003F91),
             fontSize: 28,
             fontWeight: FontWeight.w900,
             height: 1.1,
@@ -248,7 +251,7 @@ class _ChallengeSelectScreenState extends State<ChallengeSelectScreen> {
         Text(
           'Select Challenge Mode',
           style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.6),
+            color: Color(0xFF9E9E9E),
             fontSize: 16,
             fontWeight: FontWeight.w500,
           ),
@@ -280,18 +283,14 @@ class _ChallengeSelectScreenState extends State<ChallengeSelectScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             margin: const EdgeInsets.only(bottom: 16),
             decoration: BoxDecoration(
-              color:
-                  (_messageIsError
-                          ? const Color(0xFFEF4444)
-                          : const Color(0xFF4ADE80))
-                      .withValues(alpha: 0.12),
+              color: _messageIsError
+                  ? const Color(0xFFEF4444).withValues(alpha: 0.12)
+                  : const Color(0xFF358600),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color:
-                    (_messageIsError
-                            ? const Color(0xFFEF4444)
-                            : const Color(0xFF4ADE80))
-                        .withValues(alpha: 0.3),
+                color: _messageIsError
+                    ? const Color(0xFFEF4444).withValues(alpha: 0.3)
+                    : const Color(0xFF358600).withValues(alpha: 0.5),
               ),
             ),
             child: Row(
@@ -303,7 +302,7 @@ class _ChallengeSelectScreenState extends State<ChallengeSelectScreen> {
                   size: 20,
                   color: _messageIsError
                       ? const Color(0xFFEF4444)
-                      : const Color(0xFF4ADE80),
+                      : Colors.white,
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -312,7 +311,7 @@ class _ChallengeSelectScreenState extends State<ChallengeSelectScreen> {
                     style: TextStyle(
                       color: _messageIsError
                           ? const Color(0xFFEF4444)
-                          : const Color(0xFF4ADE80),
+                          : Colors.white,
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
                     ),
@@ -333,9 +332,7 @@ class _ChallengeSelectScreenState extends State<ChallengeSelectScreen> {
                     height: 18,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: _hasOffline
-                          ? const Color(0xFF4ADE80)
-                          : Colors.white,
+                      color: const Color(0xFF003F91),
                     ),
                   )
                 : Icon(
@@ -343,6 +340,7 @@ class _ChallengeSelectScreenState extends State<ChallengeSelectScreen> {
                         ? Icons.cloud_done_rounded
                         : Icons.cloud_download_rounded,
                     size: 20,
+                    color: const Color(0xFF003F91),
                   ),
             label: Text(
               _isDownloading
@@ -350,22 +348,19 @@ class _ChallengeSelectScreenState extends State<ChallengeSelectScreen> {
                   : _hasOffline
                   ? 'Update Offline Questions (50 Saved)'
                   : 'Download 50 Questions for Offline Use',
+              style: const TextStyle(color: Color(0xFF003F91)),
             ),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
               ),
-              side: BorderSide(
-                color: _hasOffline
-                    ? const Color(0xFF4ADE80).withValues(alpha: 0.5)
-                    : Colors.white.withValues(alpha: 0.15),
-              ),
-              foregroundColor: _hasOffline
-                  ? const Color(0xFF4ADE80)
-                  : Colors.white,
-              backgroundColor: Colors.white.withValues(alpha: 0.04),
-              disabledForegroundColor: Colors.white38,
+              side: const BorderSide(color: Color(0xFF003F91), width: 2),
+              foregroundColor: const Color(0xFF003F91),
+              backgroundColor: Colors.white,
+              disabledForegroundColor: const Color(
+                0xFF003F91,
+              ).withValues(alpha: 0.4),
             ),
           ),
         ),
@@ -386,6 +381,7 @@ class _ModeCard extends StatelessWidget {
   final Color glowColor;
   final VoidCallback onTap;
   final bool useDarkForeground;
+  final Color? borderColor;
 
   const _ModeCard({
     required this.title,
@@ -395,6 +391,7 @@ class _ModeCard extends StatelessWidget {
     required this.glowColor,
     required this.onTap,
     this.useDarkForeground = false,
+    this.borderColor,
   });
 
   @override
@@ -414,6 +411,9 @@ class _ModeCard extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
           color: cardColor,
+          border: borderColor != null
+              ? Border.all(color: borderColor!, width: 2)
+              : null,
         ),
         child: Material(
           color: Colors.transparent,
@@ -421,7 +421,7 @@ class _ModeCard extends StatelessWidget {
             onTap: onTap,
             borderRadius: BorderRadius.circular(24),
             child: Padding(
-              padding: const EdgeInsets.all(22),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -430,23 +430,23 @@ class _ModeCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
                           color: foreground.withValues(alpha: surfaceAlpha),
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(icon, color: foreground, size: 28),
+                        child: Icon(icon, color: foreground, size: 22),
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 7,
+                          horizontal: 12,
+                          vertical: 6,
                         ),
                         decoration: BoxDecoration(
                           color: foreground.withValues(
                             alpha: useDarkForeground ? 0.20 : 0.15,
                           ),
-                          borderRadius: BorderRadius.circular(18),
+                          borderRadius: BorderRadius.circular(16),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -454,14 +454,14 @@ class _ModeCard extends StatelessWidget {
                             Icon(
                               Icons.sports_esports_rounded,
                               color: foreground,
-                              size: 15,
+                              size: 13,
                             ),
-                            const SizedBox(width: 5),
+                            const SizedBox(width: 4),
                             Text(
                               'Play',
                               style: TextStyle(
                                 color: foreground,
-                                fontSize: 13,
+                                fontSize: 12,
                                 fontWeight: FontWeight.w800,
                               ),
                             ),
@@ -470,23 +470,23 @@ class _ModeCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 14),
                   // Title
                   Text(
                     title,
                     style: TextStyle(
                       color: foreground,
-                      fontSize: 20,
+                      fontSize: 17,
                       fontWeight: FontWeight.w900,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   // Description
                   Text(
                     description,
                     style: TextStyle(
                       color: foregroundMuted,
-                      fontSize: 13,
+                      fontSize: 12,
                       fontWeight: FontWeight.w500,
                       height: 1.3,
                     ),

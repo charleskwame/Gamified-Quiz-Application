@@ -201,7 +201,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       child: Text(
                         'Ranking History',
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: Color(0xFF003F91),
                           fontSize: 22,
                           fontWeight: FontWeight.w900,
                         ),
@@ -262,7 +262,7 @@ class _ProfilePageState extends State<ProfilePage> {
         const Text(
           'Profile',
           style: TextStyle(
-            color: Colors.white,
+            color: Color(0xFF003F91),
             fontSize: 34,
             fontWeight: FontWeight.w900,
             height: 1.05,
@@ -274,7 +274,7 @@ class _ProfilePageState extends State<ProfilePage> {
             if (user != null) ...[
               _buildIconButton(
                 icon: Icons.bug_report_rounded,
-                color: Colors.white70,
+                color: const Color(0xFF003F91),
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -287,7 +287,7 @@ class _ProfilePageState extends State<ProfilePage> {
               const SizedBox(width: 4),
               _buildIconButton(
                 icon: Icons.settings_rounded,
-                color: Colors.white70,
+                color: const Color(0xFF003F91),
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -387,13 +387,15 @@ class _ProfilePageState extends State<ProfilePage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -414,7 +416,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           child: Text(
                             displayName,
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: Color(0xFF003F91),
                               fontSize: 22,
                               fontWeight: FontWeight.w900,
                               height: 1.1,
@@ -448,7 +450,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               Text(
                                 LevelSystem.getLevelName(totalScore),
                                 style: const TextStyle(
-                                  color: Colors.white,
+                                  color: Color(0xFF003F91),
                                   fontSize: 11,
                                   fontWeight: FontWeight.w900,
                                 ),
@@ -462,7 +464,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     Text(
                       email,
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.5),
+                        color: const Color(0xFF003F91).withValues(alpha: 0.5),
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
                       ),
@@ -480,53 +482,55 @@ class _ProfilePageState extends State<ProfilePage> {
           if (streakNumber > 0 || selectedBadges.isNotEmpty) ...[
             const SizedBox(height: 16),
             if (streakNumber > 0)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      const Color(0xFFFF5722).withValues(alpha: 0.2),
-                      const Color(0xFFFF5722).withValues(alpha: 0.08),
+              _PulsingStreak(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        const Color(0xFF003F91).withValues(alpha: 0.15),
+                        const Color(0xFF003F91).withValues(alpha: 0.05),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: const Color(0xFF003F91).withValues(alpha: 0.4),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.local_fire_department_rounded,
+                        color: Color(0xFF003F91),
+                        size: 18,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '$streakNumber',
+                        style: const TextStyle(
+                          color: Color(0xFF003F91),
+                          fontWeight: FontWeight.w900,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'completion${streakNumber > 1 ? 's' : ''}',
+                        style: TextStyle(
+                          color: const Color(0xFF003F91).withValues(alpha: 0.7),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
                   ),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: const Color(0xFFFF5722).withValues(alpha: 0.4),
-                    width: 1.5,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.local_fire_department_rounded,
-                      color: Color(0xFFFF5722),
-                      size: 18,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '$streakNumber',
-                      style: const TextStyle(
-                        color: Color(0xFFFF5722),
-                        fontWeight: FontWeight.w900,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'completion${streakNumber > 1 ? 's' : ''}',
-                      style: TextStyle(
-                        color: const Color(0xFFFF5722).withValues(alpha: 0.7),
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
                 ),
               ),
             if (selectedBadges.isNotEmpty) ...[
@@ -635,7 +639,7 @@ class _ProfilePageState extends State<ProfilePage> {
           child: Container(
             height: 8,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.1),
+              color: const Color(0xFF003F91).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(6),
             ),
             child: Stack(
@@ -666,12 +670,12 @@ class _ProfilePageState extends State<ProfilePage> {
         const SizedBox(height: 4),
         Row(
           children: [
-            const Icon(Icons.stars_rounded, color: Color(0xFFFFD700), size: 14),
+            const Icon(Icons.stars_rounded, color: Color(0xFF003F91), size: 14),
             const SizedBox(width: 4),
             Text(
               '$totalScore XP',
               style: const TextStyle(
-                color: Color(0xFFFFD700),
+                color: Color(0xFF003F91),
                 fontSize: 12,
                 fontWeight: FontWeight.w800,
               ),
@@ -680,7 +684,7 @@ class _ProfilePageState extends State<ProfilePage> {
             Text(
               '${(xpProgress * 100).round()}% to next level',
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.4),
+                color: const Color(0xFF003F91).withValues(alpha: 0.6),
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
               ),
@@ -707,7 +711,7 @@ class _ProfilePageState extends State<ProfilePage> {
         Text(
           'Earned Badges (${unlockedBadgeIds.length}/${allBadges.length})',
           style: const TextStyle(
-            color: Colors.white,
+            color: Color(0xFF003F91),
             fontSize: 22,
             fontWeight: FontWeight.w900,
           ),
@@ -933,6 +937,50 @@ class _ProfilePageState extends State<ProfilePage> {
 // ═══════════════════════════════════════════════════════════════
 //  Staggered Fade-Slide — matching app-wide entrance animation
 // ═══════════════════════════════════════════════════════════════
+
+class _PulsingStreak extends StatefulWidget {
+  final Widget child;
+  const _PulsingStreak({required this.child});
+
+  @override
+  State<_PulsingStreak> createState() => _PulsingStreakState();
+}
+
+class _PulsingStreakState extends State<_PulsingStreak>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _pulseAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2000),
+    )..repeat(reverse: true);
+    _pulseAnim = Tween<double>(
+      begin: 1.0,
+      end: 1.06,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _pulseAnim,
+      builder: (context, child) {
+        return Transform.scale(scale: _pulseAnim.value, child: child);
+      },
+      child: widget.child,
+    );
+  }
+}
 
 class _StaggeredFadeSlide extends StatefulWidget {
   final int index;
