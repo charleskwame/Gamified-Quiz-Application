@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -18,6 +19,21 @@ class ShopScreen extends StatefulWidget {
 class _ShopScreenState extends State<ShopScreen> {
   final DatabaseService _db = DatabaseService();
   final Set<String> _purchasing = {}; // Track which items are being purchased
+  late final StreamSubscription<User?> _authSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _authSubscription = FirebaseAuth.instance.authStateChanges().listen((_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _authSubscription.cancel();
+    super.dispose();
+  }
 
   Future<void> _buyItem(ShopItem item, String uid) async {
     if (_purchasing.contains(item.id)) return;
