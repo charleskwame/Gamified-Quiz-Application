@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../app.dart';
 import '../services/database_service.dart';
 import '../models/shop_item.dart';
 
@@ -55,7 +54,7 @@ class _ShopScreenState extends State<ShopScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('✅ Purchased ${item.name}!'),
-            backgroundColor: AppColors.primary,
+            backgroundColor: const Color(0xFF808080),
             duration: const Duration(seconds: 2),
             behavior: SnackBarBehavior.floating,
             margin: const EdgeInsets.only(bottom: 100, left: 20, right: 20),
@@ -68,7 +67,7 @@ class _ShopScreenState extends State<ShopScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('Not enough coins or at max capacity (3)!'),
-            backgroundColor: AppColors.error,
+            backgroundColor: const Color(0xFF5A3A3A),
             duration: const Duration(seconds: 2),
             behavior: SnackBarBehavior.floating,
             margin: const EdgeInsets.only(bottom: 100, left: 20, right: 20),
@@ -83,7 +82,7 @@ class _ShopScreenState extends State<ShopScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Purchase failed: $e'),
-          backgroundColor: AppColors.error,
+          backgroundColor: const Color(0xFF5A3A3A),
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.only(bottom: 100, left: 20, right: 20),
           shape: RoundedRectangleBorder(
@@ -107,7 +106,10 @@ class _ShopScreenState extends State<ShopScreen> {
         child: Center(
           child: Text(
             'Sign in to access the shop',
-            style: TextStyle(color: AppColors.textMuted, fontSize: 16),
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.5),
+              fontSize: 16,
+            ),
           ),
         ),
       );
@@ -152,7 +154,7 @@ class _ShopScreenState extends State<ShopScreen> {
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w900,
-                    color: AppColors.textPrimary,
+                    color: Colors.white,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -161,7 +163,7 @@ class _ShopScreenState extends State<ShopScreen> {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: AppColors.textSecondary,
+                    color: Color(0xFFB0B0B0),
                   ),
                 ),
                 const SizedBox(height: 28),
@@ -193,15 +195,17 @@ class _ShopScreenState extends State<ShopScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: const Color(0xFF242424).withValues(alpha: 0.6),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.border),
+                    border: Border.all(
+                      color: const Color(0xFF333333).withValues(alpha: 0.5),
+                    ),
                   ),
                   child: Row(
                     children: [
                       Icon(
                         Icons.info_outline_rounded,
-                        color: AppColors.textMuted,
+                        color: const Color(0xFF808080).withValues(alpha: 0.7),
                         size: 20,
                       ),
                       const SizedBox(width: 12),
@@ -211,7 +215,9 @@ class _ShopScreenState extends State<ShopScreen> {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
-                            color: AppColors.textSecondary,
+                            color: const Color(
+                              0xFFB0B0B0,
+                            ).withValues(alpha: 0.8),
                             height: 1.4,
                           ),
                         ),
@@ -232,9 +238,9 @@ class _ShopScreenState extends State<ShopScreen> {
                         '🪙 Give 100 coins to all existing users',
                       ),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.textSecondary,
+                        foregroundColor: const Color(0xFF808080),
                         side: const BorderSide(
-                          color: AppColors.border,
+                          color: Color(0xFF808080),
                           width: 1,
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 12),
@@ -261,7 +267,7 @@ class _ShopScreenState extends State<ShopScreen> {
       scaffold.showSnackBar(
         SnackBar(
           content: Text('✅ $count users received 100 🪙 each!'),
-          backgroundColor: AppColors.primary,
+          backgroundColor: const Color(0xFF808080),
           duration: const Duration(seconds: 3),
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.only(bottom: 100, left: 20, right: 20),
@@ -275,7 +281,7 @@ class _ShopScreenState extends State<ShopScreen> {
       scaffold.showSnackBar(
         SnackBar(
           content: Text('Error: $e'),
-          backgroundColor: AppColors.error,
+          backgroundColor: const Color(0xFF5A3A3A),
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.only(bottom: 100, left: 20, right: 20),
           shape: RoundedRectangleBorder(
@@ -290,16 +296,15 @@ class _ShopScreenState extends State<ShopScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        gradient: const LinearGradient(
+          colors: [Color(0xFF242424), Color(0xFF333333)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.accent.withValues(alpha: 0.3)),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.accent.withValues(alpha: 0.08),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border.all(
+          color: const Color(0xFF444444).withValues(alpha: 0.5),
+        ),
       ),
       child: Row(
         children: [
@@ -307,7 +312,7 @@ class _ShopScreenState extends State<ShopScreen> {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: AppColors.accent.withValues(alpha: 0.15),
+              color: const Color(0xFF808080).withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(14),
             ),
             child: const Center(
@@ -323,7 +328,7 @@ class _ShopScreenState extends State<ShopScreen> {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.textMuted,
+                  color: Color(0xFF707070),
                   letterSpacing: 0.5,
                 ),
               ),
@@ -333,7 +338,7 @@ class _ShopScreenState extends State<ShopScreen> {
                 style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.w900,
-                  color: AppColors.textPrimary,
+                  color: Color(0xFFB0B0B0),
                 ),
               ),
             ],
@@ -342,10 +347,10 @@ class _ShopScreenState extends State<ShopScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.accent.withValues(alpha: 0.15),
+              color: const Color(0xFF808080).withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: AppColors.accent.withValues(alpha: 0.3),
+                color: const Color(0xFF808080).withValues(alpha: 0.3),
               ),
             ),
             child: const Text(
@@ -353,7 +358,7 @@ class _ShopScreenState extends State<ShopScreen> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
-                color: AppColors.accent,
+                color: Color(0xFFB0B0B0),
               ),
             ),
           ),
@@ -392,9 +397,9 @@ class _ShopItemCard extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 16),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: const Color(0xFF242424),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: item.color.withValues(alpha: 0.2)),
         ),
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -422,7 +427,7 @@ class _ShopItemCard extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
-                        color: AppColors.textPrimary,
+                        color: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -431,7 +436,7 @@ class _ShopItemCard extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
-                        color: AppColors.textSecondary,
+                        color: Color(0xFFB0B0B0),
                         height: 1.3,
                       ),
                     ),
@@ -443,7 +448,7 @@ class _ShopItemCard extends StatelessWidget {
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
                           color: isMaxed
-                              ? AppColors.textMuted
+                              ? const Color(0xFFB0B0B0)
                               : item.color.withValues(alpha: 0.8),
                         ),
                       ),
@@ -464,10 +469,10 @@ class _ShopItemCard extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.premium.withValues(alpha: 0.1),
+                      color: const Color(0xFF808080).withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: AppColors.premium.withValues(alpha: 0.2),
+                        color: const Color(0xFF808080).withValues(alpha: 0.2),
                       ),
                     ),
                     child: Row(
@@ -480,7 +485,7 @@ class _ShopItemCard extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w800,
-                            color: AppColors.premium,
+                            color: Color(0xFFB0B0B0),
                           ),
                         ),
                       ],
@@ -496,16 +501,18 @@ class _ShopItemCard extends StatelessWidget {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.border,
+                        color: const Color(0xFF808080).withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppColors.border),
+                        border: Border.all(
+                          color: const Color(0xFF808080).withValues(alpha: 0.3),
+                        ),
                       ),
                       child: const Text(
                         'MAXED',
                         style: TextStyle(
                           fontSize: 9,
                           fontWeight: FontWeight.w900,
-                          color: AppColors.textMuted,
+                          color: Color(0xFFB0B0B0),
                           letterSpacing: 0.8,
                         ),
                       ),
@@ -514,10 +521,7 @@ class _ShopItemCard extends StatelessWidget {
                     const SizedBox(
                       width: 18,
                       height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppColors.premium,
-                      ),
+                      child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   else
                     SizedBox(
@@ -527,15 +531,19 @@ class _ShopItemCard extends StatelessWidget {
                         onPressed: canAfford ? onBuy : null,
                         style: FilledButton.styleFrom(
                           backgroundColor: canAfford
-                              ? AppColors.premium
-                              : AppColors.disabled,
+                              ? item.color
+                              : Colors.grey.withValues(alpha: 0.3),
                           foregroundColor: Colors.white,
                           padding: EdgeInsets.zero,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          disabledBackgroundColor: AppColors.disabled,
-                          disabledForegroundColor: AppColors.disabledText,
+                          disabledBackgroundColor: Colors.grey.withValues(
+                            alpha: 0.15,
+                          ),
+                          disabledForegroundColor: Colors.grey.withValues(
+                            alpha: 0.5,
+                          ),
                         ),
                         child: Text(
                           canAfford ? 'BUY' : '💸',

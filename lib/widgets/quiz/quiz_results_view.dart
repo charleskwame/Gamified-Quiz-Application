@@ -2,7 +2,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:confetti/confetti.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../../app.dart';
 import '../../models/badge.dart';
 import '../../models/level_system.dart';
 
@@ -229,12 +228,12 @@ class _QuizResultsViewState extends State<QuizResultsView>
   Color _getGradeColor() {
     final accuracy = (widget.correctAnswers / widget.totalQuestions * 100)
         .round();
-    if (accuracy >= 90) return AppColors.primary;
-    if (accuracy >= 80) return AppColors.secondary;
-    if (accuracy >= 70) return AppColors.accent;
-    if (accuracy >= 60) return AppColors.sale;
-    if (accuracy >= 50) return AppColors.textSecondary;
-    return AppColors.textMuted;
+    if (accuracy >= 90) return const Color(0xFFE0E0E0);
+    if (accuracy >= 80) return const Color(0xFFB0B0B0);
+    if (accuracy >= 70) return const Color(0xFF909090);
+    if (accuracy >= 60) return const Color(0xFF707070);
+    if (accuracy >= 50) return const Color(0xFF505050);
+    return const Color(0xFF404040);
   }
 
   @override
@@ -262,7 +261,7 @@ class _QuizResultsViewState extends State<QuizResultsView>
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFFF0F0F0), Color(0xFFFBFBFB), Color(0xFFFFFFFF)],
+            colors: [Color(0xFF121212), Color(0xFF1A1A1A), Color(0xFF242424)],
           ),
         ),
         child: Stack(
@@ -295,7 +294,7 @@ class _QuizResultsViewState extends State<QuizResultsView>
                                 vertical: 8,
                               ),
                               decoration: BoxDecoration(
-                                color: _getGradeColor().withValues(alpha: 0.15),
+                                color: _getGradeColor().withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
                                   color: _getGradeColor().withValues(
@@ -319,7 +318,7 @@ class _QuizResultsViewState extends State<QuizResultsView>
                               style: Theme.of(context).textTheme.headlineMedium
                                   ?.copyWith(
                                     fontWeight: FontWeight.w800,
-                                    color: AppColors.textPrimary,
+                                    color: Colors.white,
                                   ),
                             ),
                             const SizedBox(height: 8),
@@ -329,7 +328,7 @@ class _QuizResultsViewState extends State<QuizResultsView>
                                   : 'Great job! Your profile stats have been updated.',
                               textAlign: TextAlign.center,
                               style: const TextStyle(
-                                color: AppColors.textSecondary,
+                                color: Color(0xFFB0B0B0),
                                 fontSize: 14,
                               ),
                             ),
@@ -353,8 +352,8 @@ class _QuizResultsViewState extends State<QuizResultsView>
                                       key: ValueKey(isFilled),
                                       size: 40,
                                       color: isFilled
-                                          ? AppColors.accent
-                                          : AppColors.border,
+                                          ? const Color(0xFFE0E0E0)
+                                          : const Color(0xFF505050),
                                     ),
                                   ),
                                 );
@@ -366,9 +365,11 @@ class _QuizResultsViewState extends State<QuizResultsView>
                             Container(
                               padding: const EdgeInsets.all(24),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: const Color(0xFF242424),
                                 borderRadius: BorderRadius.circular(24),
-                                border: Border.all(color: AppColors.border),
+                                border: Border.all(
+                                  color: const Color(0xFF333333),
+                                ),
                               ),
                               child: Column(
                                 children: [
@@ -379,27 +380,27 @@ class _QuizResultsViewState extends State<QuizResultsView>
                                       _buildStatItem(
                                         'SCORE',
                                         '+$_displayScore pts',
-                                        AppColors.primary,
+                                        const Color(0xFF808080),
                                       ),
                                       Container(
                                         width: 1,
                                         height: 40,
-                                        color: AppColors.divider,
+                                        color: const Color(0xFF333333),
                                       ),
                                       _buildStatItem(
                                         'CORRECT',
                                         '${widget.correctAnswers}/${widget.totalQuestions}',
-                                        AppColors.secondary,
+                                        const Color(0xFFB0B0B0),
                                       ),
                                       Container(
                                         width: 1,
                                         height: 40,
-                                        color: AppColors.divider,
+                                        color: const Color(0xFF333333),
                                       ),
                                       _buildStatItem(
                                         'ACCURACY',
                                         '$accuracy%',
-                                        AppColors.accent,
+                                        const Color(0xFF909090),
                                       ),
                                     ],
                                   ),
@@ -412,14 +413,14 @@ class _QuizResultsViewState extends State<QuizResultsView>
                                         vertical: 6,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: AppColors.accent.withValues(
-                                          alpha: 0.15,
-                                        ),
+                                        color: const Color(
+                                          0xFF808080,
+                                        ).withValues(alpha: 0.15),
                                         borderRadius: BorderRadius.circular(10),
                                         border: Border.all(
-                                          color: AppColors.accent.withValues(
-                                            alpha: 0.3,
-                                          ),
+                                          color: const Color(
+                                            0xFF808080,
+                                          ).withValues(alpha: 0.3),
                                         ),
                                       ),
                                       child: Row(
@@ -433,7 +434,7 @@ class _QuizResultsViewState extends State<QuizResultsView>
                                           Text(
                                             '+${widget.coinsEarned} coins earned',
                                             style: const TextStyle(
-                                              color: AppColors.textSecondary,
+                                              color: Color(0xFFB0B0B0),
                                               fontSize: 12,
                                               fontWeight: FontWeight.w700,
                                             ),
@@ -452,14 +453,14 @@ class _QuizResultsViewState extends State<QuizResultsView>
                                         vertical: 6,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: AppColors.error.withValues(
-                                          alpha: 0.15,
-                                        ),
+                                        color: const Color(
+                                          0xFF5A3A3A,
+                                        ).withValues(alpha: 0.15),
                                         borderRadius: BorderRadius.circular(10),
                                         border: Border.all(
-                                          color: AppColors.error.withValues(
-                                            alpha: 0.3,
-                                          ),
+                                          color: const Color(
+                                            0xFF5A3A3A,
+                                          ).withValues(alpha: 0.3),
                                         ),
                                       ),
                                       child: Row(
@@ -467,14 +468,14 @@ class _QuizResultsViewState extends State<QuizResultsView>
                                         children: [
                                           const Icon(
                                             Icons.remove_rounded,
-                                            color: AppColors.error,
+                                            color: Color(0xFF5A3A3A),
                                             size: 14,
                                           ),
                                           const SizedBox(width: 4),
                                           Text(
                                             '${widget.penaltyDeductions} pts deducted',
                                             style: const TextStyle(
-                                              color: AppColors.error,
+                                              color: Color(0xFF5A3A3A),
                                               fontSize: 12,
                                               fontWeight: FontWeight.w700,
                                             ),
@@ -511,7 +512,7 @@ class _QuizResultsViewState extends State<QuizResultsView>
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimary,
+                                  color: Color(0xFFE0E0E0),
                                   letterSpacing: 1.5,
                                 ),
                               ),
@@ -553,13 +554,13 @@ class _QuizResultsViewState extends State<QuizResultsView>
                                 icon: const Icon(Icons.home_rounded),
                                 label: const Text('Back to Course Selection'),
                                 style: FilledButton.styleFrom(
-                                  backgroundColor: AppColors.secondary,
+                                  backgroundColor: const Color(0xFF808080),
                                   foregroundColor: Colors.white,
                                   padding: const EdgeInsets.symmetric(
                                     vertical: 14,
                                   ),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
                                 ),
                               ),
@@ -572,15 +573,17 @@ class _QuizResultsViewState extends State<QuizResultsView>
                                 width: double.infinity,
                                 padding: const EdgeInsets.all(20),
                                 decoration: BoxDecoration(
-                                  color: Colors.white,
+                                  color: const Color(0xFF242424),
                                   borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(color: AppColors.border),
+                                  border: Border.all(
+                                    color: const Color(0xFF333333),
+                                  ),
                                 ),
                                 child: Column(
                                   children: [
                                     const Icon(
                                       Icons.format_quote_rounded,
-                                      color: AppColors.textMuted,
+                                      color: Color(0xFF808080),
                                       size: 28,
                                     ),
                                     const SizedBox(height: 12),
@@ -591,7 +594,7 @@ class _QuizResultsViewState extends State<QuizResultsView>
                                         fontSize: 15,
                                         fontStyle: FontStyle.italic,
                                         fontWeight: FontWeight.w500,
-                                        color: AppColors.textPrimary,
+                                        color: Color(0xFFD1D5DB),
                                         height: 1.5,
                                       ),
                                     ),
@@ -602,7 +605,7 @@ class _QuizResultsViewState extends State<QuizResultsView>
                                       style: const TextStyle(
                                         fontSize: 13,
                                         fontWeight: FontWeight.w700,
-                                        color: AppColors.textSecondary,
+                                        color: Color(0xFFB0B0B0),
                                       ),
                                     ),
                                   ],
@@ -630,7 +633,7 @@ class _QuizResultsViewState extends State<QuizResultsView>
                         center: Alignment.center,
                         radius: 1.0,
                         colors: [
-                          AppColors.accent.withValues(alpha: 0.08),
+                          Colors.white.withValues(alpha: 0.08),
                           Colors.transparent,
                         ],
                       ),
@@ -651,12 +654,12 @@ class _QuizResultsViewState extends State<QuizResultsView>
                 emissionFrequency: 0.05,
                 numberOfParticles: 30,
                 gravity: 0.2,
-                colors: [
-                  AppColors.primary,
-                  AppColors.secondary,
-                  AppColors.accent,
-                  AppColors.sale,
-                  AppColors.premium,
+                colors: const [
+                  Color(0xFFE0E0E0),
+                  Color(0xFFB0B0B0),
+                  Color(0xFF909090),
+                  Color(0xFF707070),
+                  Color(0xFF505050),
                   Colors.white,
                 ],
                 shouldLoop: false,
@@ -684,12 +687,12 @@ class _QuizResultsViewState extends State<QuizResultsView>
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: const Color(0xFF242424),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: leveledUp
-              ? AppColors.accent.withValues(alpha: 0.6)
-              : AppColors.border,
+              ? Colors.white.withValues(alpha: 0.4)
+              : const Color(0xFF333333),
         ),
       ),
       child: Column(
@@ -704,7 +707,7 @@ class _QuizResultsViewState extends State<QuizResultsView>
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.textMuted,
+                  color: Color(0xFF707070),
                   letterSpacing: 1.0,
                 ),
               ),
@@ -715,10 +718,10 @@ class _QuizResultsViewState extends State<QuizResultsView>
                     vertical: 3,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.accent.withValues(alpha: 0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: AppColors.accent.withValues(alpha: 0.4),
+                      color: Colors.white.withValues(alpha: 0.4),
                     ),
                   ),
                   child: Row(
@@ -726,7 +729,7 @@ class _QuizResultsViewState extends State<QuizResultsView>
                     children: [
                       Icon(
                         Icons.arrow_upward_rounded,
-                        color: AppColors.accent,
+                        color: Colors.white,
                         size: 12,
                       ),
                       const SizedBox(width: 3),
@@ -735,7 +738,7 @@ class _QuizResultsViewState extends State<QuizResultsView>
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w900,
-                          color: AppColors.accent,
+                          color: Colors.white,
                           letterSpacing: 1,
                         ),
                       ),
@@ -754,7 +757,7 @@ class _QuizResultsViewState extends State<QuizResultsView>
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.textMuted,
+                  color: Color(0xFFB0B0B0),
                 ),
               ),
               Padding(
@@ -762,7 +765,7 @@ class _QuizResultsViewState extends State<QuizResultsView>
                 child: Icon(
                   Icons.arrow_forward_rounded,
                   size: 14,
-                  color: AppColors.textMuted,
+                  color: const Color(0xFF808080),
                 ),
               ),
               Text(
@@ -770,7 +773,7 @@ class _QuizResultsViewState extends State<QuizResultsView>
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w900,
-                  color: leveledUp ? AppColors.accent : AppColors.textPrimary,
+                  color: leveledUp ? Colors.white : const Color(0xFFB0B0B0),
                 ),
               ),
             ],
@@ -783,7 +786,7 @@ class _QuizResultsViewState extends State<QuizResultsView>
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w800,
-              color: leveledUp ? AppColors.accent : AppColors.textSecondary,
+              color: leveledUp ? Colors.white : const Color(0xFFB0B0B0),
             ),
             child: Text(
               leveledUp ? '$oldLevelName → $newLevelName' : currentLevelName,
@@ -797,7 +800,7 @@ class _QuizResultsViewState extends State<QuizResultsView>
             child: Container(
               height: 10,
               decoration: BoxDecoration(
-                color: AppColors.border,
+                color: Colors.white.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Stack(
@@ -809,16 +812,14 @@ class _QuizResultsViewState extends State<QuizResultsView>
                         borderRadius: BorderRadius.circular(6),
                         gradient: LinearGradient(
                           colors: leveledUp
-                              ? [AppColors.accent, AppColors.sale]
+                              ? [Colors.white, const Color(0xFF909090)]
                               : newLevelColor,
                         ),
                         boxShadow: [
                           BoxShadow(
                             color:
-                                (leveledUp
-                                        ? AppColors.accent
-                                        : newLevelColor.first)
-                                    .withValues(alpha: 0.15),
+                                (leveledUp ? Colors.white : newLevelColor.first)
+                                    .withValues(alpha: 0.08),
                             blurRadius: 2,
                           ),
                         ],
@@ -839,7 +840,7 @@ class _QuizResultsViewState extends State<QuizResultsView>
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
-                  color: leveledUp ? AppColors.accent : AppColors.textSecondary,
+                  color: leveledUp ? Colors.white : const Color(0xFFB0B0B0),
                 ),
               ),
               const Spacer(),
@@ -849,7 +850,7 @@ class _QuizResultsViewState extends State<QuizResultsView>
                   style: const TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textMuted,
+                    color: Color(0xFF707070),
                   ),
                 )
               else
@@ -858,7 +859,7 @@ class _QuizResultsViewState extends State<QuizResultsView>
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
+                    color: Color(0xFFE0E0E0),
                   ),
                 ),
             ],
@@ -876,7 +877,7 @@ class _QuizResultsViewState extends State<QuizResultsView>
           style: const TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w700,
-            color: AppColors.textMuted,
+            color: Color(0xFF707070),
             letterSpacing: 1.0,
           ),
         ),

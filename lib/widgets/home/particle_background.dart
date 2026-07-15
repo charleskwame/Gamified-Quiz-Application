@@ -64,10 +64,10 @@ class _ParticleBackgroundState extends State<ParticleBackground>
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Color(0xFFF7F7F7),
-                  Color(0xFFFBFBFB),
-                  Color(0xFFF5F5F5),
-                  Color(0xFFF0F0F0),
+                  Color(0xFF0A0A0A),
+                  Color(0xFF121212),
+                  Color(0xFF1A1A1A),
+                  Color(0xFF222222),
                 ],
                 stops: [0.0, 0.3, 0.7, 1.0],
               ),
@@ -137,7 +137,7 @@ class _ParticlePainter extends CustomPainter {
 
       final opacity = p.opacity * fade;
 
-      paint.color = Colors.black.withValues(alpha: opacity * 0.5);
+      paint.color = Colors.white.withValues(alpha: opacity);
       canvas.drawCircle(Offset(x * size.width, y * size.height), p.size, paint);
     }
   }
