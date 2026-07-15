@@ -64,10 +64,10 @@ class _ParticleBackgroundState extends State<ParticleBackground>
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Color(0xFF0A0A0A),
-                  Color(0xFF121212),
-                  Color(0xFF1A1A1A),
-                  Color(0xFF222222),
+                  Color(0xFF060B1A), // very dark navy
+                  Color(0xFF0A0E21), // dark blue
+                  Color(0xFF0F1832), // slightly lighter
+                  Color(0xFF141852), // deep indigo hint
                 ],
                 stops: [0.0, 0.3, 0.7, 1.0],
               ),

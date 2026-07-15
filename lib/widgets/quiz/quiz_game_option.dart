@@ -83,28 +83,28 @@ class _QuizGameOptionState extends State<QuizGameOption>
 
   @override
   Widget build(BuildContext context) {
-    Color borderColor = const Color(0xFF444444);
-    Color bgColor = const Color(0xFF2A2A2A);
-    Color labelBg = const Color(0xFF444444);
+    Color borderColor = const Color(0xFF3D4375);
+    Color bgColor = const Color(0xFF2A2F5A);
+    Color labelBg = const Color(0xFF3D4375);
     Color labelTextColor = Colors.white70;
     IconData? stateIcon;
     Color iconColor = Colors.white;
 
     if (widget.isAnswered) {
       if (_isCorrectOption) {
-        borderColor = const Color(0xFF808080);
-        bgColor = const Color(0xFF2A2A2A);
-        labelBg = const Color(0xFF808080);
+        borderColor = const Color(0xFF4ADE80);
+        bgColor = const Color(0xFF1A3A2A);
+        labelBg = const Color(0xFF4ADE80);
         labelTextColor = Colors.white;
         stateIcon = Icons.check_circle_rounded;
-        iconColor = const Color(0xFF808080);
+        iconColor = const Color(0xFF4ADE80);
       } else if (_isSelected) {
-        borderColor = const Color(0xFF5A3A3A);
-        bgColor = const Color(0xFF3A2A2A);
-        labelBg = const Color(0xFF5A3A3A);
+        borderColor = const Color(0xFFEF4444);
+        bgColor = const Color(0xFF3A1A1A);
+        labelBg = const Color(0xFFEF4444);
         labelTextColor = Colors.white;
         stateIcon = Icons.cancel_rounded;
-        iconColor = const Color(0xFF5A3A3A);
+        iconColor = const Color(0xFFEF4444);
       }
     }
 
@@ -135,7 +135,7 @@ class _QuizGameOptionState extends State<QuizGameOption>
           boxShadow: [
             if (widget.isAnswered && _isCorrectOption)
               BoxShadow(
-                color: const Color(0xFF808080).withValues(alpha: 0.06),
+                color: const Color(0xFF4ADE80).withValues(alpha: 0.06),
                 blurRadius: 3,
                 spreadRadius: 0,
               ),

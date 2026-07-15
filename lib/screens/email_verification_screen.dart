@@ -167,9 +167,9 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
     try {
       await _authService.resendVerificationEmail();
       if (mounted) {
-        setState(
-          () => _successMessage = 'Verification email resent successfully!',
-        );
+        setState(() {
+          _successMessage = 'Verification email resent successfully!';
+        });
         _startResendCooldown();
       }
     } on FirebaseAuthException catch (e) {
@@ -212,9 +212,13 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
     _cooldownTimer?.cancel();
     _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) {
-        setState(() => _resendCooldown--);
+        setState(() {
+          _resendCooldown--;
+        });
       }
-      if (_resendCooldown <= 0) timer.cancel();
+      if (_resendCooldown <= 0) {
+        timer.cancel();
+      }
     });
   }
 
@@ -225,7 +229,10 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
     await _authService.logOut();
   }
 
-  void _navigateToApp() {}
+  // AuthGate's periodic timer handles the actual navigation to MainNavigation
+  void _navigateToApp() {
+    // Verification is detected — AuthGate will transition within 3 seconds
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -237,10 +244,10 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF0A0A0A),
-              Color(0xFF121212),
-              Color(0xFF1A1A1A),
-              Color(0xFF222222),
+              Color(0xFF060B1A),
+              Color(0xFF0A0E21),
+              Color(0xFF0F1832),
+              Color(0xFF141852),
             ],
             stops: [0.0, 0.3, 0.7, 1.0],
           ),
@@ -248,7 +255,10 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
         child: SafeArea(
           child: Stack(
             children: [
+              // Particle layer
               Positioned.fill(child: _ParticleOverlay()),
+
+              // Content
               Positioned.fill(
                 child: LayoutBuilder(
                   builder: (context, constraints) => SingleChildScrollView(
@@ -260,6 +270,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                       child: IntrinsicHeight(
                         child: Column(
                           children: [
+                            // Animated email icon
                             FadeTransition(
                               opacity: _fadeSlide,
                               child: AnimatedBuilder(
@@ -277,18 +288,18 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                     shape: BoxShape.circle,
                                     gradient: const SweepGradient(
                                       colors: [
-                                        Color(0xFF808080),
-                                        Color(0xFFB0B0B0),
-                                        Color(0xFFE0E0E0),
-                                        Color(0xFF909090),
-                                        Color(0xFF808080),
+                                        Color(0xFF6366F1),
+                                        Color(0xFF8C52FF),
+                                        Color(0xFFFFD700),
+                                        Color(0xFF4ADE80),
+                                        Color(0xFF6366F1),
                                       ],
                                       stops: [0.0, 0.25, 0.5, 0.75, 1.0],
                                     ),
                                     boxShadow: [
                                       BoxShadow(
                                         color: const Color(
-                                          0xFF808080,
+                                          0xFF6366F1,
                                         ).withValues(alpha: 0.2),
                                         blurRadius: 16,
                                         spreadRadius: 2,
@@ -305,14 +316,17 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                       child: const Icon(
                                         Icons.mark_email_read_rounded,
                                         size: 48,
-                                        color: Color(0xFF808080),
+                                        color: Color(0xFF6366F1),
                                       ),
                                     ),
                                   ),
                                 ),
                               ),
                             ),
+
                             const SizedBox(height: 36),
+
+                            // Title
                             FadeTransition(
                               opacity: _fadeSlide,
                               child: const Text(
@@ -326,7 +340,10 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                 textAlign: TextAlign.center,
                               ),
                             ),
+
                             const SizedBox(height: 12),
+
+                            // Email display
                             FadeTransition(
                               opacity: _fadeSlide,
                               child: Column(
@@ -350,14 +367,14 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                     ),
                                     decoration: BoxDecoration(
                                       color: const Color(
-                                        0xFF808080,
+                                        0xFF6366F1,
                                       ).withValues(alpha: 0.12),
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                     child: Text(
                                       widget.email,
                                       style: const TextStyle(
-                                        color: Color(0xFFB0B0B0),
+                                        color: Color(0xFF6366F1),
                                         fontSize: 15,
                                         fontWeight: FontWeight.w700,
                                       ),
@@ -367,7 +384,10 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                 ],
                               ),
                             ),
+
                             const SizedBox(height: 32),
+
+                            // Instructions card
                             FadeTransition(
                               opacity: _fadeSlide,
                               child: Container(
@@ -403,7 +423,10 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                 ),
                               ),
                             ),
+
                             const SizedBox(height: 28),
+
+                            // Error message
                             if (_errorMessage != null)
                               FadeTransition(
                                 opacity: _fadeSlide,
@@ -413,12 +436,12 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                   margin: const EdgeInsets.only(bottom: 16),
                                   decoration: BoxDecoration(
                                     color: const Color(
-                                      0xFF5A3A3A,
+                                      0xFFEF4444,
                                     ).withValues(alpha: 0.12),
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
                                       color: const Color(
-                                        0xFF5A3A3A,
+                                        0xFFEF4444,
                                       ).withValues(alpha: 0.25),
                                     ),
                                   ),
@@ -426,7 +449,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                     children: [
                                       const Icon(
                                         Icons.error_outline_rounded,
-                                        color: Color(0xFF5A3A3A),
+                                        color: Color(0xFFEF4444),
                                         size: 20,
                                       ),
                                       const SizedBox(width: 10),
@@ -434,7 +457,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                         child: Text(
                                           _errorMessage!,
                                           style: const TextStyle(
-                                            color: Color(0xFF5A3A3A),
+                                            color: Color(0xFFEF4444),
                                             fontSize: 13,
                                             fontWeight: FontWeight.w500,
                                           ),
@@ -444,6 +467,8 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                   ),
                                 ),
                               ),
+
+                            // Success message
                             if (_successMessage != null)
                               FadeTransition(
                                 opacity: _fadeSlide,
@@ -453,12 +478,12 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                   margin: const EdgeInsets.only(bottom: 16),
                                   decoration: BoxDecoration(
                                     color: const Color(
-                                      0xFF808080,
+                                      0xFF4ADE80,
                                     ).withValues(alpha: 0.12),
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
                                       color: const Color(
-                                        0xFF808080,
+                                        0xFF4ADE80,
                                       ).withValues(alpha: 0.25),
                                     ),
                                   ),
@@ -466,7 +491,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                     children: [
                                       const Icon(
                                         Icons.check_circle_outline_rounded,
-                                        color: Color(0xFF808080),
+                                        color: Color(0xFF4ADE80),
                                         size: 20,
                                       ),
                                       const SizedBox(width: 10),
@@ -474,7 +499,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                         child: Text(
                                           _successMessage!,
                                           style: const TextStyle(
-                                            color: Color(0xFF808080),
+                                            color: Color(0xFF4ADE80),
                                             fontSize: 13,
                                             fontWeight: FontWeight.w500,
                                           ),
@@ -484,6 +509,8 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                   ),
                                 ),
                               ),
+
+                            // "I've Verified" button
                             FadeTransition(
                               opacity: _fadeSlide,
                               child: SizedBox(
@@ -493,14 +520,14 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                     borderRadius: BorderRadius.circular(14),
                                     gradient: const LinearGradient(
                                       colors: [
-                                        Color(0xFF808080),
-                                        Color(0xFFB0B0B0),
+                                        Color(0xFF6366F1),
+                                        Color(0xFF8C52FF),
                                       ],
                                     ),
                                     boxShadow: [
                                       BoxShadow(
                                         color: const Color(
-                                          0xFF808080,
+                                          0xFF6366F1,
                                         ).withValues(alpha: 0.3),
                                         blurRadius: 12,
                                         offset: const Offset(0, 4),
@@ -557,7 +584,10 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                 ),
                               ),
                             ),
+
                             const SizedBox(height: 12),
+
+                            // Resend button
                             FadeTransition(
                               opacity: _fadeSlide,
                               child: SizedBox(
@@ -575,7 +605,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                             strokeWidth: 2,
                                             valueColor:
                                                 AlwaysStoppedAnimation<Color>(
-                                                  Color(0xFF808080),
+                                                  Color(0xFF6366F1),
                                                 ),
                                           ),
                                         )
@@ -593,7 +623,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                     ),
                                   ),
                                   style: OutlinedButton.styleFrom(
-                                    foregroundColor: const Color(0xFF808080),
+                                    foregroundColor: const Color(0xFF6366F1),
                                     side: BorderSide(
                                       color: Colors.white.withValues(
                                         alpha: 0.15,
@@ -612,7 +642,10 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                 ),
                               ),
                             ),
+
                             const SizedBox(height: 24),
+
+                            // Help text
                             FadeTransition(
                               opacity: _fadeSlide,
                               child: Text(
@@ -625,7 +658,10 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                 textAlign: TextAlign.center,
                               ),
                             ),
+
                             const SizedBox(height: 32),
+
+                            // Divider
                             FadeTransition(
                               opacity: _fadeSlide,
                               child: Row(
@@ -661,7 +697,10 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                 ],
                               ),
                             ),
+
                             const SizedBox(height: 16),
+
+                            // Log out
                             FadeTransition(
                               opacity: _fadeSlide,
                               child: TextButton.icon(
@@ -674,13 +713,13 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                           strokeWidth: 2,
                                           valueColor:
                                               AlwaysStoppedAnimation<Color>(
-                                                Color(0xFF5A3A3A),
+                                                Color(0xFFEF4444),
                                               ),
                                         ),
                                       )
                                     : const Icon(
                                         Icons.logout_rounded,
-                                        color: Color(0xFF5A3A3A),
+                                        color: Color(0xFFEF4444),
                                         size: 20,
                                       ),
                                 label: Text(
@@ -688,13 +727,14 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                       ? 'Logging out...'
                                       : 'Use a different email',
                                   style: const TextStyle(
-                                    color: Color(0xFF5A3A3A),
+                                    color: Color(0xFFEF4444),
                                     fontWeight: FontWeight.w600,
                                     fontSize: 14,
                                   ),
                                 ),
                               ),
                             ),
+
                             const Spacer(),
                           ],
                         ),
@@ -720,7 +760,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF808080), Color(0xFFB0B0B0)],
+                colors: [Color(0xFF6366F1), Color(0xFF8C52FF)],
               ),
               borderRadius: BorderRadius.circular(12),
             ),
@@ -747,6 +787,8 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
   }
 }
 
+// ── Particle Overlay ──
+
 class _ParticleOverlay extends StatefulWidget {
   @override
   State<_ParticleOverlay> createState() => _ParticleOverlayState();
@@ -765,6 +807,7 @@ class _ParticleOverlayState extends State<_ParticleOverlay>
       vsync: this,
       duration: const Duration(seconds: 12),
     )..repeat();
+
     for (int i = 0; i < 20; i++) {
       _particles.add(
         _Particle(
@@ -801,7 +844,12 @@ class _ParticleOverlayState extends State<_ParticleOverlay>
 }
 
 class _Particle {
-  final double x, y, size, opacity, speed;
+  final double x;
+  final double y;
+  final double size;
+  final double opacity;
+  final double speed;
+
   const _Particle({
     required this.x,
     required this.y,
@@ -814,20 +862,27 @@ class _Particle {
 class _ParticlePainter extends CustomPainter {
   final List<_Particle> particles;
   final Animation<double> progress;
+
   _ParticlePainter({required this.particles, required this.progress});
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()..style = PaintingStyle.fill;
+
     for (int i = 0; i < particles.length; i++) {
       final p = particles[i];
       final t = progress.value * p.speed;
+
       double y = (p.y - t * 0.08) % 1.0;
       if (y < 0) y += 1.0;
       final x = p.x + math.sin(t * 2.0 + i) * 0.005;
+
       double fade = 1.0;
       if (y < 0.1) fade = y / 0.1;
       if (y > 0.9) fade = (1.0 - y) / 0.1;
-      paint.color = Colors.white.withValues(alpha: p.opacity * fade);
+
+      final opacity = p.opacity * fade;
+      paint.color = Colors.white.withValues(alpha: opacity);
       canvas.drawCircle(Offset(x * size.width, y * size.height), p.size, paint);
     }
   }

@@ -115,8 +115,8 @@ class _ChallengeSelectScreenState extends State<ChallengeSelectScreen> {
                     description:
                         'Answer quiz questions with no timer limits. Recommended for learning.',
                     icon: Icons.hourglass_disabled_rounded,
-                    colors: const [Color(0xFF1A1A1A), Color(0xFF333333)],
-                    glowColor: const Color(0xFF808080),
+                    colors: const [Color(0xFF141053), Color(0xFF2D1B69)],
+                    glowColor: const Color(0xFF8C52FF),
                     onTap: () => _startQuiz(isTimed: false, isOffline: false),
                   ),
                 ),
@@ -131,8 +131,8 @@ class _ChallengeSelectScreenState extends State<ChallengeSelectScreen> {
                     description:
                         '15 seconds per question. Think fast, test your reflexes under pressure!',
                     icon: Icons.timer_rounded,
-                    colors: const [Color(0xFF3A2A2A), Color(0xFF5A3A3A)],
-                    glowColor: const Color(0xFF5A3A3A),
+                    colors: const [Color(0xFFB71C1C), Color(0xFFFF5722)],
+                    glowColor: const Color(0xFFFF5722),
                     onTap: () => _startQuiz(isTimed: true, isOffline: false),
                   ),
                 ),
@@ -147,8 +147,8 @@ class _ChallengeSelectScreenState extends State<ChallengeSelectScreen> {
                       description:
                           'Play with locally saved questions. No internet connection required.',
                       icon: Icons.wifi_off_rounded,
-                      colors: const [Color(0xFF242424), Color(0xFF444444)],
-                      glowColor: const Color(0xFF808080),
+                      colors: const [Color(0xFF1B5E20), Color(0xFF388E3C)],
+                      glowColor: const Color(0xFF4CAF50),
                       onTap: () => _startQuiz(isTimed: false, isOffline: true),
                     ),
                   ),
@@ -215,14 +215,14 @@ class _ChallengeSelectScreenState extends State<ChallengeSelectScreen> {
           height: 110,
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [Color(0xFF242424), Color(0xFF333333)],
+              colors: [Color(0xFF141053), Color(0xFF2D1B69)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(28),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF808080).withValues(alpha: 0.06),
+                color: const Color(0xFF8C52FF).withValues(alpha: 0.06),
                 blurRadius: 4,
                 offset: const Offset(0, 2),
               ),
@@ -281,15 +281,15 @@ class _ChallengeSelectScreenState extends State<ChallengeSelectScreen> {
             decoration: BoxDecoration(
               color:
                   (_messageIsError
-                          ? const Color(0xFF5A3A3A)
-                          : const Color(0xFF808080))
+                          ? const Color(0xFFEF4444)
+                          : const Color(0xFF4ADE80))
                       .withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
                 color:
                     (_messageIsError
-                            ? const Color(0xFF5A3A3A)
-                            : const Color(0xFF808080))
+                            ? const Color(0xFFEF4444)
+                            : const Color(0xFF4ADE80))
                         .withValues(alpha: 0.3),
               ),
             ),
@@ -301,8 +301,8 @@ class _ChallengeSelectScreenState extends State<ChallengeSelectScreen> {
                       : Icons.check_circle_outline_rounded,
                   size: 20,
                   color: _messageIsError
-                      ? const Color(0xFF5A3A3A)
-                      : const Color(0xFF808080),
+                      ? const Color(0xFFEF4444)
+                      : const Color(0xFF4ADE80),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -310,8 +310,8 @@ class _ChallengeSelectScreenState extends State<ChallengeSelectScreen> {
                     _message!,
                     style: TextStyle(
                       color: _messageIsError
-                          ? const Color(0xFF5A3A3A)
-                          : const Color(0xFF808080),
+                          ? const Color(0xFFEF4444)
+                          : const Color(0xFF4ADE80),
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
                     ),
@@ -333,7 +333,7 @@ class _ChallengeSelectScreenState extends State<ChallengeSelectScreen> {
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
                       color: _hasOffline
-                          ? const Color(0xFF808080)
+                          ? const Color(0xFF4ADE80)
                           : Colors.white,
                     ),
                   )
@@ -357,11 +357,11 @@ class _ChallengeSelectScreenState extends State<ChallengeSelectScreen> {
               ),
               side: BorderSide(
                 color: _hasOffline
-                    ? const Color(0xFF808080).withValues(alpha: 0.5)
+                    ? const Color(0xFF4ADE80).withValues(alpha: 0.5)
                     : Colors.white.withValues(alpha: 0.15),
               ),
               foregroundColor: _hasOffline
-                  ? const Color(0xFF808080)
+                  ? const Color(0xFF4ADE80)
                   : Colors.white,
               backgroundColor: Colors.white.withValues(alpha: 0.04),
               disabledForegroundColor: Colors.white38,

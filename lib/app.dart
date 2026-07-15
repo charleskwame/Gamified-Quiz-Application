@@ -16,33 +16,30 @@ class MyApp extends StatelessWidget {
   }
 }
 
-/// Centralized theme configuration for the app — monochrome (black, white, grey).
+/// Centralized theme configuration for the app.
 class AppTheme {
-  // Grey-scale colors
-  static const Color background = Color(0xFF121212);
-  static const Color surface = Color(0xFF1A1A1A);
-  static const Color card = Color(0xFF242424);
-  static const Color cardBorder = Color(0xFF333333);
-  static const Color elevated = Color(0xFF2E2E2E);
-  static const Color darkText = Color(0xFFFFFFFF);
-  static const Color lightText = Color(0xFFB0B0B0);
-  static const Color mutedText = Color(0xFF707070);
-  static const Color accentGrey = Color(0xFF808080);
-  static const Color highlightGrey = Color(0xFF3A3A3A);
-  static const Color disabledGrey = Color(0xFF505050);
-
-  static const Color correctGrey = Color(0xFF4A4A4A);
-  static const Color errorGrey = Color(0xFF5A3A3A);
+  // Game-like accent colors
+  static const Color primary = Color(0xFF111C4A);
+  static const Color indigoAccent = Color(0xFF6366F1);
+  static const Color gold = Color(0xFFFFD700);
+  static const Color green = Color(0xFF4ADE80);
+  static const Color amber = Color(0xFFF59E0B);
+  static const Color red = Color(0xFFEF4444);
+  static const Color darkBg = Color(0xFF0F172A);
+  static const Color darkCard = Color(0xFF1E2246);
+  static const Color darkBorder = Color(0xFF2D3361);
+  static const Color darkText = Color(0xFF121826);
+  static const Color lightText = Color(0xFF4B5565);
 
   static final ThemeData light = ThemeData(
     useMaterial3: true,
     colorScheme: ColorScheme.fromSeed(
-      seedColor: const Color(0xFF333333),
-      primary: const Color(0xFF808080),
-      error: const Color(0xFF5A3A3A),
-      brightness: Brightness.dark,
+      seedColor: primary,
+      primary: primary,
+      error: const Color(0xFF931716),
+      brightness: Brightness.light,
     ),
-    scaffoldBackgroundColor: surface,
+    scaffoldBackgroundColor: const Color(0xFFF4F6FB),
     appBarTheme: AppBarTheme(
       backgroundColor: Colors.transparent,
       foregroundColor: darkText,
@@ -55,17 +52,17 @@ class AppTheme {
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        backgroundColor: accentGrey,
+        backgroundColor: indigoAccent,
         foregroundColor: Colors.white,
       ),
     ),
     textButtonTheme: TextButtonThemeData(
-      style: TextButton.styleFrom(foregroundColor: darkText),
+      style: TextButton.styleFrom(foregroundColor: primary),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        foregroundColor: darkText,
-        side: const BorderSide(color: cardBorder),
+        foregroundColor: primary,
+        side: const BorderSide(color: primary),
       ),
     ),
     textTheme: const TextTheme(

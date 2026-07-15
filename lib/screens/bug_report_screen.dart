@@ -5,6 +5,9 @@ import '../services/auth_service.dart';
 import '../widgets/home/particle_background.dart';
 import 'package:flutter/services.dart';
 
+/// Google Apps Script Web App URL for bug report submissions.
+/// Deployed script appends rows to a Google Sheet with columns:
+/// Timestamp, Email, Bug Report, Expected Behavior, App Version, Status
 const String _bugReportUrl =
     'https://script.google.com/macros/s/AKfycbxyRT4kl53fNkvXQTLp4inBBcbfBOSsWfa5UOX0RlUAygZbyBSkabuJAq6o6sucpHbb/exec';
 
@@ -30,11 +33,13 @@ class _BugReportScreenState extends State<BugReportScreen> {
   }
 
   String _getAppVersion() {
+    // Matches the version in pubspec.yaml: 1.1.0+3
     return '1.1.0+3';
   }
 
   Future<void> _submitBugReport() async {
     final description = _descriptionController.text.trim();
+
     if (description.isEmpty) {
       _showSnackBar('Please describe the bug.', isError: true);
       return;
@@ -55,6 +60,10 @@ class _BugReportScreenState extends State<BugReportScreen> {
         'appVersion': appVersion,
       };
 
+      // Using http.post directly. It automatically follows 302 redirects by converting 
+      // POST to GET on redirect. Since Google Apps Script processes doPost on the 
+      // initial POST and returns the result at the redirect target via GET, this is 
+      // the correct behavior to read the JSON response.
       final response = await http.post(
         Uri.parse(_bugReportUrl),
         headers: {'Content-Type': 'application/json'},
@@ -63,6 +72,8 @@ class _BugReportScreenState extends State<BugReportScreen> {
 
       if (!mounted) return;
 
+      // Google Apps Script returns 302 on redirect, or 200 when followed.
+      // Any 2xx or 3xx status code indicates the server successfully received the request.
       if (response.statusCode >= 200 && response.statusCode < 400) {
         _showSnackBar('Bug report submitted successfully! Thank you.');
         Navigator.pop(context);
@@ -88,8 +99,8 @@ class _BugReportScreenState extends State<BugReportScreen> {
       SnackBar(
         content: Text(message),
         backgroundColor: isError
-            ? const Color(0xFF5A3A3A)
-            : const Color(0xFF808080),
+            ? const Color(0xFFEF4444)
+            : const Color(0xFF4ADE80),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -117,8 +128,12 @@ class _BugReportScreenState extends State<BugReportScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // ── Header ──
                   _buildHeader(),
+
                   const SizedBox(height: 24),
+
+                  // ── Title ──
                   const Text(
                     'Report a Bug',
                     style: TextStyle(
@@ -136,13 +151,18 @@ class _BugReportScreenState extends State<BugReportScreen> {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
+
                   const SizedBox(height: 28),
+
+                  // ── Email (read-only) ──
                   _buildReadOnlyField(
                     label: 'Your Email',
                     value: email,
                     icon: Icons.email_outlined,
                   ),
                   const SizedBox(height: 20),
+
+                  // ── Bug Description ──
                   _buildLabel('Bug Description *'),
                   const SizedBox(height: 8),
                   TextField(
@@ -155,6 +175,8 @@ class _BugReportScreenState extends State<BugReportScreen> {
                     ),
                   ),
                   const SizedBox(height: 20),
+
+                  // ── Expected Behavior ──
                   _buildLabel('Expected Behavior (optional)'),
                   const SizedBox(height: 8),
                   TextField(
@@ -167,18 +189,22 @@ class _BugReportScreenState extends State<BugReportScreen> {
                     ),
                   ),
                   const SizedBox(height: 20),
+
+                  // ── App Version (read-only) ──
                   _buildReadOnlyField(
                     label: 'App Version',
                     value: appVersion,
                     icon: Icons.info_outline_rounded,
                   ),
                   const SizedBox(height: 32),
+
+                  // ── Submit Button ──
                   SizedBox(
                     width: double.infinity,
                     child: Container(
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Color(0xFF808080), Color(0xFFB0B0B0)],
+                          colors: [Color(0xFF6366F1), Color(0xFF8C52FF)],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
@@ -234,6 +260,10 @@ class _BugReportScreenState extends State<BugReportScreen> {
     );
   }
 
+  // ──────────────────────────────────────────────
+  //  Header with back button
+  // ──────────────────────────────────────────────
+
   Widget _buildHeader() {
     return Row(
       children: [
@@ -254,6 +284,10 @@ class _BugReportScreenState extends State<BugReportScreen> {
       ],
     );
   }
+
+  // ──────────────────────────────────────────────
+  //  Read-only field (email, app version)
+  // ──────────────────────────────────────────────
 
   Widget _buildReadOnlyField({
     required String label,
@@ -294,6 +328,10 @@ class _BugReportScreenState extends State<BugReportScreen> {
     );
   }
 
+  // ──────────────────────────────────────────────
+  //  Label widget
+  // ──────────────────────────────────────────────
+
   Widget _buildLabel(String text) {
     return Text(
       text,
@@ -304,6 +342,10 @@ class _BugReportScreenState extends State<BugReportScreen> {
       ),
     );
   }
+
+  // ──────────────────────────────────────────────
+  //  Input decoration for text fields
+  // ──────────────────────────────────────────────
 
   InputDecoration _inputDecoration({required String hintText}) {
     return InputDecoration(
@@ -321,7 +363,7 @@ class _BugReportScreenState extends State<BugReportScreen> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: Color(0xFF808080), width: 2),
+        borderSide: const BorderSide(color: Color(0xFF6366F1), width: 2),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     );

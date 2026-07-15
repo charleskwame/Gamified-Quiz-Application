@@ -227,7 +227,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('No shields remaining!'),
-          backgroundColor: const Color(0xFF5A3A3A),
+          backgroundColor: const Color(0xFFEF4444),
           duration: const Duration(milliseconds: 1200),
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.only(bottom: 100, left: 20, right: 20),
@@ -249,7 +249,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('No skips remaining!'),
-          backgroundColor: const Color(0xFF5A3A3A),
+          backgroundColor: const Color(0xFFEF4444),
           duration: const Duration(milliseconds: 1200),
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.only(bottom: 100, left: 20, right: 20),
@@ -292,7 +292,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('No pause timers remaining!'),
-          backgroundColor: const Color(0xFF5A3A3A),
+          backgroundColor: const Color(0xFFEF4444),
           duration: const Duration(milliseconds: 1200),
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.only(bottom: 100, left: 20, right: 20),
@@ -702,7 +702,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF242424),
+        backgroundColor: const Color(0xFF1E2246),
         title: const Text(
           'Quit Challenge?',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800),
@@ -721,7 +721,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
           ),
           FilledButton(
             style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF5A3A3A),
+              backgroundColor: const Color(0xFFEF4444),
             ),
             onPressed: () {
               Navigator.pop(context); // Close dialog
@@ -895,10 +895,10 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
                 numberOfParticles: 20,
                 gravity: 0.3,
                 colors: const [
-                  Color(0xFFE0E0E0),
-                  Color(0xFFB0B0B0),
-                  Color(0xFF909090),
-                  Color(0xFF707070),
+                  Color(0xFF4ADE80),
+                  Color(0xFF6366F1),
+                  Color(0xFFF59E0B),
+                  Color(0xFFEF4444),
                   Colors.white,
                 ],
                 shouldLoop: false,
@@ -998,14 +998,14 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
             child: Container(
               height: 4,
               decoration: BoxDecoration(
-                color: answerResult == null
-                    ? (isCurrent
-                          ? const Color(0xFF808080)
-                          : Colors.white.withValues(alpha: 0.15))
-                    : (answerResult!
-                          ? const Color(0xFF808080)
-                          : const Color(0xFF5A3A3A)),
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(2),
+                color: isPast && answerResult != null
+                    ? (answerResult
+                          ? const Color(0xFF4ADE80) // green for correct
+                          : const Color(0xFFEF4444)) // red for incorrect
+                    : isCurrent
+                    ? const Color(0xFF6366F1)
+                    : const Color(0xFF3D4375),
               ),
             ),
           ),
@@ -1014,52 +1014,63 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
     );
   }
 
-  // ─── Question Card ──────────────────────────────────────────────────────────
+  // ─── Widget Helpers (lightweight, contained within this file) ──────────────
 
   Widget _buildQuestionCard(Question question) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF242424),
+        color: const Color(0xFF2A2F5A),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF333333)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 2,
-            offset: const Offset(0, 1),
-          ),
-        ],
+        border: Border.all(color: const Color(0xFF3D4375)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Category badge
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: const Color(0xFF808080).withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              'Question ${_currentIndex + 1} of ${_questions.length}',
-              style: const TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFFB0B0B0),
-                letterSpacing: 0.5,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF6366F1).withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.help_outline_rounded,
+                      size: 12,
+                      color: Color(0xFF818CF8),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'QUESTION ${_currentIndex + 1} OF ${_questions.length}',
+                      style: const TextStyle(
+                        color: Color(0xFF818CF8),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.0,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
+            ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           Text(
             question.questionText,
             style: const TextStyle(
               fontSize: 18,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w800,
               color: Colors.white,
-              height: 1.35,
+              height: 1.45,
             ),
           ),
         ],
@@ -1067,46 +1078,43 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
     );
   }
 
-  // ─── Explanation Box ──────────────────────────────────────────────────────────
-
   Widget _buildExplanationBox(Question question) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: const Color(0xFF242424),
+        color: const Color(0xFF252B55),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFF333333).withValues(alpha: 0.6),
-        ),
+        border: Border.all(color: const Color(0xFF3D4375)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.lightbulb_outline_rounded,
-                color: const Color(0xFF808080),
-                size: 18,
+                size: 16,
+                color: Color(0xFFF59E0B),
               ),
               const SizedBox(width: 8),
               const Text(
                 'Explanation',
                 style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF808080),
-                  letterSpacing: 1,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF9CA3AF),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 10),
           Text(
-            question.explanation,
+            question.explanation.isEmpty || question.explanation == 'None.'
+                ? 'The correct answer is indeed option (${question.correctAnswer.toUpperCase()}).'
+                : question.explanation,
             style: const TextStyle(
-              fontSize: 14,
+              fontSize: 13,
               color: Color(0xFFD1D5DB),
               height: 1.5,
             ),
@@ -1116,21 +1124,21 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
     );
   }
 
-  // ─── Next Button ──────────────────────────────────────────────────────────────
-
   Widget _buildNextButton() {
+    final bool isLast = _currentIndex >= _questions.length - 1;
     return SizedBox(
       width: double.infinity,
       child: FilledButton.icon(
         onPressed: _nextQuestion,
-        icon: const Icon(Icons.arrow_forward_rounded, size: 18),
+        icon: Icon(isLast ? Icons.flag_rounded : Icons.arrow_forward_rounded),
         label: Text(
-          _currentIndex < _questions.length - 1
-              ? 'Next Question'
-              : 'See Results',
+          isLast ? 'Finish Challenge' : 'Next Question',
+          style: const TextStyle(fontWeight: FontWeight.w700),
         ),
         style: FilledButton.styleFrom(
-          backgroundColor: const Color(0xFF808080),
+          backgroundColor: isLast
+              ? const Color(0xFFF59E0B)
+              : const Color(0xFF6366F1),
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 14),
           shape: RoundedRectangleBorder(

@@ -41,7 +41,7 @@ class _QuizSkipIndicatorState extends State<QuizSkipIndicator> {
                 BoxShadow(
                   color: hasSkips
                       ? const Color(
-                          0xFF808080,
+                          0xFF4ADE80,
                         ).withValues(alpha: 0.06 + (pulse * 0.06))
                       : Colors.grey.withValues(alpha: 0.02),
                   blurRadius: hasSkips ? 3.0 + (pulse * 2.0) : 1.0,
@@ -61,11 +61,11 @@ class _QuizSkipIndicatorState extends State<QuizSkipIndicator> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: hasSkips
-                          ? const Color(0xFF808080).withValues(alpha: 0.15)
+                          ? const Color(0xFF4ADE80).withValues(alpha: 0.15)
                           : Colors.grey.withValues(alpha: 0.1),
                       border: Border.all(
                         color: hasSkips
-                            ? const Color(0xFF808080).withValues(alpha: 0.4)
+                            ? const Color(0xFF4ADE80).withValues(alpha: 0.4)
                             : Colors.grey.withValues(alpha: 0.2),
                         width: 1.5,
                       ),
@@ -75,7 +75,7 @@ class _QuizSkipIndicatorState extends State<QuizSkipIndicator> {
                           ? Icons.skip_next_rounded
                           : Icons.skip_next_outlined,
                       color: hasSkips
-                          ? const Color(0xFFB0B0B0)
+                          ? const Color(0xFF4ADE80)
                           : Colors.grey.withValues(alpha: 0.4),
                       size: 32,
                     ),
@@ -93,7 +93,7 @@ class _QuizSkipIndicatorState extends State<QuizSkipIndicator> {
                     ),
                     decoration: BoxDecoration(
                       color: hasSkips
-                          ? const Color(0xFF808080)
+                          ? const Color(0xFF4ADE80)
                           : Colors.grey.withValues(alpha: 0.5),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(

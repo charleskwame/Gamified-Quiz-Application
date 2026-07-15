@@ -86,7 +86,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               messenger.showSnackBar(
                 const SnackBar(
                   content: Text('Avatar saved successfully!'),
-                  backgroundColor: Color(0xFF808080),
+                  backgroundColor: Color(0xFF09262A),
                 ),
               );
             }
@@ -100,14 +100,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final user = _authService.currentUser;
     if (user == null) return;
 
+    // Step 1: Confirmation dialog
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF242424),
+        backgroundColor: const Color(0xFF1E2246),
         title: const Text(
           'Delete Account?',
           style: TextStyle(
-            color: Color(0xFF5A3A3A),
+            color: Color(0xFFEF4444),
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -126,7 +127,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF5A3A3A),
+              backgroundColor: const Color(0xFFEF4444),
               foregroundColor: Colors.white,
             ),
             child: const Text('Delete Permanently'),
@@ -137,6 +138,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     if (confirmed != true) return;
 
+    // Step 2: Password reauthentication dialog
     final password = await showDialog<String>(
       context: context,
       builder: (context) {
@@ -146,7 +148,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              backgroundColor: const Color(0xFF242424),
+              backgroundColor: const Color(0xFF1E2246),
               title: const Text(
                 'Confirm Password',
                 style: TextStyle(
@@ -190,7 +192,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
                         borderSide: const BorderSide(
-                          color: Color(0xFF5A3A3A),
+                          color: Color(0xFFEF4444),
                           width: 2,
                         ),
                       ),
@@ -210,13 +212,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   onPressed: () {
                     final pw = controller.text.trim();
                     if (pw.isEmpty) {
-                      setDialogState(() => errorText = 'Password is required');
+                      setDialogState(() {
+                        errorText = 'Password is required';
+                      });
                       return;
                     }
                     Navigator.pop(context, pw);
                   },
                   style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF5A3A3A),
+                    backgroundColor: const Color(0xFFEF4444),
                     foregroundColor: Colors.white,
                   ),
                   child: const Text('Delete Permanently'),
@@ -239,6 +243,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       await _authService.deleteAccount(password: password);
       if (mounted) {
+        // Rebuild entire navigation stack so ProfilePage recreates with null user
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => const MainNavigation()),
           (route) => false,
@@ -263,14 +268,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
         default:
           message = e.message ?? 'Failed to delete account.';
       }
-      setState(() => _errorMessage = message);
+      setState(() {
+        _errorMessage = message;
+      });
     } catch (e) {
-      setState(
-        () => _errorMessage =
-            'Failed to delete account: $e. Please try again later.',
-      );
+      setState(() {
+        _errorMessage = 'Failed to delete account: $e. Please try again later.';
+      });
     } finally {
-      setState(() => _isLoading = false);
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -309,18 +317,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // ── Back Button + Title ──
                     _StaggeredFadeSlide(index: 0, child: _buildHeader()),
+
                     const SizedBox(height: 24),
+
+                    // ── Avatar Section ──
                     _StaggeredFadeSlide(
                       index: 1,
                       child: _buildAvatarSection(avatarUrl, avatarDetails),
                     ),
+
                     const SizedBox(height: 32),
+
+                    // ── Update Account Info ──
                     _StaggeredFadeSlide(
                       index: 2,
                       child: _buildAccountInfoSection(),
                     ),
+
                     const SizedBox(height: 32),
+
+                    // ── Divider ──
                     _StaggeredFadeSlide(
                       index: 5,
                       child: Container(
@@ -329,7 +347,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         color: Colors.white.withValues(alpha: 0.08),
                       ),
                     ),
+
                     const SizedBox(height: 24),
+
+                    // ── Danger Zone ──
                     _StaggeredFadeSlide(index: 6, child: _buildDangerZone()),
                   ],
                 ),
@@ -340,6 +361,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       },
     );
   }
+
+  // ──────────────────────────────────────────────
+  //  Header
+  // ──────────────────────────────────────────────
 
   Widget _buildHeader() {
     return Row(
@@ -371,6 +396,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  // ──────────────────────────────────────────────
+  //  Avatar Section
+  // ──────────────────────────────────────────────
+
   Widget _buildAvatarSection(
     String? avatarUrl,
     Map<String, dynamic>? avatarDetails,
@@ -378,6 +407,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Center(
       child: Column(
         children: [
+          // Glowing avatar ring matching PlayerHeader style
           _buildGlowingAvatar(avatarUrl),
           const SizedBox(height: 16),
           OutlinedButton.icon(
@@ -416,17 +446,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
         shape: BoxShape.circle,
         gradient: const SweepGradient(
           colors: [
-            Color(0xFF808080),
-            Color(0xFFB0B0B0),
-            Color(0xFFE0E0E0),
-            Color(0xFF909090),
-            Color(0xFF808080),
+            Color(0xFF6366F1),
+            Color(0xFF8C52FF),
+            Color(0xFFFFD700),
+            Color(0xFF4ADE80),
+            Color(0xFF6366F1),
           ],
           stops: [0.0, 0.25, 0.5, 0.75, 1.0],
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF808080).withValues(alpha: 0.06),
+            color: const Color(0xFF6366F1).withValues(alpha: 0.06),
             blurRadius: 4,
             spreadRadius: 0,
           ),
@@ -461,6 +491,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  // ──────────────────────────────────────────────
+  //  Account Info Section
+  // ──────────────────────────────────────────────
+
   Widget _buildAccountInfoSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -474,14 +508,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ),
         const SizedBox(height: 16),
+
         if (_errorMessage != null) ...[
-          _buildStatusBanner(_errorMessage!, const Color(0xFF5A3A3A)),
+          _buildStatusBanner(_errorMessage!, const Color(0xFFEF4444)),
           const SizedBox(height: 16),
         ],
+
         if (_successMessage != null) ...[
-          _buildStatusBanner(_successMessage!, const Color(0xFF808080)),
+          _buildStatusBanner(_successMessage!, const Color(0xFF4ADE80)),
           const SizedBox(height: 16),
         ],
+
+        // Name field
         TextField(
           controller: _displayNameController,
           style: const TextStyle(color: Colors.white),
@@ -506,7 +544,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: Color(0xFF808080), width: 2),
+              borderSide: const BorderSide(color: Color(0xFF6366F1), width: 2),
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
@@ -515,12 +553,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ),
         const SizedBox(height: 24),
+
         SizedBox(
           width: double.infinity,
           child: Container(
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF808080), Color(0xFFB0B0B0)],
+                colors: [Color(0xFF6366F1), Color(0xFF8C52FF)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -572,7 +611,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: Row(
         children: [
           Icon(
-            accentColor == const Color(0xFF808080)
+            accentColor == const Color(0xFF4ADE80)
                 ? Icons.check_circle_outline_rounded
                 : Icons.error_outline_rounded,
             size: 20,
@@ -594,6 +633,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  // ──────────────────────────────────────────────
+  //  Danger Zone
+  // ──────────────────────────────────────────────
+
   Widget _buildDangerZone() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -602,14 +645,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: [
             const Icon(
               Icons.warning_amber_rounded,
-              color: Color(0xFF5A3A3A),
+              color: Color(0xFFEF4444),
               size: 20,
             ),
             const SizedBox(width: 8),
             const Text(
               'Danger Zone',
               style: TextStyle(
-                color: Color(0xFF5A3A3A),
+                color: Color(0xFFEF4444),
                 fontSize: 20,
                 fontWeight: FontWeight.w900,
               ),
@@ -623,13 +666,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onPressed: _isLoading ? null : _deleteAccount,
             icon: const Icon(
               Icons.delete_forever_rounded,
-              color: Color(0xFF5A3A3A),
+              color: Color(0xFFEF4444),
               size: 20,
             ),
             label: const Text(
               'Delete Account',
               style: TextStyle(
-                color: Color(0xFF5A3A3A),
+                color: Color(0xFFEF4444),
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -639,9 +682,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 borderRadius: BorderRadius.circular(14),
               ),
               side: BorderSide(
-                color: const Color(0xFF5A3A3A).withValues(alpha: 0.5),
+                color: const Color(0xFFEF4444).withValues(alpha: 0.5),
               ),
-              backgroundColor: const Color(0xFF5A3A3A).withValues(alpha: 0.06),
+              backgroundColor: const Color(0xFFEF4444).withValues(alpha: 0.06),
             ),
           ),
         ),
@@ -658,6 +701,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 }
+
+// ═══════════════════════════════════════════════════════════════
+//  Staggered Fade-Slide — matching app-wide entrance animation
+// ═══════════════════════════════════════════════════════════════
 
 class _StaggeredFadeSlide extends StatefulWidget {
   final int index;
@@ -682,6 +729,7 @@ class _StaggeredFadeSlideState extends State<_StaggeredFadeSlide>
       vsync: this,
       duration: const Duration(milliseconds: 600),
     );
+
     final startDelay = Duration(milliseconds: 100 * widget.index);
     _opacityAnim = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
@@ -696,6 +744,7 @@ class _StaggeredFadeSlideState extends State<_StaggeredFadeSlide>
             curve: const Interval(0.0, 0.7, curve: Curves.easeOutCubic),
           ),
         );
+
     Future.delayed(startDelay, () {
       if (mounted) _controller.forward();
     });
