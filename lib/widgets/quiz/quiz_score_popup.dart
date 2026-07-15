@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../app.dart';
 
 /// A floating "+X pts" popup that animates upward and fades out.
-/// Supports negative values for penalty deductions (shown in dark grey with minus).
+/// Supports negative values for penalty deductions (shown in red with minus).
 class QuizScorePopup extends StatefulWidget {
   final int points;
   final bool isTimed;
@@ -60,9 +61,9 @@ class _QuizScorePopupState extends State<QuizScorePopup>
   bool get _isPenalty => widget.points < 0;
 
   Color get _popupColor {
-    if (_isPenalty) return const Color(0xFF5A3A3A);
-    if (widget.isTimed) return const Color(0xFF707070);
-    return const Color(0xFF808080);
+    if (_isPenalty) return AppColors.error;
+    if (widget.isTimed) return AppColors.secondary;
+    return AppColors.primary;
   }
 
   IconData get _popupIcon {

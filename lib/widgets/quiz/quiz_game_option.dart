@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../app.dart';
 import '../../services/quiz_engine.dart';
 
 /// A game-ified option tile with animations, letter badges, and
@@ -83,28 +84,28 @@ class _QuizGameOptionState extends State<QuizGameOption>
 
   @override
   Widget build(BuildContext context) {
-    Color borderColor = const Color(0xFF444444);
-    Color bgColor = const Color(0xFF2A2A2A);
-    Color labelBg = const Color(0xFF444444);
-    Color labelTextColor = Colors.white70;
+    Color borderColor = AppColors.border;
+    Color bgColor = Colors.white;
+    Color labelBg = AppColors.border;
+    Color labelTextColor = AppColors.textSecondary;
     IconData? stateIcon;
     Color iconColor = Colors.white;
 
     if (widget.isAnswered) {
       if (_isCorrectOption) {
-        borderColor = const Color(0xFF808080);
-        bgColor = const Color(0xFF2A2A2A);
-        labelBg = const Color(0xFF808080);
+        borderColor = AppColors.primary;
+        bgColor = AppColors.primary.withValues(alpha: 0.08);
+        labelBg = AppColors.primary;
         labelTextColor = Colors.white;
         stateIcon = Icons.check_circle_rounded;
-        iconColor = const Color(0xFF808080);
+        iconColor = AppColors.primary;
       } else if (_isSelected) {
-        borderColor = const Color(0xFF5A3A3A);
-        bgColor = const Color(0xFF3A2A2A);
-        labelBg = const Color(0xFF5A3A3A);
+        borderColor = AppColors.error;
+        bgColor = AppColors.error.withValues(alpha: 0.08);
+        labelBg = AppColors.error;
         labelTextColor = Colors.white;
         stateIcon = Icons.cancel_rounded;
-        iconColor = const Color(0xFF5A3A3A);
+        iconColor = AppColors.error;
       }
     }
 
@@ -135,7 +136,7 @@ class _QuizGameOptionState extends State<QuizGameOption>
           boxShadow: [
             if (widget.isAnswered && _isCorrectOption)
               BoxShadow(
-                color: const Color(0xFF808080).withValues(alpha: 0.06),
+                color: AppColors.primary.withValues(alpha: 0.1),
                 blurRadius: 3,
                 spreadRadius: 0,
               ),
@@ -146,8 +147,8 @@ class _QuizGameOptionState extends State<QuizGameOption>
           child: InkWell(
             onTap: widget.isAnswered ? null : _handleTap,
             borderRadius: BorderRadius.circular(16),
-            splashColor: Colors.white10,
-            highlightColor: Colors.white.withValues(alpha: 0.06),
+            splashColor: AppColors.border,
+            highlightColor: AppColors.border.withValues(alpha: 0.3),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               child: Row(
@@ -180,7 +181,7 @@ class _QuizGameOptionState extends State<QuizGameOption>
                                 (widget.isAnswered && _isCorrectOption)
                             ? FontWeight.w700
                             : FontWeight.w500,
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                         height: 1.3,
                       ),
                     ),

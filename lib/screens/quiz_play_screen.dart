@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:confetti/confetti.dart';
+import '../app.dart';
 import '../models/question.dart';
 import '../models/level_system.dart';
 import '../services/database_service.dart';
@@ -227,7 +228,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('No shields remaining!'),
-          backgroundColor: const Color(0xFF5A3A3A),
+          backgroundColor: AppColors.error,
           duration: const Duration(milliseconds: 1200),
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.only(bottom: 100, left: 20, right: 20),
@@ -249,7 +250,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('No skips remaining!'),
-          backgroundColor: const Color(0xFF5A3A3A),
+          backgroundColor: AppColors.error,
           duration: const Duration(milliseconds: 1200),
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.only(bottom: 100, left: 20, right: 20),
@@ -720,9 +721,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
             ),
           ),
           FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF5A3A3A),
-            ),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
             onPressed: () {
               Navigator.pop(context); // Close dialog
               Navigator.pop(context); // Exit quiz
