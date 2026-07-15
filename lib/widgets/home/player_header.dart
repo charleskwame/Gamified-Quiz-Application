@@ -31,10 +31,6 @@ class PlayerHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF003F91), width: 1.5),
-      ),
       child: Row(
         children: [
           // Avatar with glowing ring

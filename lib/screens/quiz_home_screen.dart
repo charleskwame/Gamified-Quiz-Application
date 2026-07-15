@@ -120,45 +120,51 @@ class QuizHomePage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Section 1: Player Header (avatar, level, XP bar, streak)
+          // Combined Player Header + Stats Panel (white bg, blue border, blue divider)
           _buildAnimatedSection(
             index: 0,
-            child: PlayerHeader(
-              displayName: displayName,
-              totalScore: totalScore,
-              streakNumber: streakNumber,
-              level: level,
-              xpProgress: xpProgress,
-              avatarUrl: avatarUrl,
-              levelName: LevelSystem.getLevelName(totalScore),
-              onStreakTap: () {
-                StreakCardModal.show(
-                  context,
-                  streakNumber,
-                  avatarUrl: avatarUrl,
-                );
-              },
-              onLevelTap: () {
-                LevelsOverviewModal.show(
-                  context: context,
-                  totalScore: totalScore,
-                  avatarUrl: avatarUrl,
-                  displayName: displayName,
-                );
-              },
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          // Section 2: Stats panel
-          _buildAnimatedSection(
-            index: 1,
-            child: GameStatPanel(
-              questionsAnswered: questionsAnswered,
-              accuracyPercent: accuracyPercent,
-              streakNumber: streakNumber,
-              totalScore: totalScore,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: const Color(0xFF003F91), width: 1.5),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  PlayerHeader(
+                    displayName: displayName,
+                    totalScore: totalScore,
+                    streakNumber: streakNumber,
+                    level: level,
+                    xpProgress: xpProgress,
+                    avatarUrl: avatarUrl,
+                    levelName: LevelSystem.getLevelName(totalScore),
+                    onStreakTap: () {
+                      StreakCardModal.show(
+                        context,
+                        streakNumber,
+                        avatarUrl: avatarUrl,
+                      );
+                    },
+                    onLevelTap: () {
+                      LevelsOverviewModal.show(
+                        context: context,
+                        totalScore: totalScore,
+                        avatarUrl: avatarUrl,
+                        displayName: displayName,
+                      );
+                    },
+                  ),
+                  Container(height: 1.5, color: const Color(0xFF003F91)),
+                  GameStatPanel(
+                    questionsAnswered: questionsAnswered,
+                    accuracyPercent: accuracyPercent,
+                    streakNumber: streakNumber,
+                    totalScore: totalScore,
+                  ),
+                ],
+              ),
             ),
           ),
 

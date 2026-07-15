@@ -115,8 +115,9 @@ class _ChallengeSelectScreenState extends State<ChallengeSelectScreen> {
                     description:
                         'Answer quiz questions with no timer limits. Recommended for learning.',
                     icon: Icons.hourglass_disabled_rounded,
-                    colors: const [Color(0xFF141053), Color(0xFF2D1B69)],
-                    glowColor: const Color(0xFF8C52FF),
+                    cardColor: const Color(0xFFECF8F8),
+                    glowColor: const Color(0xFFECF8F8),
+                    useDarkForeground: true,
                     onTap: () => _startQuiz(isTimed: false, isOffline: false),
                   ),
                 ),
@@ -131,8 +132,8 @@ class _ChallengeSelectScreenState extends State<ChallengeSelectScreen> {
                     description:
                         '15 seconds per question. Think fast, test your reflexes under pressure!',
                     icon: Icons.timer_rounded,
-                    colors: const [Color(0xFFB71C1C), Color(0xFFFF5722)],
-                    glowColor: const Color(0xFFFF5722),
+                    cardColor: const Color(0xFFFF101F),
+                    glowColor: const Color(0xFFFF101F),
                     onTap: () => _startQuiz(isTimed: true, isOffline: false),
                   ),
                 ),
@@ -147,8 +148,8 @@ class _ChallengeSelectScreenState extends State<ChallengeSelectScreen> {
                       description:
                           'Play with locally saved questions. No internet connection required.',
                       icon: Icons.wifi_off_rounded,
-                      colors: const [Color(0xFF1B5E20), Color(0xFF388E3C)],
-                      glowColor: const Color(0xFF4CAF50),
+                      cardColor: const Color(0xFF424242),
+                      glowColor: const Color(0xFF616161),
                       onTap: () => _startQuiz(isTimed: false, isOffline: true),
                     ),
                   ),
@@ -381,32 +382,38 @@ class _ModeCard extends StatelessWidget {
   final String title;
   final String description;
   final IconData icon;
-  final List<Color> colors;
+  final Color cardColor;
   final Color glowColor;
   final VoidCallback onTap;
+  final bool useDarkForeground;
 
   const _ModeCard({
     required this.title,
     required this.description,
     required this.icon,
-    required this.colors,
+    required this.cardColor,
     required this.glowColor,
     required this.onTap,
+    this.useDarkForeground = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final foreground = useDarkForeground
+        ? const Color(0xFF1A1A2E)
+        : Colors.white;
+    final foregroundMuted = useDarkForeground
+        ? const Color(0xFF2D2D44).withValues(alpha: 0.85)
+        : Colors.white.withValues(alpha: 0.8);
+    final surfaceAlpha = useDarkForeground ? 0.20 : 0.18;
+
     return _PulsingGlow(
       color: glowColor,
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
-          gradient: LinearGradient(
-            colors: colors,
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          color: cardColor,
         ),
         child: Material(
           color: Colors.transparent,
@@ -425,10 +432,10 @@ class _ModeCard extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.18),
+                          color: foreground.withValues(alpha: surfaceAlpha),
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(icon, color: Colors.white, size: 28),
+                        child: Icon(icon, color: foreground, size: 28),
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(
@@ -436,22 +443,24 @@ class _ModeCard extends StatelessWidget {
                           vertical: 7,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.15),
+                          color: foreground.withValues(
+                            alpha: useDarkForeground ? 0.20 : 0.15,
+                          ),
                           borderRadius: BorderRadius.circular(18),
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
                               Icons.sports_esports_rounded,
-                              color: Colors.white,
+                              color: foreground,
                               size: 15,
                             ),
-                            SizedBox(width: 5),
+                            const SizedBox(width: 5),
                             Text(
                               'Play',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: foreground,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w800,
                               ),
@@ -465,8 +474,8 @@ class _ModeCard extends StatelessWidget {
                   // Title
                   Text(
                     title,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: foreground,
                       fontSize: 20,
                       fontWeight: FontWeight.w900,
                     ),
@@ -476,7 +485,7 @@ class _ModeCard extends StatelessWidget {
                   Text(
                     description,
                     style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.8),
+                      color: foregroundMuted,
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
                       height: 1.3,

@@ -39,76 +39,79 @@ class _RankingsPageState extends State<RankingsPage> {
       'Computer Networking',
     ];
 
-    return SafeArea(
-      child: StreamBuilder<List<UserRank>>(
-        stream: dbService.getRankingsStream(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(color: Colors.white54),
-            );
-          }
+    return Container(
+      color: const Color(0xFFF4F6FB),
+      child: SafeArea(
+        child: StreamBuilder<List<UserRank>>(
+          stream: dbService.getRankingsStream(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(color: Color(0xFF003F91)),
+              );
+            }
 
-          if (snapshot.hasError) {
-            return Center(
-              child: Text(
-                'Error loading rankings: ${snapshot.error}',
-                style: const TextStyle(color: Colors.white60),
+            if (snapshot.hasError) {
+              return Center(
+                child: Text(
+                  'Error loading rankings: ${snapshot.error}',
+                  style: const TextStyle(color: Color(0xFF9E9E9E)),
+                ),
+              );
+            }
+
+            final rankings = snapshot.data ?? [];
+
+            final sortedRankings = List<UserRank>.from(rankings);
+            sortedRankings.sort((a, b) {
+              final ptsA = _getUserPoints(a);
+              final ptsB = _getUserPoints(b);
+              return _descending ? ptsB.compareTo(ptsA) : ptsA.compareTo(ptsB);
+            });
+
+            return SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Section 1: Header
+                  _buildAnimatedSection(index: 0, child: _buildHeader()),
+
+                  const SizedBox(height: 20),
+
+                  // Section 2: Category filters
+                  _buildAnimatedSection(
+                    index: 1,
+                    child: _buildCategoryFilters(categories),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Section 3: Rankings list or empty state
+                  if (sortedRankings.isEmpty)
+                    _buildAnimatedSection(index: 2, child: _buildEmptyState())
+                  else
+                    ...List.generate(sortedRankings.length, (index) {
+                      return Padding(
+                        padding: EdgeInsets.only(
+                          bottom: index < sortedRankings.length - 1 ? 12 : 0,
+                        ),
+                        child: _buildAnimatedSection(
+                          index: index + 2,
+                          child: _buildRankingCard(
+                            rank: sortedRankings[index],
+                            index: index,
+                          ),
+                        ),
+                      );
+                    }),
+
+                  const SizedBox(height: 16),
+                ],
               ),
             );
-          }
-
-          final rankings = snapshot.data ?? [];
-
-          final sortedRankings = List<UserRank>.from(rankings);
-          sortedRankings.sort((a, b) {
-            final ptsA = _getUserPoints(a);
-            final ptsB = _getUserPoints(b);
-            return _descending ? ptsB.compareTo(ptsA) : ptsA.compareTo(ptsB);
-          });
-
-          return SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Section 1: Header
-                _buildAnimatedSection(index: 0, child: _buildHeader()),
-
-                const SizedBox(height: 20),
-
-                // Section 2: Category filters
-                _buildAnimatedSection(
-                  index: 1,
-                  child: _buildCategoryFilters(categories),
-                ),
-
-                const SizedBox(height: 24),
-
-                // Section 3: Rankings list or empty state
-                if (sortedRankings.isEmpty)
-                  _buildAnimatedSection(index: 2, child: _buildEmptyState())
-                else
-                  ...List.generate(sortedRankings.length, (index) {
-                    return Padding(
-                      padding: EdgeInsets.only(
-                        bottom: index < sortedRankings.length - 1 ? 12 : 0,
-                      ),
-                      child: _buildAnimatedSection(
-                        index: index + 2,
-                        child: _buildRankingCard(
-                          rank: sortedRankings[index],
-                          index: index,
-                        ),
-                      ),
-                    );
-                  }),
-
-                const SizedBox(height: 16),
-              ],
-            ),
-          );
-        },
+          },
+        ),
       ),
     );
   }
@@ -123,7 +126,7 @@ class _RankingsPageState extends State<RankingsPage> {
             const Text(
               'Rankings',
               style: TextStyle(
-                color: Colors.white,
+                color: Color(0xFF003F91),
                 fontSize: 34,
                 fontWeight: FontWeight.w900,
                 height: 1.05,
@@ -133,7 +136,7 @@ class _RankingsPageState extends State<RankingsPage> {
             Text(
               'See how you compare with others',
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.5),
+                color: Colors.grey.shade500,
                 fontSize: 15,
                 fontWeight: FontWeight.w500,
               ),
@@ -142,16 +145,18 @@ class _RankingsPageState extends State<RankingsPage> {
         ),
         Container(
           decoration: BoxDecoration(
-            color: const Color(0xFF1E2246).withValues(alpha: 0.7),
+            color: const Color(0xFF003F91).withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(40),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+            border: Border.all(
+              color: const Color(0xFF003F91).withValues(alpha: 0.2),
+            ),
           ),
           child: IconButton(
             icon: Icon(
               _descending
                   ? Icons.arrow_downward_rounded
                   : Icons.arrow_upward_rounded,
-              color: const Color(0xFFFFD700),
+              color: const Color(0xFF003F91),
             ),
             tooltip: _descending ? 'Sort Ascending' : 'Sort Descending',
             onPressed: () {
@@ -186,38 +191,21 @@ class _RankingsPageState extends State<RankingsPage> {
                   vertical: 10,
                 ),
                 decoration: BoxDecoration(
-                  gradient: isSelected
-                      ? const LinearGradient(
-                          colors: [Color(0xFF6366F1), Color(0xFF8C52FF)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        )
-                      : null,
                   color: isSelected
-                      ? null
-                      : const Color(0xFF1E2246).withValues(alpha: 0.6),
+                      ? const Color(0xFF003F91)
+                      : Colors.transparent,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: isSelected
-                        ? Colors.transparent
-                        : Colors.white.withValues(alpha: 0.08),
+                        ? const Color(0xFF003F91)
+                        : Colors.grey.shade300,
                   ),
-                  boxShadow: isSelected
-                      ? [
-                          BoxShadow(
-                            color: const Color(
-                              0xFF6366F1,
-                            ).withValues(alpha: 0.06),
-                            blurRadius: 3,
-                          ),
-                        ]
-                      : null,
                 ),
                 child: Text(
                   cat,
                   style: TextStyle(
                     fontWeight: FontWeight.w800,
-                    color: isSelected ? Colors.white : Colors.white60,
+                    color: isSelected ? Colors.white : Colors.grey.shade400,
                     fontSize: 13,
                   ),
                 ),
@@ -234,25 +222,27 @@ class _RankingsPageState extends State<RankingsPage> {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+        border: Border.all(
+          color: const Color(0xFF003F91).withValues(alpha: 0.3),
+        ),
       ),
-      child: const Column(
+      child: Column(
         children: [
-          Icon(Icons.emoji_events_rounded, color: Color(0xFFFFD700), size: 48),
-          SizedBox(height: 12),
+          const Icon(
+            Icons.emoji_events_rounded,
+            color: Color(0xFFFFD700),
+            size: 48,
+          ),
+          const SizedBox(height: 12),
           Text(
             'No rankings yet. Start playing to get listed!',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w600,
-              color: Colors.white60,
+              color: Colors.grey.shade500,
             ),
           ),
         ],
@@ -274,13 +264,11 @@ class _RankingsPageState extends State<RankingsPage> {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+        border: Border.all(
+          color: const Color(0xFF003F91).withValues(alpha: 0.3),
+        ),
       ),
       child: Row(
         children: [
@@ -298,7 +286,7 @@ class _RankingsPageState extends State<RankingsPage> {
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
-                      color: Colors.white54,
+                      color: Color(0xFF9E9E9E),
                     ),
                   ),
           ),
@@ -308,12 +296,12 @@ class _RankingsPageState extends State<RankingsPage> {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.1),
+              color: const Color(0xFF003F91).withValues(alpha: 0.1),
               shape: BoxShape.circle,
               border: Border.all(
                 color: isTopThree
                     ? colorsMap[index].withValues(alpha: 0.5)
-                    : Colors.white.withValues(alpha: 0.1),
+                    : const Color(0xFF003F91).withValues(alpha: 0.2),
                 width: 2,
               ),
             ),
@@ -325,14 +313,14 @@ class _RankingsPageState extends State<RankingsPage> {
                       errorBuilder: (context, error, stackTrace) => const Icon(
                         Icons.person_rounded,
                         size: 24,
-                        color: Colors.white60,
+                        color: Color(0xFF003F91),
                       ),
                     ),
                   )
                 : const Icon(
                     Icons.person_rounded,
                     size: 24,
-                    color: Colors.white60,
+                    color: Color(0xFF003F91),
                   ),
           ),
           const SizedBox(width: 12),
@@ -350,7 +338,7 @@ class _RankingsPageState extends State<RankingsPage> {
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
-                          color: Colors.white,
+                          color: Color(0xFF121826),
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -436,7 +424,7 @@ class _RankingsPageState extends State<RankingsPage> {
                   children: [
                     Icon(
                       Icons.diamond_rounded,
-                      color: const Color(0xFF6366F1),
+                      color: const Color(0xFF003F91),
                       size: 12,
                     ),
                     const SizedBox(width: 4),
@@ -445,7 +433,7 @@ class _RankingsPageState extends State<RankingsPage> {
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF6366F1),
+                        color: Color(0xFF003F91),
                       ),
                     ),
                   ],
