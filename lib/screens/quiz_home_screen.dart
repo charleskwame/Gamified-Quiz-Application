@@ -186,7 +186,7 @@ class QuizHomePage extends StatelessWidget {
             child: Text(
               'Available Quests',
               style: const TextStyle(
-                color: Colors.white,
+                color: Color(0xFF003F91),
                 fontSize: 22,
                 fontWeight: FontWeight.w900,
               ),

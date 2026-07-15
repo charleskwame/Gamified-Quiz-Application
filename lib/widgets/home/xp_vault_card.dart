@@ -21,11 +21,7 @@ class XpVaultCard extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            color: Colors.white,
             borderRadius: BorderRadius.circular(24),
           ),
           child: Row(
@@ -38,12 +34,6 @@ class XpVaultCard extends StatelessWidget {
                     colors: [Color(0xFFFFD700), Color(0xFFB8860B)],
                   ),
                   shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFFFFD700).withValues(alpha: 0.06),
-                      blurRadius: 3,
-                    ),
-                  ],
                 ),
                 child: const Icon(
                   Icons.inventory_2_rounded,
@@ -150,22 +140,12 @@ class _ShimmerGoldBorderState extends State<_ShimmerGoldBorder>
         return Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: Color.lerp(
-                const Color(0xFFFFD700).withValues(alpha: 0.3),
-                const Color(0xFFFFD700).withValues(alpha: 0.1),
-                (_controller.value * 2).clamp(0.0, 1.0),
-              )!,
-              width: 1.5,
-            ),
+            border: Border.all(color: const Color(0xFF003F91), width: 1.5),
             boxShadow: [
               BoxShadow(
-                color: Color.lerp(
-                  const Color(0xFFFFD700).withValues(alpha: 0.04),
-                  const Color(0xFFFFD700).withValues(alpha: 0.01),
-                  (_controller.value * 2).clamp(0.0, 1.0),
-                )!,
-                blurRadius: 3,
+                color: const Color(0xFF003F91).withValues(alpha: 0.08),
+                blurRadius: 4,
+                spreadRadius: 0,
               ),
             ],
           ),

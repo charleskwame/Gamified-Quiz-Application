@@ -59,19 +59,7 @@ class _ParticleBackgroundState extends State<ParticleBackground>
       builder: (context, child) {
         return SizedBox.expand(
           child: Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0xFF060B1A), // very dark navy
-                  Color(0xFF0A0E21), // dark blue
-                  Color(0xFF0F1832), // slightly lighter
-                  Color(0xFF141852), // deep indigo hint
-                ],
-                stops: [0.0, 0.3, 0.7, 1.0],
-              ),
-            ),
+            decoration: const BoxDecoration(color: Color(0xFFECF8F8)),
             child: Stack(
               children: [
                 // Particle layer

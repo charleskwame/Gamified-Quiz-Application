@@ -29,17 +29,24 @@ class PlayerHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        // Avatar with glowing ring
-        _buildAvatar(),
-        const SizedBox(width: 16),
-        // Name, level, XP bar
-        Expanded(child: _buildPlayerInfo()),
-        const SizedBox(width: 12),
-        // Streak badge
-        if (streakNumber > 0) _buildStreakBadge(),
-      ],
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFF003F91), width: 1.5),
+      ),
+      child: Row(
+        children: [
+          // Avatar with glowing ring
+          _buildAvatar(),
+          const SizedBox(width: 16),
+          // Name, level, XP bar
+          Expanded(child: _buildPlayerInfo()),
+          const SizedBox(width: 12),
+          // Streak badge
+          if (streakNumber > 0) _buildStreakBadge(),
+        ],
+      ),
     );
   }
 
@@ -108,7 +115,7 @@ class PlayerHeader extends StatelessWidget {
               child: Text(
                 displayName,
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: Color(0xFF003F91),
                   fontSize: 22,
                   fontWeight: FontWeight.w900,
                   height: 1.1,
@@ -127,12 +134,12 @@ class PlayerHeader extends StatelessWidget {
         // Score text
         Row(
           children: [
-            const Icon(Icons.stars_rounded, color: Color(0xFFFFD700), size: 16),
+            const Icon(Icons.stars_rounded, color: Color(0xFF003F91), size: 16),
             const SizedBox(width: 4),
             Text(
               '$totalScore XP',
               style: const TextStyle(
-                color: Color(0xFFFFD700),
+                color: Color(0xFF003F91),
                 fontSize: 13,
                 fontWeight: FontWeight.w800,
               ),
@@ -166,7 +173,7 @@ class PlayerHeader extends StatelessWidget {
             Text(
               levelName,
               style: const TextStyle(
-                color: Colors.white,
+                color: Color(0xFF003F91),
                 fontSize: 11,
                 fontWeight: FontWeight.w900,
               ),
@@ -223,7 +230,7 @@ class PlayerHeader extends StatelessWidget {
             Text(
               '${(value * 100).round()}% to next level',
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.4),
+                color: const Color(0xFF003F91).withValues(alpha: 0.6),
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
               ),
@@ -243,15 +250,15 @@ class PlayerHeader extends StatelessWidget {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                const Color(0xFFFF5722).withValues(alpha: 0.2),
-                const Color(0xFFFF5722).withValues(alpha: 0.08),
+                const Color(0xFF003F91).withValues(alpha: 0.15),
+                const Color(0xFF003F91).withValues(alpha: 0.05),
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: const Color(0xFFFF5722).withValues(alpha: 0.4),
+              color: const Color(0xFF003F91).withValues(alpha: 0.4),
               width: 1.5,
             ),
           ),
@@ -260,14 +267,14 @@ class PlayerHeader extends StatelessWidget {
             children: [
               const Icon(
                 Icons.local_fire_department_rounded,
-                color: Color(0xFFFF5722),
+                color: Color(0xFF003F91),
                 size: 20,
               ),
               const SizedBox(width: 6),
               Text(
                 '$streakNumber',
                 style: const TextStyle(
-                  color: Color(0xFFFF5722),
+                  color: Color(0xFF003F91),
                   fontWeight: FontWeight.w900,
                   fontSize: 15,
                 ),
@@ -276,7 +283,7 @@ class PlayerHeader extends StatelessWidget {
               Text(
                 'completion${streakNumber > 1 ? 's' : ''}',
                 style: TextStyle(
-                  color: const Color(0xFFFF5722).withValues(alpha: 0.7),
+                  color: const Color(0xFF003F91).withValues(alpha: 0.7),
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
                 ),

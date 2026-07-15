@@ -21,9 +21,9 @@ class GameStatPanel extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E2246).withValues(alpha: 0.7),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+        border: Border.all(color: const Color(0xFF003F91), width: 1.5),
       ),
       child: Row(
         children: [
@@ -32,7 +32,7 @@ class GameStatPanel extends StatelessWidget {
               icon: Icons.forum_rounded,
               value: '$questionsAnswered',
               label: 'Attempted',
-              color: const Color(0xFF6366F1),
+              iconColor: const Color(0xFF6366F1),
             ),
           ),
           _divider(),
@@ -41,7 +41,7 @@ class GameStatPanel extends StatelessWidget {
               icon: Icons.track_changes_rounded,
               value: '$accuracyPercent%',
               label: 'Accuracy',
-              color: const Color(0xFF4ADE80),
+              iconColor: const Color(0xFF4ADE80),
             ),
           ),
           _divider(),
@@ -50,7 +50,7 @@ class GameStatPanel extends StatelessWidget {
               icon: Icons.local_fire_department_rounded,
               value: '$streakNumber',
               label: 'Streak',
-              color: const Color(0xFFFF5722),
+              iconColor: const Color(0xFFFF5722),
             ),
           ),
           _divider(),
@@ -60,7 +60,7 @@ class GameStatPanel extends StatelessWidget {
               value:
                   '${totalScore >= 1000 ? '${(totalScore / 1000).toStringAsFixed(1)}k' : totalScore}',
               label: 'Score',
-              color: const Color(0xFFFFD700),
+              iconColor: const Color(0xFFFFD700),
             ),
           ),
         ],
@@ -72,7 +72,7 @@ class GameStatPanel extends StatelessWidget {
     return Container(
       width: 1,
       height: 40,
-      color: Colors.white.withValues(alpha: 0.08),
+      color: const Color(0xFF003F91).withValues(alpha: 0.15),
     );
   }
 }
@@ -81,13 +81,13 @@ class _StatItem extends StatelessWidget {
   final IconData icon;
   final String value;
   final String label;
-  final Color color;
+  final Color iconColor;
 
   const _StatItem({
     required this.icon,
     required this.value,
     required this.label,
-    required this.color,
+    required this.iconColor,
   });
 
   @override
@@ -95,12 +95,12 @@ class _StatItem extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, color: color, size: 20),
+        Icon(icon, color: iconColor, size: 20),
         const SizedBox(height: 6),
         _AnimatedCountUp(
           value: value,
           style: TextStyle(
-            color: Colors.white,
+            color: const Color(0xFF003F91),
             fontSize: 18,
             fontWeight: FontWeight.w900,
             height: 1.1,
@@ -110,7 +110,7 @@ class _StatItem extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.4),
+            color: const Color(0xFF003F91).withValues(alpha: 0.6),
             fontSize: 10,
             fontWeight: FontWeight.w600,
           ),
