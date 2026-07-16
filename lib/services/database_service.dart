@@ -12,20 +12,77 @@ import '../models/badge.dart';
 class DatabaseService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  // Stream of user rankings sorted by score descending (excludes lecturers)
+  DocumentReference<Map<String, dynamic>> _userDoc(String uid) {
+    return _db.collection('users').doc(uid);
+  }
+
+  DocumentReference<Map<String, dynamic>> _publicProfileDoc(String uid) {
+    return _db.collection('publicProfiles').doc(uid);
+  }
+
+  Map<String, dynamic> _publicProfileData({
+    required String displayName,
+    required int score,
+    required int computerArchitecturePoints,
+    required int computerNetworkingPoints,
+    required int softwareEngineeringPoints,
+    required int streakNumber,
+    required List<String> badges,
+    required List<String> selectedBadges,
+    required String avatarUrl,
+  }) {
+    return {
+      'displayName': displayName,
+      'score': score,
+      'computerArchitecturePoints': computerArchitecturePoints,
+      'computerNetworkingPoints': computerNetworkingPoints,
+      'softwareEngineeringPoints': softwareEngineeringPoints,
+      'streakNumber': streakNumber,
+      'badges': badges,
+      'selectedBadges': selectedBadges,
+      'avatarUrl': avatarUrl,
+      'updatedAt': FieldValue.serverTimestamp(),
+    };
+  }
+
+  Future<void> ensurePublicProfileExists(
+    String uid, {
+    String? fallbackDisplayName,
+    String? fallbackAvatarUrl,
+  }) async {
+    final privateSnap = await _userDoc(uid).get();
+    final data = privateSnap.data() ?? <String, dynamic>{};
+
+    await _publicProfileDoc(uid).set(
+      _publicProfileData(
+        displayName:
+            (data['displayName'] as String?) ??
+            fallbackDisplayName ??
+            'Scholar',
+        score: data['score'] as int? ?? 0,
+        computerArchitecturePoints:
+            data['computerArchitecturePoints'] as int? ?? 0,
+        computerNetworkingPoints: data['computerNetworkingPoints'] as int? ?? 0,
+        softwareEngineeringPoints:
+            data['softwareEngineeringPoints'] as int? ?? 0,
+        streakNumber: data['streakNumber'] as int? ?? 0,
+        badges: List<String>.from(data['badges'] ?? <String>[]),
+        selectedBadges: List<String>.from(data['selectedBadges'] ?? <String>[]),
+        avatarUrl: (data['avatarUrl'] as String?) ?? fallbackAvatarUrl ?? '',
+      ),
+      SetOptions(merge: true),
+    );
+  }
+
+  // Stream of public user rankings sorted by score descending.
   Stream<List<UserRank>> getRankingsStream() {
     return _db
-        .collection('users')
+        .collection('publicProfiles')
         .orderBy('score', descending: true)
         .snapshots()
         .map(
-          (snapshot) => snapshot.docs
-              .where((doc) {
-                final data = doc.data();
-                return data['role'] != 'lecturer';
-              })
-              .map((doc) => UserRank.fromFirestore(doc))
-              .toList(),
+          (snapshot) =>
+              snapshot.docs.map((doc) => UserRank.fromFirestore(doc)).toList(),
         );
   }
 
@@ -43,7 +100,7 @@ class DatabaseService {
       'seed': values['seed'],
     };
 
-    await _db.collection('users').doc(uid).set({
+    await _userDoc(uid).set({
       'displayName': displayName,
       'email': email,
       'score': 0,
@@ -70,6 +127,21 @@ class DatabaseService {
       'avatarDetails': avatarDetails,
       'createdAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
+
+    await _publicProfileDoc(uid).set(
+      _publicProfileData(
+        displayName: displayName,
+        score: 0,
+        computerArchitecturePoints: 0,
+        computerNetworkingPoints: 0,
+        softwareEngineeringPoints: 0,
+        streakNumber: 0,
+        badges: <String>[],
+        selectedBadges: <String>[],
+        avatarUrl: avatarUrl,
+      ),
+      SetOptions(merge: true),
+    );
   }
 
   // Sync user profile updates to Firestore
@@ -86,7 +158,13 @@ class DatabaseService {
       data['email'] = email;
     }
     if (data.isNotEmpty) {
-      await _db.collection('users').doc(uid).update(data);
+      await _userDoc(uid).update(data);
+      if (data.containsKey('displayName')) {
+        await _publicProfileDoc(uid).set({
+          'displayName': data['displayName'],
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      }
     }
   }
 
@@ -96,15 +174,18 @@ class DatabaseService {
     String avatarUrl,
     Map<String, dynamic> details,
   ) async {
-    await _db.collection('users').doc(uid).update({
+    await _userDoc(
+      uid,
+    ).update({'avatarUrl': avatarUrl, 'avatarDetails': details});
+    await _publicProfileDoc(uid).set({
       'avatarUrl': avatarUrl,
-      'avatarDetails': details,
-    });
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
   }
 
   // Update email verification status in Firestore
   Future<void> updateEmailVerificationStatus(String uid, bool verified) async {
-    await _db.collection('users').doc(uid).update({'emailVerified': verified});
+    await _userDoc(uid).update({'emailVerified': verified});
   }
 
   // Update user stats after a quiz challenge
@@ -115,7 +196,8 @@ class DatabaseService {
     required int correctIncrement,
     required int answeredIncrement,
   }) async {
-    final userRef = _db.collection('users').doc(uid);
+    final userRef = _userDoc(uid);
+    final publicRef = _publicProfileDoc(uid);
 
     final Map<String, dynamic> updates = {
       'score': FieldValue.increment(scoreIncrement),
@@ -144,6 +226,27 @@ class DatabaseService {
     }
 
     await userRef.update(updates);
+
+    final Map<String, dynamic> publicUpdates = {
+      'score': FieldValue.increment(scoreIncrement),
+      'updatedAt': FieldValue.serverTimestamp(),
+    };
+
+    if (category == 'Computer Architecture') {
+      publicUpdates['computerArchitecturePoints'] = FieldValue.increment(
+        scoreIncrement,
+      );
+    } else if (category == 'Computer Networking') {
+      publicUpdates['computerNetworkingPoints'] = FieldValue.increment(
+        scoreIncrement,
+      );
+    } else if (category == 'Software Engineering') {
+      publicUpdates['softwareEngineeringPoints'] = FieldValue.increment(
+        scoreIncrement,
+      );
+    }
+
+    await publicRef.set(publicUpdates, SetOptions(merge: true));
   }
 
   // Processes completion of a quiz challenge using a transaction
@@ -160,7 +263,8 @@ class DatabaseService {
     int skipChange = 0,
     int pauseTimerChange = 0,
   }) async {
-    final userRef = _db.collection('users').doc(uid);
+    final userRef = _userDoc(uid);
+    final publicRef = _publicProfileDoc(uid);
     List<String> newlyUnlocked = [];
 
     await _db.runTransaction((transaction) async {
@@ -255,6 +359,22 @@ class DatabaseService {
         'streakNumber': streakNumber,
         'badges': badges,
       });
+
+      transaction.set(
+        publicRef,
+        _publicProfileData(
+          displayName: (data['displayName'] as String?) ?? 'Scholar',
+          score: score,
+          computerArchitecturePoints: computerArchitecturePoints,
+          computerNetworkingPoints: computerNetworkingPoints,
+          softwareEngineeringPoints: softwareEngineeringPoints,
+          streakNumber: streakNumber,
+          badges: badges,
+          selectedBadges: List<String>.from(data['selectedBadges'] ?? []),
+          avatarUrl: (data['avatarUrl'] as String?) ?? '',
+        ),
+        SetOptions(merge: true),
+      );
     });
 
     return newlyUnlocked;
@@ -447,7 +567,8 @@ class DatabaseService {
     await batch.commit();
 
     // Delete user document in Firestore
-    await _db.collection('users').doc(uid).delete();
+    await _userDoc(uid).delete();
+    await _publicProfileDoc(uid).delete();
 
     // Clear local saved offline questions in SharedPreferences
     final prefs = await SharedPreferences.getInstance();
@@ -462,26 +583,25 @@ class DatabaseService {
 
   // Updates the list of up to 3 selected badges to display next to user name in rankings
   Future<void> updateSelectedBadges(String uid, List<String> badgeIds) async {
-    await _db.collection('users').doc(uid).update({'selectedBadges': badgeIds});
+    await _userDoc(uid).update({'selectedBadges': badgeIds});
+    await _publicProfileDoc(uid).set({
+      'selectedBadges': badgeIds,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
   }
 
   // Get percentage of users who own a specific badge
   Future<double> getBadgeOwnershipPercentage(String badgeId) async {
     try {
-      final totalQuery = await _db
-          .collection('users')
-          .where('role', isNotEqualTo: 'lecturer')
-          .count()
-          .get();
-      final totalUsers = totalQuery.count ?? 1;
-      if (totalUsers == 0) return 0.0;
+      final snapshot = await _db.collection('publicProfiles').get();
+      if (snapshot.docs.isEmpty) return 0.0;
 
-      final badgeQuery = await _db
-          .collection('users')
-          .where('badges', arrayContains: badgeId)
-          .count()
-          .get();
-      final badgeCount = badgeQuery.count ?? 0;
+      final totalUsers = snapshot.docs.length;
+      final badgeCount = snapshot.docs.where((doc) {
+        final data = doc.data();
+        final badges = List<String>.from(data['badges'] ?? []);
+        return badges.contains(badgeId);
+      }).length;
 
       return (badgeCount / totalUsers) * 100;
     } catch (e) {
@@ -577,79 +697,26 @@ class DatabaseService {
   // Filters out lecturers in-memory (avoids needing a composite index).
   // Returns the number of users updated.
   Future<int> seedInitialCoinsForAllUsers() async {
-    int totalUpdated = 0;
-
-    try {
-      DocumentSnapshot? lastDoc;
-      bool hasMore = true;
-
-      while (hasMore) {
-        Query query = _db.collection('users').orderBy('__name__').limit(500);
-
-        if (lastDoc != null) {
-          query = query.startAfterDocument(lastDoc);
-        }
-
-        final snapshot = await query.get();
-
-        if (snapshot.docs.isEmpty) {
-          hasMore = false;
-          break;
-        }
-
-        lastDoc = snapshot.docs.last;
-
-        // Filter out lecturers in-memory and build the batch
-        final WriteBatch batch = _db.batch();
-        int batchCount = 0;
-
-        for (final doc in snapshot.docs) {
-          final data = doc.data() as Map<String, dynamic>?;
-          if (data == null) continue;
-          final role = data['role'] as String?;
-          // Skip lecturers
-          if (role == 'lecturer') continue;
-
-          final currentCoins = data['quizCoins'] as int? ?? 0;
-          if (currentCoins < 100) {
-            batch.update(doc.reference, {'quizCoins': 100});
-            batchCount++;
-            totalUpdated++;
-          }
-        }
-
-        if (batchCount > 0) {
-          await batch.commit();
-        }
-
-        hasMore = snapshot.docs.length >= 500;
-      }
-    } catch (e) {
-      debugPrint('seedInitialCoinsForAllUsers error: $e');
-      // Return whatever count we got so far
-    }
-
-    return totalUpdated;
+    debugPrint(
+      'seedInitialCoinsForAllUsers is disabled under the current Firestore rules.',
+    );
+    return 0;
   }
 
   // Get percentage of users who have a specific streak or higher
   Future<double> getStreakPercentage(int streakNumber) async {
-    if (streakNumber == 0) return 100.0;
-    try {
-      final totalQuery = await _db
-          .collection('users')
-          .where('role', isNotEqualTo: 'lecturer')
-          .count()
-          .get();
-      final totalUsers = totalQuery.count ?? 1;
-      if (totalUsers == 0) return 0.0;
+    if (streakNumber <= 0) return 100.0;
 
-      final streakQuery = await _db
-          .collection('users')
-          .where('streakNumber', isGreaterThanOrEqualTo: streakNumber)
-          .count()
-          .get();
-      final streakCount = streakQuery.count ?? 0;
+    try {
+      final snapshot = await _db.collection('publicProfiles').get();
+      if (snapshot.docs.isEmpty) return 0.0;
+
+      final totalUsers = snapshot.docs.length;
+      final streakCount = snapshot.docs.where((doc) {
+        final data = doc.data();
+        final value = data['streakNumber'] as int? ?? 0;
+        return value >= streakNumber;
+      }).length;
 
       return (streakCount / totalUsers) * 100;
     } catch (e) {

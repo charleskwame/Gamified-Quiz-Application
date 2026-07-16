@@ -145,6 +145,15 @@ class AuthService {
         password: password,
       );
 
+      final user = userCredential.user;
+      if (user != null) {
+        await DatabaseService().ensurePublicProfileExists(
+          user.uid,
+          fallbackDisplayName: user.displayName,
+          fallbackAvatarUrl: null,
+        );
+      }
+
       await _saveCredentials(email, password);
       await _markSessionActive();
 

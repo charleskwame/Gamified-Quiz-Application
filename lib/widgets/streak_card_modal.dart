@@ -38,15 +38,12 @@ class StreakCardModal extends StatefulWidget {
 class _StreakCardModalState extends State<StreakCardModal> {
   final GlobalKey _repaintKey = GlobalKey();
   bool _isDownloading = false;
-  double _percentage = 0.0;
-  bool _loadingStats = true;
   late List<Color> _gradientColors;
 
   @override
   void initState() {
     super.initState();
     _generateRandomGradient();
-    _fetchStats();
   }
 
   void _generateRandomGradient() {
@@ -65,18 +62,6 @@ class _StreakCardModalState extends State<StreakCardModal> {
       50 + random.nextInt(150),
     );
     _gradientColors = [color1, color2];
-  }
-
-  Future<void> _fetchStats() async {
-    final percent = await DatabaseService().getStreakPercentage(
-      widget.streakNumber,
-    );
-    if (mounted) {
-      setState(() {
-        _percentage = percent;
-        _loadingStats = false;
-      });
-    }
   }
 
   Future<void> _downloadCard() async {
@@ -301,24 +286,15 @@ class _StreakCardModalState extends State<StreakCardModal> {
                       color: Colors.black.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: _loadingStats
-                        ? const SizedBox(
-                            height: 16,
-                            width: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : Text(
-                            'Top ${_percentage.toStringAsFixed(1)}% of players have this streak',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                    child: const Text(
+                      'Streak stats unavailable',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ],
               ),

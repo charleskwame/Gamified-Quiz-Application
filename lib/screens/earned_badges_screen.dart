@@ -160,26 +160,13 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
   }
 
   void _showDownloadCardModal(BadgeDefinition badge) {
-    double percentage = 0.0;
-    bool loadingStats = true;
+    const String ownershipLabel = 'Ownership stats unavailable';
 
     showDialog(
       context: context,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setModalState) {
-            if (loadingStats) {
-              DatabaseService().getBadgeOwnershipPercentage(badge.id).then((
-                val,
-              ) {
-                if (context.mounted) {
-                  setModalState(() {
-                    percentage = val;
-                    loadingStats = false;
-                  });
-                }
-              });
-            }
             return AlertDialog(
               backgroundColor: const Color(0xFF1E2246),
               shape: RoundedRectangleBorder(
@@ -189,24 +176,13 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  RepaintBoundary(
-                    key: _repaintKey,
-                    child: Container(
-                      width: 280,
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(28),
-                        border: Border.all(
-                          color: badge.color.withValues(alpha: 0.5),
-                          width: 2.5,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
+                            ownershipLabel,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
                             color: badge.color.withValues(alpha: 0.06),
                             blurRadius: 3,
                             offset: const Offset(0, 2),

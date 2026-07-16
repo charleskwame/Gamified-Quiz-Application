@@ -1,0 +1,70 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function isValidPublicProfile() {
+      return request.resource.data.keys().hasOnly([
+        'displayName',
+        'score',
+        'computerArchitecturePoints',
+        'computerNetworkingPoints',
+        'softwareEngineeringPoints',
+        'streakNumber',
+        'badges',
+        'selectedBadges',
+        'avatarUrl',
+        'createdAt',
+        'updatedAt',
+      ])
+      && request.resource.data.displayName is string
+      && request.resource.data.score is int
+      && request.resource.data.computerArchitecturePoints is int
+      && request.resource.data.computerNetworkingPoints is int
+      && request.resource.data.softwareEngineeringPoints is int
+      && request.resource.data.streakNumber is int
+      && request.resource.data.badges is list
+      && request.resource.data.selectedBadges is list
+      && request.resource.data.avatarUrl is string;
+    }
+
+    match /users/{userId} {
+      allow create, read, update, delete: if isOwner(userId);
+
+      match /rankHistory/{entryId} {
+        allow create, read, update, delete: if isOwner(userId);
+      }
+    }
+
+    match /publicProfiles/{userId} {
+      allow read: if true;
+      allow create, update: if isOwner(userId) && isValidPublicProfile();
+      allow delete: if isOwner(userId);
+    }
+
+    match /{category}_questions/{questionId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /{category}_questions_gotten_incorrectly/{questionId} {
+      allow read: if false;
+      allow create, update: if signedIn()
+        && request.resource.data.keys().hasOnly(['questionId', 'number_of_wrong'])
+        && request.resource.data.questionId == questionId
+        && request.resource.data.number_of_wrong is int
+        && (
+          (!exists(/databases/$(database)/documents/$(category)_questions_gotten_incorrectly/$(questionId)) && request.resource.data.number_of_wrong == 1)
+          || (exists(/databases/$(database)/documents/$(category)_questions_gotten_incorrectly/$(questionId))
+              && request.resource.data.number_of_wrong == resource.data.number_of_wrong + 1)
+        );
+      allow delete: if false;
+    }
+  }
+}

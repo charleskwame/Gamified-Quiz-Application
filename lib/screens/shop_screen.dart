@@ -270,35 +270,17 @@ class _ShopScreenState extends State<ShopScreen> {
 
   Future<void> _seedAllCoins(BuildContext context) async {
     final scaffold = ScaffoldMessenger.of(context);
-    try {
-      final count = await _db.seedInitialCoinsForAllUsers();
-      if (!context.mounted) return;
-      scaffold.showSnackBar(
-        SnackBar(
-          content: Text('✅ $count users received 100 🪙 each!'),
-          backgroundColor: const Color(0xFF4ADE80),
-          duration: const Duration(seconds: 3),
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.only(bottom: 100, left: 20, right: 20),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+    if (!context.mounted) return;
+    scaffold.showSnackBar(
+      const SnackBar(
+        content: Text(
+          'This migration is disabled in-app under the current Firestore rules.',
         ),
-      );
-    } catch (e) {
-      if (!context.mounted) return;
-      scaffold.showSnackBar(
-        SnackBar(
-          content: Text('Error: $e'),
-          backgroundColor: const Color(0xFFEF4444),
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.only(bottom: 100, left: 20, right: 20),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      );
-    }
+        backgroundColor: Color(0xFFEF4444),
+        behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.only(bottom: 100, left: 20, right: 20),
+      ),
+    );
   }
 
   Widget _buildCoinBalance(int coins) {

@@ -22,6 +22,7 @@ class _LeaderboardCarouselState extends State<LeaderboardCarousel> {
   StreamSubscription<List<UserRank>>? _subscription;
   List<Widget> _cachedCards = const [];
   bool _isLoading = true;
+  String? _loadError;
   int _currentPage = 0;
   Timer? _autoScrollTimer;
 
@@ -102,18 +103,31 @@ class _LeaderboardCarouselState extends State<LeaderboardCarousel> {
   @override
   void initState() {
     super.initState();
-    _subscription = _dbService.getRankingsStream().listen((rankings) {
-      if (!mounted) return;
-      final newCards = _computeCards(rankings);
-      setState(() {
-        _isLoading = false;
-        _cachedCards = newCards;
-        if (_currentPage >= _cachedCards.length) {
+    _subscription = _dbService.getRankingsStream().listen(
+      (rankings) {
+        if (!mounted) return;
+        final newCards = _computeCards(rankings);
+        setState(() {
+          _isLoading = false;
+          _loadError = null;
+          _cachedCards = newCards;
+          if (_currentPage >= _cachedCards.length) {
+            _currentPage = 0;
+          }
+        });
+        _startAutoScroll();
+      },
+      onError: (Object error, StackTrace stackTrace) {
+        if (!mounted) return;
+        setState(() {
+          _isLoading = false;
+          _loadError = error.toString();
+          _cachedCards = const [];
           _currentPage = 0;
-        }
-      });
-      _startAutoScroll();
-    });
+        });
+        _autoScrollTimer?.cancel();
+      },
+    );
   }
 
   @override
@@ -130,6 +144,29 @@ class _LeaderboardCarouselState extends State<LeaderboardCarousel> {
       return const SizedBox(
         height: 80,
         child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_loadError != null) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: const Color(0xFF003F91).withValues(alpha: 0.3),
+          ),
+        ),
+        child: Text(
+          'Rankings are unavailable right now.',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Colors.grey.shade600,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       );
     }
 
