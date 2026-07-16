@@ -5,7 +5,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../services/auth_service.dart';
 import '../services/database_service.dart';
 import '../widgets/avatar_customizer_dialog.dart';
-import '../widgets/home/particle_background.dart';
 import '../widgets/main_navigation.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -104,24 +103,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E2246),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text(
           'Delete Account?',
           style: TextStyle(
             color: Color(0xFFEF4444),
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w900,
           ),
         ),
         content: const Text(
           'Warning: This action is irreversible. Your entire progress, achievements, points, earned badges, and offline saved questions will be permanently deleted from the system.',
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(color: Color(0xFF011627)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: const Text(
               'Cancel',
-              style: TextStyle(color: Colors.white60),
+              style: TextStyle(color: Color(0xFF011627)),
             ),
           ),
           FilledButton(
@@ -148,12 +148,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              backgroundColor: const Color(0xFF1E2246),
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
               title: const Text(
                 'Confirm Password',
                 style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF011627),
+                  fontWeight: FontWeight.w900,
                 ),
               ),
               content: Column(
@@ -161,33 +164,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: [
                   const Text(
                     'For security, please enter your password to confirm account deletion.',
-                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                    style: TextStyle(color: Color(0xFF011627), fontSize: 14),
                   ),
                   const SizedBox(height: 16),
                   TextField(
                     controller: controller,
                     obscureText: true,
                     autofocus: true,
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(
+                      color: Color(0xFF011627),
+                      fontSize: 15,
+                    ),
                     decoration: InputDecoration(
                       labelText: 'Password',
-                      labelStyle: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.5),
+                      labelStyle: const TextStyle(
+                        color: Color(0xFF011627),
+                        fontSize: 14,
                       ),
                       errorText: errorText,
                       filled: true,
-                      fillColor: Colors.white.withValues(alpha: 0.06),
+                      fillColor: const Color(0xFFECF8F8),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
-                        borderSide: BorderSide(
-                          color: Colors.white.withValues(alpha: 0.1),
-                        ),
+                        borderSide: const BorderSide(color: Color(0xFFB0C4DE)),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
-                        borderSide: BorderSide(
-                          color: Colors.white.withValues(alpha: 0.1),
-                        ),
+                        borderSide: const BorderSide(color: Color(0xFFB0C4DE)),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
@@ -205,7 +208,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   onPressed: () => Navigator.pop(context, null),
                   child: const Text(
                     'Cancel',
-                    style: TextStyle(color: Colors.white60),
+                    style: TextStyle(color: Color(0xFF011627)),
                   ),
                 ),
                 FilledButton(
@@ -309,18 +312,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
         }
 
         return Scaffold(
-          backgroundColor: Colors.transparent,
-          body: ParticleBackground(
+          backgroundColor: const Color(0xFFF0F8F8),
+          body: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xFFF0F8F8),
+                  Color(0xFFE8F4F4),
+                  Color(0xFFE0F0F0),
+                  Color(0xFFD8ECEC),
+                ],
+                stops: [0.0, 0.3, 0.7, 1.0],
+              ),
+            ),
             child: SafeArea(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // ── Back Button + Title ──
                     _StaggeredFadeSlide(index: 0, child: _buildHeader()),
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 32),
 
                     // ── Avatar Section ──
                     _StaggeredFadeSlide(
@@ -344,7 +360,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       child: Container(
                         height: 1,
                         width: double.infinity,
-                        color: Colors.white.withValues(alpha: 0.08),
+                        color: const Color(0xFFB0C4DE).withValues(alpha: 0.3),
                       ),
                     ),
 
@@ -369,25 +385,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _buildHeader() {
     return Row(
       children: [
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.06),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        IconButton(
+          icon: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: const Color(0xFF003F91).withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.arrow_back_rounded,
+              color: Color(0xFF011627),
+              size: 22,
+            ),
           ),
-          child: IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.arrow_back_rounded),
-            color: Colors.white,
-            padding: const EdgeInsets.all(10),
-            constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-          ),
+          onPressed: () => Navigator.pop(context),
         ),
         const SizedBox(width: 16),
         const Text(
           'Settings',
           style: TextStyle(
-            color: Colors.white,
+            color: Color(0xFF011627),
             fontSize: 28,
             fontWeight: FontWeight.w900,
           ),
@@ -415,22 +432,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
             icon: const Icon(
               Icons.face_retouching_natural_rounded,
               size: 18,
-              color: Colors.white70,
+              color: Color(0xFF011627),
             ),
             label: const Text(
               'Customize Avatar',
               style: TextStyle(
-                color: Colors.white70,
+                color: Color(0xFF011627),
                 fontWeight: FontWeight.w700,
               ),
             ),
             style: OutlinedButton.styleFrom(
-              side: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
+              side: BorderSide(
+                color: const Color(0xFFB0C4DE).withValues(alpha: 0.6),
+              ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              backgroundColor: Colors.white.withValues(alpha: 0.04),
+              backgroundColor: const Color(0xFFECF8F8),
             ),
           ),
         ],
@@ -446,27 +465,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
         shape: BoxShape.circle,
         gradient: const SweepGradient(
           colors: [
-            Color(0xFF6366F1),
-            Color(0xFF8C52FF),
-            Color(0xFFFFD700),
-            Color(0xFF4ADE80),
-            Color(0xFF6366F1),
+            Color(0xFF003F91),
+            Color(0xFF0066CC),
+            Color(0xFF3399FF),
+            Color(0xFF003F91),
           ],
-          stops: [0.0, 0.25, 0.5, 0.75, 1.0],
+          stops: [0.0, 0.33, 0.66, 1.0],
         ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF6366F1).withValues(alpha: 0.06),
-            blurRadius: 4,
-            spreadRadius: 0,
-          ),
-        ],
       ),
       child: Padding(
         padding: const EdgeInsets.all(4),
         child: Container(
           decoration: const BoxDecoration(
-            color: Color(0xFF0A0E21),
+            color: Colors.white,
             shape: BoxShape.circle,
           ),
           child: ClipOval(
@@ -477,13 +488,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     placeholderBuilder: (context) => const Icon(
                       Icons.person_rounded,
                       size: 60,
-                      color: Colors.white70,
+                      color: Color(0xFF011627),
                     ),
                   )
                 : const Icon(
                     Icons.person_rounded,
                     size: 60,
-                    color: Colors.white70,
+                    color: Color(0xFF011627),
                   ),
           ),
         ),
@@ -496,106 +507,141 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // ──────────────────────────────────────────────
 
   Widget _buildAccountInfoSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Update Account Info',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.w900,
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF003F91).withValues(alpha: 0.08),
+            blurRadius: 24,
+            offset: const Offset(0, 4),
           ),
-        ),
-        const SizedBox(height: 16),
-
-        if (_errorMessage != null) ...[
-          _buildStatusBanner(_errorMessage!, const Color(0xFFEF4444)),
-          const SizedBox(height: 16),
         ],
-
-        if (_successMessage != null) ...[
-          _buildStatusBanner(_successMessage!, const Color(0xFF4ADE80)),
-          const SizedBox(height: 16),
-        ],
-
-        // Name field
-        TextField(
-          controller: _displayNameController,
-          style: const TextStyle(color: Colors.white),
-          decoration: InputDecoration(
-            labelText: 'Full Name',
-            labelStyle: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
-            hintText: 'Enter your full name',
-            hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.2)),
-            filled: true,
-            fillColor: Colors.white.withValues(alpha: 0.06),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(
-                color: Colors.white.withValues(alpha: 0.1),
-              ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(
-                color: Colors.white.withValues(alpha: 0.1),
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: Color(0xFF6366F1), width: 2),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 14,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Update Account Info',
+            style: TextStyle(
+              color: Color(0xFF011627),
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
             ),
           ),
-        ),
-        const SizedBox(height: 24),
+          const SizedBox(height: 16),
 
-        SizedBox(
-          width: double.infinity,
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF6366F1), Color(0xFF8C52FF)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(14),
+          if (_errorMessage != null) ...[
+            _buildStatusBanner(_errorMessage!, const Color(0xFFEF4444)),
+            const SizedBox(height: 16),
+          ],
+
+          if (_successMessage != null) ...[
+            _buildStatusBanner(_successMessage!, const Color(0xFF4ADE80)),
+            const SizedBox(height: 16),
+          ],
+
+          // Name field
+          Text(
+            'Full Name',
+            style: const TextStyle(
+              color: Color(0xFF011627),
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
             ),
-            child: FilledButton(
-              onPressed: _isLoading ? null : _updateAccountInfo,
-              style: FilledButton.styleFrom(
-                backgroundColor: Colors.transparent,
-                shadowColor: Colors.transparent,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _displayNameController,
+            style: const TextStyle(color: Color(0xFF011627), fontSize: 15),
+            cursorColor: const Color(0xFF003F91),
+            decoration: InputDecoration(
+              hintText: 'Enter your full name',
+              hintStyle: TextStyle(
+                color: const Color(0xFF011627).withValues(alpha: 0.3),
+                fontSize: 14,
+              ),
+              prefixIcon: Icon(
+                Icons.person_rounded,
+                color: const Color(0xFF011627).withValues(alpha: 0.35),
+                size: 20,
+              ),
+              filled: true,
+              fillColor: const Color(0xFFECF8F8),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(color: Color(0xFFB0C4DE)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(color: Color(0xFFB0C4DE)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(
+                  color: Color(0xFF003F91),
+                  width: 1.5,
                 ),
-                disabledBackgroundColor: Colors.white.withValues(alpha: 0.06),
               ),
-              child: _isLoading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : const Text(
-                      'Save Changes',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
             ),
           ),
-        ),
-      ],
+          const SizedBox(height: 24),
+
+          SizedBox(
+            width: double.infinity,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                color: const Color(0xFF003F91),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF003F91).withValues(alpha: 0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: FilledButton(
+                onPressed: _isLoading ? null : _updateAccountInfo,
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
+                        ),
+                      )
+                    : const Text(
+                        'Save Changes',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -604,9 +650,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: accentColor.withValues(alpha: 0.12),
+        color: accentColor.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: accentColor.withValues(alpha: 0.3)),
+        border: Border.all(color: accentColor.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
@@ -692,7 +738,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         Text(
           'This action cannot be undone. All your data will be permanently removed.',
           style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.35),
+            color: const Color(0xFF011627).withValues(alpha: 0.35),
             fontSize: 12,
             fontWeight: FontWeight.w500,
           ),

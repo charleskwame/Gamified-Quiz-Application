@@ -307,21 +307,27 @@ class _ProfilePageState extends State<ProfilePage> {
                   showDialog(
                     context: context,
                     builder: (context) => AlertDialog(
-                      backgroundColor: const Color(0xFF1E2246),
+                      backgroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
                       title: const Text(
                         'Log Out',
-                        style: TextStyle(color: Colors.white),
+                        style: TextStyle(
+                          color: Color(0xFF011627),
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
                       content: const Text(
                         'Are you sure you want to log out?',
-                        style: TextStyle(color: Colors.white70),
+                        style: TextStyle(color: Color(0xFF011627)),
                       ),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.pop(context),
                           child: const Text(
                             'Cancel',
-                            style: TextStyle(color: Colors.white60),
+                            style: TextStyle(color: Color(0xFF011627)),
                           ),
                         ),
                         FilledButton(
@@ -337,6 +343,10 @@ class _ProfilePageState extends State<ProfilePage> {
                               );
                             }
                           },
+                          style: FilledButton.styleFrom(
+                            backgroundColor: const Color(0xFFEF4444),
+                            foregroundColor: Colors.white,
+                          ),
                           child: const Text('Log Out'),
                         ),
                       ],

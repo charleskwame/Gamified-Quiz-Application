@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../services/auth_service.dart';
-import '../widgets/home/particle_background.dart';
 import 'package:flutter/services.dart';
 
 /// Google Apps Script Web App URL for bug report submissions.
@@ -115,8 +114,21 @@ class _BugReportScreenState extends State<BugReportScreen> {
     final appVersion = _getAppVersion();
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: ParticleBackground(
+      backgroundColor: const Color(0xFFF0F8F8),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFFF0F8F8),
+              Color(0xFFE8F4F4),
+              Color(0xFFE0F0F0),
+              Color(0xFFD8ECEC),
+            ],
+            stops: [0.0, 0.3, 0.7, 1.0],
+          ),
+        ),
         child: AnnotatedRegion<SystemUiOverlayStyle>(
           value: const SystemUiOverlayStyle(
             statusBarColor: Colors.transparent,
@@ -124,131 +136,161 @@ class _BugReportScreenState extends State<BugReportScreen> {
           ),
           child: SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // ── Header ──
                   _buildHeader(),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 32),
 
                   // ── Title ──
                   const Text(
                     'Report a Bug',
                     style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 28,
+                      color: Color(0xFF011627),
+                      fontSize: 34,
                       fontWeight: FontWeight.w900,
+                      height: 1.05,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Help us improve the app by reporting any issues you encounter.',
                     style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.5),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+                      color: const Color(0xFF011627).withValues(alpha: 0.6),
+                      fontSize: 16,
+                      height: 1.5,
                     ),
                   ),
 
-                  const SizedBox(height: 28),
-
-                  // ── Email (read-only) ──
-                  _buildReadOnlyField(
-                    label: 'Your Email',
-                    value: email,
-                    icon: Icons.email_outlined,
-                  ),
-                  const SizedBox(height: 20),
-
-                  // ── Bug Description ──
-                  _buildLabel('Bug Description *'),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _descriptionController,
-                    maxLines: 5,
-                    maxLength: 2000,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: _inputDecoration(
-                      hintText: 'Describe the bug in detail...',
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // ── Expected Behavior ──
-                  _buildLabel('Expected Behavior (optional)'),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _expectedBehaviorController,
-                    maxLines: 3,
-                    maxLength: 1000,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: _inputDecoration(
-                      hintText: 'What did you expect to happen?',
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // ── App Version (read-only) ──
-                  _buildReadOnlyField(
-                    label: 'App Version',
-                    value: appVersion,
-                    icon: Icons.info_outline_rounded,
-                  ),
                   const SizedBox(height: 32),
 
-                  // ── Submit Button ──
-                  SizedBox(
-                    width: double.infinity,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF6366F1), Color(0xFF8C52FF)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
+                  // ── Form Card ──
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(
+                            0xFF003F91,
+                          ).withValues(alpha: 0.08),
+                          blurRadius: 24,
+                          offset: const Offset(0, 4),
                         ),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: FilledButton(
-                        onPressed: _isSubmitting ? null : _submitBugReport,
-                        style: FilledButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          disabledBackgroundColor: Colors.white.withValues(
-                            alpha: 0.06,
-                          ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // ── Email (read-only) ──
+                        _buildReadOnlyField(
+                          label: 'Your Email',
+                          value: email,
+                          icon: Icons.email_outlined,
                         ),
-                        child: _isSubmitting
-                            ? const SizedBox(
-                                height: 22,
-                                width: 22,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.5,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.white,
-                                  ),
+                        const SizedBox(height: 20),
+
+                        // ── Bug Description ──
+                        _buildTextField(
+                          controller: _descriptionController,
+                          label: 'Bug Description *',
+                          hint: 'Describe the bug in detail...',
+                          icon: Icons.bug_report_outlined,
+                          maxLines: 5,
+                          maxLength: 2000,
+                        ),
+                        const SizedBox(height: 20),
+
+                        // ── Expected Behavior ──
+                        _buildTextField(
+                          controller: _expectedBehaviorController,
+                          label: 'Expected Behavior (optional)',
+                          hint: 'What did you expect to happen?',
+                          icon: Icons.lightbulb_outline,
+                          maxLines: 3,
+                          maxLength: 1000,
+                        ),
+                        const SizedBox(height: 20),
+
+                        // ── App Version (read-only) ──
+                        _buildReadOnlyField(
+                          label: 'App Version',
+                          value: appVersion,
+                          icon: Icons.info_outline_rounded,
+                        ),
+                        const SizedBox(height: 28),
+
+                        // ── Submit Button ──
+                        SizedBox(
+                          width: double.infinity,
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(14),
+                              color: const Color(0xFF003F91),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(
+                                    0xFF003F91,
+                                  ).withValues(alpha: 0.3),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
                                 ),
-                              )
-                            : const Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.bug_report_rounded, size: 20),
-                                  SizedBox(width: 10),
-                                  Text(
-                                    'Submit Bug Report',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
-                                ],
+                              ],
+                            ),
+                            child: FilledButton(
+                              onPressed: _isSubmitting
+                                  ? null
+                                  : _submitBugReport,
+                              style: FilledButton.styleFrom(
+                                backgroundColor: Colors.transparent,
+                                foregroundColor: Colors.white,
+                                disabledBackgroundColor: Colors.transparent,
+                                shadowColor: Colors.transparent,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
                               ),
-                      ),
+                              child: _isSubmitting
+                                  ? const SizedBox(
+                                      height: 22,
+                                      width: 22,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              Colors.white,
+                                            ),
+                                      ),
+                                    )
+                                  : const Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.bug_report_rounded,
+                                          size: 20,
+                                        ),
+                                        SizedBox(width: 10),
+                                        Text(
+                                          'Submit Bug Report',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -265,23 +307,20 @@ class _BugReportScreenState extends State<BugReportScreen> {
   // ──────────────────────────────────────────────
 
   Widget _buildHeader() {
-    return Row(
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.06),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-          ),
-          child: IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.arrow_back_rounded),
-            color: Colors.white,
-            padding: const EdgeInsets.all(10),
-            constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-          ),
+    return IconButton(
+      icon: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: const Color(0xFF003F91).withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(12),
         ),
-      ],
+        child: const Icon(
+          Icons.arrow_back_rounded,
+          color: Color(0xFF011627),
+          size: 22,
+        ),
+      ),
+      onPressed: () => Navigator.pop(context),
     );
   }
 
@@ -297,25 +336,38 @@ class _BugReportScreenState extends State<BugReportScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildLabel(label),
+        Text(
+          label,
+          style: const TextStyle(
+            color: Color(0xFF011627),
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
         const SizedBox(height: 8),
         Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.04),
+            color: const Color(0xFFECF8F8),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+            border: Border.all(color: const Color(0xFFB0C4DE)),
           ),
           child: Row(
             children: [
-              Icon(icon, size: 18, color: Colors.white.withValues(alpha: 0.4)),
+              Icon(
+                icon,
+                size: 18,
+                color: const Color(0xFF011627).withValues(alpha: 0.35),
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  value,
+                  value.isNotEmpty ? value : 'Not signed in',
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.7),
+                    color: value.isNotEmpty
+                        ? const Color(0xFF011627).withValues(alpha: 0.7)
+                        : const Color(0xFF011627).withValues(alpha: 0.35),
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
@@ -329,43 +381,74 @@ class _BugReportScreenState extends State<BugReportScreen> {
   }
 
   // ──────────────────────────────────────────────
-  //  Label widget
+  //  Text field with label, icon (matching auth_screen)
   // ──────────────────────────────────────────────
 
-  Widget _buildLabel(String text) {
-    return Text(
-      text,
-      style: const TextStyle(
-        color: Colors.white,
-        fontSize: 14,
-        fontWeight: FontWeight.w700,
-      ),
-    );
-  }
-
-  // ──────────────────────────────────────────────
-  //  Input decoration for text fields
-  // ──────────────────────────────────────────────
-
-  InputDecoration _inputDecoration({required String hintText}) {
-    return InputDecoration(
-      hintText: hintText,
-      hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.2)),
-      filled: true,
-      fillColor: Colors.white.withValues(alpha: 0.06),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: Color(0xFF6366F1), width: 2),
-      ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required IconData icon,
+    int maxLines = 1,
+    int maxLength = 1000,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: Color(0xFF011627),
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          maxLines: maxLines,
+          maxLength: maxLength,
+          style: const TextStyle(color: Color(0xFF011627), fontSize: 15),
+          cursorColor: const Color(0xFF003F91),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: TextStyle(
+              color: const Color(0xFF011627).withValues(alpha: 0.3),
+              fontSize: 14,
+            ),
+            prefixIcon: Icon(
+              icon,
+              color: const Color(0xFF011627).withValues(alpha: 0.35),
+              size: 20,
+            ),
+            filled: true,
+            fillColor: const Color(0xFFECF8F8),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: Color(0xFFB0C4DE)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: Color(0xFFB0C4DE)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(
+                color: Color(0xFF003F91),
+                width: 1.5,
+              ),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
+            counterStyle: TextStyle(
+              color: const Color(0xFF011627).withValues(alpha: 0.35),
+              fontSize: 12,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

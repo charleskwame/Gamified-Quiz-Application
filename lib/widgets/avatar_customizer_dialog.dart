@@ -82,7 +82,7 @@ class _AvatarCustomizerDialogState extends State<AvatarCustomizerDialog>
             style: const TextStyle(
               fontWeight: FontWeight.w700,
               fontSize: 13,
-              color: Colors.white,
+              color: Color(0xFF011627),
             ),
           ),
           const SizedBox(height: 4),
@@ -93,12 +93,12 @@ class _AvatarCustomizerDialogState extends State<AvatarCustomizerDialog>
                 value: opt.value,
                 child: Text(
                   opt.label,
-                  style: const TextStyle(color: Colors.white),
+                  style: const TextStyle(color: Color(0xFF011627)),
                 ),
               );
             }).toList(),
             onChanged: (val) => _update(category.key, val),
-            dropdownColor: const Color(0xFF1E293B),
+            dropdownColor: const Color(0xFFECF8F8),
             decoration: InputDecoration(
               isDense: true,
               contentPadding: const EdgeInsets.symmetric(
@@ -106,23 +106,19 @@ class _AvatarCustomizerDialogState extends State<AvatarCustomizerDialog>
                 vertical: 10,
               ),
               filled: true,
-              fillColor: Colors.white.withValues(alpha: 0.06),
+              fillColor: const Color(0xFFECF8F8),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: Colors.white.withValues(alpha: 0.1),
-                ),
+                borderSide: const BorderSide(color: Color(0xFFB0C4DE)),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: Colors.white.withValues(alpha: 0.1),
-                ),
+                borderSide: const BorderSide(color: Color(0xFFB0C4DE)),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: const BorderSide(
-                  color: Color(0xFF6366F1),
+                  color: Color(0xFF003F91),
                   width: 1.5,
                 ),
               ),
@@ -146,18 +142,13 @@ class _AvatarCustomizerDialogState extends State<AvatarCustomizerDialog>
             width: double.maxFinite,
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF6366F1).withValues(alpha: 0.04),
-                  blurRadius: 4,
-                  spreadRadius: 0,
+                  color: const Color(0xFF003F91).withValues(alpha: 0.08),
+                  blurRadius: 24,
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
@@ -173,21 +164,18 @@ class _AvatarCustomizerDialogState extends State<AvatarCustomizerDialog>
                       style: TextStyle(
                         fontWeight: FontWeight.w900,
                         fontSize: 20,
-                        color: Colors.white,
+                        color: Color(0xFF011627),
                       ),
                     ),
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.06),
+                        color: const Color(0xFF003F91).withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.08),
-                        ),
                       ),
                       child: IconButton(
                         icon: const Icon(
                           Icons.close_rounded,
-                          color: Colors.white60,
+                          color: Color(0xFF011627),
                           size: 20,
                         ),
                         padding: const EdgeInsets.all(8),
@@ -216,29 +204,19 @@ class _AvatarCustomizerDialogState extends State<AvatarCustomizerDialog>
                             shape: BoxShape.circle,
                             gradient: const SweepGradient(
                               colors: [
-                                Color(0xFF6366F1),
-                                Color(0xFF8C52FF),
-                                Color(0xFFFFD700),
-                                Color(0xFF4ADE80),
-                                Color(0xFF6366F1),
+                                Color(0xFF003F91),
+                                Color(0xFF0066CC),
+                                Color(0xFF3399FF),
+                                Color(0xFF003F91),
                               ],
-                              stops: [0.0, 0.25, 0.5, 0.75, 1.0],
+                              stops: [0.0, 0.33, 0.66, 1.0],
                             ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(
-                                  0xFF6366F1,
-                                ).withValues(alpha: 0.06),
-                                blurRadius: 3,
-                                spreadRadius: 0,
-                              ),
-                            ],
                           ),
                           child: Padding(
                             padding: const EdgeInsets.all(3),
                             child: Container(
                               decoration: const BoxDecoration(
-                                color: Color(0xFF0A0E21),
+                                color: Colors.white,
                                 shape: BoxShape.circle,
                               ),
                               child: ClipOval(
@@ -249,7 +227,7 @@ class _AvatarCustomizerDialogState extends State<AvatarCustomizerDialog>
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2.5,
                                       valueColor: AlwaysStoppedAnimation<Color>(
-                                        Color(0xFF6366F1),
+                                        Color(0xFF003F91),
                                       ),
                                     ),
                                   ),
@@ -268,7 +246,7 @@ class _AvatarCustomizerDialogState extends State<AvatarCustomizerDialog>
                             icon: const Icon(Icons.casino_rounded, size: 16),
                             label: const Text('Randomize'),
                             style: FilledButton.styleFrom(
-                              backgroundColor: const Color(0xFF6366F1),
+                              backgroundColor: const Color(0xFF003F91),
                               foregroundColor: Colors.white,
                               elevation: 0,
                               shape: RoundedRectangleBorder(
@@ -299,7 +277,9 @@ class _AvatarCustomizerDialogState extends State<AvatarCustomizerDialog>
                           ? null
                           : () => Navigator.pop(context),
                       style: TextButton.styleFrom(
-                        foregroundColor: Colors.white60,
+                        foregroundColor: const Color(
+                          0xFF011627,
+                        ).withValues(alpha: 0.6),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 12,
@@ -338,7 +318,7 @@ class _AvatarCustomizerDialogState extends State<AvatarCustomizerDialog>
                                 }
                               },
                         style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFF6366F1),
+                          backgroundColor: const Color(0xFF003F91),
                           foregroundColor: Colors.white,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
