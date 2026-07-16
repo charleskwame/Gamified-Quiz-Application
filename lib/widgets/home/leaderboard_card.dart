@@ -20,17 +20,18 @@ class LeaderboardCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isTopStat =
+        titleLabel == 'HIGHEST SCORE' || titleLabel == 'TOP STREAK';
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: const Color(0xFF003F91).withValues(alpha: 0.3),
         ),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
       ),
       child: Row(
         children: [
@@ -39,13 +40,12 @@ class LeaderboardCard extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.1),
+              color: const Color(0xFF003F91).withValues(alpha: 0.1),
               shape: BoxShape.circle,
               border: Border.all(
-                color:
-                    titleLabel == 'HIGHEST SCORE' || titleLabel == 'TOP STREAK'
+                color: isTopStat
                     ? const Color(0xFFFFD700).withValues(alpha: 0.5)
-                    : Colors.white.withValues(alpha: 0.1),
+                    : const Color(0xFF003F91).withValues(alpha: 0.2),
                 width: 2,
               ),
             ),
@@ -56,14 +56,14 @@ class LeaderboardCard extends StatelessWidget {
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) => const Icon(
                         Icons.person_rounded,
-                        color: Colors.white60,
+                        color: Color(0xFF003F91),
                         size: 28,
                       ),
                     ),
                   )
                 : const Icon(
                     Icons.person_rounded,
-                    color: Colors.white60,
+                    color: Color(0xFF003F91),
                     size: 28,
                   ),
           ),
@@ -77,18 +77,15 @@ class LeaderboardCard extends StatelessWidget {
                   children: [
                     Text(
                       titleLabel,
-                      style: const TextStyle(
-                        color: Colors.white60,
+                      style: TextStyle(
+                        color: Colors.grey.shade500,
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 1.2,
                       ),
                     ),
-                    if (titleLabel == 'HIGHEST SCORE' ||
-                        titleLabel == 'TOP STREAK')
-                      const SizedBox(width: 6),
-                    if (titleLabel == 'HIGHEST SCORE' ||
-                        titleLabel == 'TOP STREAK')
+                    if (isTopStat) const SizedBox(width: 6),
+                    if (isTopStat)
                       const Icon(
                         Icons.emoji_events_rounded,
                         color: Color(0xFFFFD700),
@@ -100,7 +97,7 @@ class LeaderboardCard extends StatelessWidget {
                 Text(
                   userName,
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: Color(0xFF121826),
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
                   ),
@@ -121,9 +118,9 @@ class LeaderboardCard extends StatelessWidget {
           // Icon
           Icon(
             icon,
-            color: titleLabel == 'HIGHEST SCORE' || titleLabel == 'TOP STREAK'
+            color: isTopStat
                 ? const Color(0xFFFFD700)
-                : Colors.white38,
+                : const Color(0xFF003F91),
             size: 28,
           ),
         ],

@@ -152,14 +152,13 @@ class PlayerHeader extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF6366F1), Color(0xFF8C52FF)],
-          ),
+          color: const Color(0xFF003F91),
           borderRadius: BorderRadius.circular(8),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF6366F1).withValues(alpha: 0.08),
-              blurRadius: 2,
+              color: const Color(0xFF003F91).withValues(alpha: 0.3),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
@@ -169,7 +168,7 @@ class PlayerHeader extends StatelessWidget {
             Text(
               levelName,
               style: const TextStyle(
-                color: Color(0xFF003F91),
+                color: Colors.white,
                 fontSize: 11,
                 fontWeight: FontWeight.w900,
               ),

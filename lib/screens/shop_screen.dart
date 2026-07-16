@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/database_service.dart';
 import '../models/shop_item.dart';
+import '../widgets/home/particle_background.dart';
 
 /// Shop screen displaying purchasable power-up items.
 /// Shows live coin balance and item counts from Firestore.
@@ -102,13 +103,15 @@ class _ShopScreenState extends State<ShopScreen> {
 
     // If not logged in, show a simple message
     if (uid == null) {
-      return Container(
-        color: const Color(0xFFF4F6FB),
-        child: SafeArea(
-          child: Center(
-            child: Text(
-              'Sign in to access the shop',
-              style: TextStyle(color: Colors.grey.shade500, fontSize: 16),
+      return Scaffold(
+        backgroundColor: Colors.transparent,
+        body: ParticleBackground(
+          child: SafeArea(
+            child: Center(
+              child: Text(
+                'Sign in to access the shop',
+                style: TextStyle(color: Colors.grey.shade500, fontSize: 16),
+              ),
             ),
           ),
         ),
@@ -116,146 +119,151 @@ class _ShopScreenState extends State<ShopScreen> {
     }
 
     // Stream user data for live balances
-    return Container(
-      color: const Color(0xFFF4F6FB),
-      child: StreamBuilder<DocumentSnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('users')
-            .doc(uid)
-            .snapshots(),
-        builder: (context, snapshot) {
-          final data = snapshot.data?.data() as Map<String, dynamic>?;
-          final coins = data?['quizCoins'] as int? ?? 0;
-          final shieldCount = data?['shieldCount'] as int? ?? 0;
-          final skipCount = data?['skipCount'] as int? ?? 0;
-          final pauseCount = data?['pauseTimerCount'] as int? ?? 0;
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: ParticleBackground(
+        child: StreamBuilder<DocumentSnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('users')
+              .doc(uid)
+              .snapshots(),
+          builder: (context, snapshot) {
+            final data = snapshot.data?.data() as Map<String, dynamic>?;
+            final coins = data?['quizCoins'] as int? ?? 0;
+            final shieldCount = data?['shieldCount'] as int? ?? 0;
+            final skipCount = data?['skipCount'] as int? ?? 0;
+            final pauseCount = data?['pauseTimerCount'] as int? ?? 0;
 
-          // Map item IDs to their current count
-          int getCount(String itemId) {
-            switch (itemId) {
-              case 'shield':
-                return shieldCount;
-              case 'skip_question':
-                return skipCount;
-              case 'no_deductions':
-                return pauseCount;
-              default:
-                return 0;
+            // Map item IDs to their current count
+            int getCount(String itemId) {
+              switch (itemId) {
+                case 'shield':
+                  return shieldCount;
+                case 'skip_question':
+                  return skipCount;
+                case 'no_deductions':
+                  return pauseCount;
+                default:
+                  return 0;
+              }
             }
-          }
 
-          return SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 100),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // ─── Header ─────────────────────────────────
-                  const Text(
-                    '🏪 Shop',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w900,
-                      color: Color(0xFF003F91),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Power-ups and items to enhance your quiz experience',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.grey.shade500,
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-
-                  // ─── Coin Balance (live from Firestore) ─────
-                  _buildCoinBalance(coins),
-                  const SizedBox(height: 28),
-
-                  // ─── Shop Items ─────────────────────────────
-                  ...List.generate(ShopItem.placeholderItems.length, (index) {
-                    final item = ShopItem.placeholderItems[index];
-                    final count = getCount(item.id);
-                    return _buildAnimatedSection(
-                      index: index,
-                      child: _ShopItemCard(
-                        item: item,
-                        ownedCount: count,
-                        canAfford: coins >= item.price,
-                        isPurchasing: _purchasing.contains(item.id),
-                        onBuy: () => _buyItem(item, uid),
-                      ),
-                    );
-                  }),
-
-                  const SizedBox(height: 32),
-
-                  // ─── Footer note ────────────────────────────
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: const Color(0xFF003F91).withValues(alpha: 0.3),
+            return SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 100),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ─── Header ─────────────────────────────────
+                    const Text(
+                      '🏪 Shop',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF003F91),
                       ),
                     ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.info_outline_rounded,
-                          color: const Color(0xFF003F91),
-                          size: 20,
+                    const SizedBox(height: 6),
+                    Text(
+                      'Power-ups and items to enhance your quiz experience',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey.shade500,
+                      ),
+                    ),
+                    const SizedBox(height: 28),
+
+                    // ─── Coin Balance (live from Firestore) ─────
+                    _buildCoinBalance(coins),
+                    const SizedBox(height: 28),
+
+                    // ─── Shop Items ─────────────────────────────
+                    ...List.generate(ShopItem.placeholderItems.length, (index) {
+                      final item = ShopItem.placeholderItems[index];
+                      final count = getCount(item.id);
+                      return _buildAnimatedSection(
+                        index: index,
+                        child: _ShopItemCard(
+                          item: item,
+                          ownedCount: count,
+                          canAfford: coins >= item.price,
+                          isPurchasing: _purchasing.contains(item.id),
+                          onBuy: () => _buyItem(item, uid),
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'You can hold a maximum of 3 of each item at a time.',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.grey.shade600,
-                              height: 1.4,
+                      );
+                    }),
+
+                    const SizedBox(height: 32),
+
+                    // ─── Footer note ────────────────────────────
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: const Color(0xFF003F91).withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.info_outline_rounded,
+                            color: const Color(0xFF003F91),
+                            size: 20,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'You can hold a maximum of 3 of each item at a time.',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey.shade600,
+                                height: 1.4,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // ─── Debug: Seed coins for all users (debug mode only) ──
+                    if (kDebugMode) ...[
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: () => _seedAllCoins(context),
+                          icon: const Icon(
+                            Icons.auto_fix_high_rounded,
+                            size: 16,
+                          ),
+                          label: const Text(
+                            '🪙 Give 100 coins to all existing users',
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFFFFD700),
+                            side: const BorderSide(
+                              color: Color(0xFFFFD700),
+                              width: 1,
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
                             ),
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-
-                  // ─── Debug: Seed coins for all users (debug mode only) ──
-                  if (kDebugMode) ...[
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: () => _seedAllCoins(context),
-                        icon: const Icon(Icons.auto_fix_high_rounded, size: 16),
-                        label: const Text(
-                          '🪙 Give 100 coins to all existing users',
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFFFFD700),
-                          side: const BorderSide(
-                            color: Color(0xFFFFD700),
-                            width: 1,
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
                       ),
-                    ),
+                    ],
                   ],
-                ],
+                ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

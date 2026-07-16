@@ -4,6 +4,7 @@ import '../models/badge.dart';
 import '../models/level_system.dart';
 import '../models/user_rank.dart';
 import '../services/database_service.dart';
+import '../widgets/home/particle_background.dart';
 
 class RankingsPage extends StatefulWidget {
   const RankingsPage({super.key});
@@ -39,78 +40,82 @@ class _RankingsPageState extends State<RankingsPage> {
       'Computer Networking',
     ];
 
-    return Container(
-      color: const Color(0xFFF4F6FB),
-      child: SafeArea(
-        child: StreamBuilder<List<UserRank>>(
-          stream: dbService.getRankingsStream(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
-                child: CircularProgressIndicator(color: Color(0xFF003F91)),
-              );
-            }
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: ParticleBackground(
+        child: SafeArea(
+          child: StreamBuilder<List<UserRank>>(
+            stream: dbService.getRankingsStream(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                  child: CircularProgressIndicator(color: Color(0xFF003F91)),
+                );
+              }
 
-            if (snapshot.hasError) {
-              return Center(
-                child: Text(
-                  'Error loading rankings: ${snapshot.error}',
-                  style: const TextStyle(color: Color(0xFF9E9E9E)),
+              if (snapshot.hasError) {
+                return Center(
+                  child: Text(
+                    'Error loading rankings: ${snapshot.error}',
+                    style: const TextStyle(color: Color(0xFF9E9E9E)),
+                  ),
+                );
+              }
+
+              final rankings = snapshot.data ?? [];
+
+              final sortedRankings = List<UserRank>.from(rankings);
+              sortedRankings.sort((a, b) {
+                final ptsA = _getUserPoints(a);
+                final ptsB = _getUserPoints(b);
+                return _descending
+                    ? ptsB.compareTo(ptsA)
+                    : ptsA.compareTo(ptsB);
+              });
+
+              return SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Section 1: Header
+                    _buildAnimatedSection(index: 0, child: _buildHeader()),
+
+                    const SizedBox(height: 20),
+
+                    // Section 2: Category filters
+                    _buildAnimatedSection(
+                      index: 1,
+                      child: _buildCategoryFilters(categories),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Section 3: Rankings list or empty state
+                    if (sortedRankings.isEmpty)
+                      _buildAnimatedSection(index: 2, child: _buildEmptyState())
+                    else
+                      ...List.generate(sortedRankings.length, (index) {
+                        return Padding(
+                          padding: EdgeInsets.only(
+                            bottom: index < sortedRankings.length - 1 ? 12 : 0,
+                          ),
+                          child: _buildAnimatedSection(
+                            index: index + 2,
+                            child: _buildRankingCard(
+                              rank: sortedRankings[index],
+                              index: index,
+                            ),
+                          ),
+                        );
+                      }),
+
+                    const SizedBox(height: 16),
+                  ],
                 ),
               );
-            }
-
-            final rankings = snapshot.data ?? [];
-
-            final sortedRankings = List<UserRank>.from(rankings);
-            sortedRankings.sort((a, b) {
-              final ptsA = _getUserPoints(a);
-              final ptsB = _getUserPoints(b);
-              return _descending ? ptsB.compareTo(ptsA) : ptsA.compareTo(ptsB);
-            });
-
-            return SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Section 1: Header
-                  _buildAnimatedSection(index: 0, child: _buildHeader()),
-
-                  const SizedBox(height: 20),
-
-                  // Section 2: Category filters
-                  _buildAnimatedSection(
-                    index: 1,
-                    child: _buildCategoryFilters(categories),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Section 3: Rankings list or empty state
-                  if (sortedRankings.isEmpty)
-                    _buildAnimatedSection(index: 2, child: _buildEmptyState())
-                  else
-                    ...List.generate(sortedRankings.length, (index) {
-                      return Padding(
-                        padding: EdgeInsets.only(
-                          bottom: index < sortedRankings.length - 1 ? 12 : 0,
-                        ),
-                        child: _buildAnimatedSection(
-                          index: index + 2,
-                          child: _buildRankingCard(
-                            rank: sortedRankings[index],
-                            index: index,
-                          ),
-                        ),
-                      );
-                    }),
-
-                  const SizedBox(height: 16),
-                ],
-              ),
-            );
-          },
+            },
+          ),
         ),
       ),
     );
@@ -449,11 +454,10 @@ class _RankingsPageState extends State<RankingsPage> {
   /// Builds a small level badge for ranking cards
   Widget _buildLevelBadge(int score) {
     final level = LevelSystem.getLevelByScore(score);
-    final colors = LevelSystem.getLevelColors(level.level);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
       decoration: BoxDecoration(
-        gradient: LinearGradient(colors: colors),
+        color: const Color(0xFF003F91),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(

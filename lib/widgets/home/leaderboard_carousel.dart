@@ -138,21 +138,28 @@ class _LeaderboardCarouselState extends State<LeaderboardCarousel> {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: const Color(0xFF003F91).withValues(alpha: 0.3),
           ),
-          borderRadius: BorderRadius.circular(24),
         ),
-        child: const Row(
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.emoji_events_rounded, color: Colors.white38, size: 28),
-            SizedBox(width: 12),
+            const Icon(
+              Icons.emoji_events_rounded,
+              color: Color(0xFFFFD700),
+              size: 28,
+            ),
+            const SizedBox(width: 12),
             Text(
               'No rankings yet. Start playing!',
-              style: TextStyle(color: Colors.white60, fontSize: 14),
+              style: TextStyle(
+                color: Colors.grey.shade500,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ],
         ),
@@ -204,8 +211,8 @@ class _LeaderboardCarouselState extends State<LeaderboardCarousel> {
                   height: 8,
                   decoration: BoxDecoration(
                     color: isActive
-                        ? const Color(0xFF1E293B)
-                        : const Color(0xFF1E293B).withValues(alpha: 0.3),
+                        ? const Color(0xFF003F91)
+                        : const Color(0xFF003F91).withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
@@ -237,17 +236,17 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: const Color(0xFFF0F8F8),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF060B1A),
-              Color(0xFF0A0E21),
-              Color(0xFF0F1832),
-              Color(0xFF141852),
+              Color(0xFFF0F8F8),
+              Color(0xFFE8F4F4),
+              Color(0xFFE0F0F0),
+              Color(0xFFD8ECEC),
             ],
             stops: [0.0, 0.3, 0.7, 1.0],
           ),
@@ -255,8 +254,10 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
         child: SafeArea(
           child: Stack(
             children: [
-              // Particle layer
-              Positioned.fill(child: _ParticleOverlay()),
+              // Subtle light decorative pattern
+              Positioned.fill(
+                child: CustomPaint(painter: _LightPatternPainter()),
+              ),
 
               // Content
               Positioned.fill(
@@ -286,39 +287,23 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                   height: 100,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
-                                    gradient: const SweepGradient(
-                                      colors: [
-                                        Color(0xFF6366F1),
-                                        Color(0xFF8C52FF),
-                                        Color(0xFFFFD700),
-                                        Color(0xFF4ADE80),
-                                        Color(0xFF6366F1),
-                                      ],
-                                      stops: [0.0, 0.25, 0.5, 0.75, 1.0],
-                                    ),
+                                    color: const Color(
+                                      0xFF003F91,
+                                    ).withValues(alpha: 0.08),
                                     boxShadow: [
                                       BoxShadow(
                                         color: const Color(
-                                          0xFF6366F1,
-                                        ).withValues(alpha: 0.2),
+                                          0xFF003F91,
+                                        ).withValues(alpha: 0.15),
                                         blurRadius: 16,
                                         spreadRadius: 2,
                                       ),
                                     ],
                                   ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(4),
-                                    child: Container(
-                                      decoration: const BoxDecoration(
-                                        color: Color(0xFF0A0E21),
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: const Icon(
-                                        Icons.mark_email_read_rounded,
-                                        size: 48,
-                                        color: Color(0xFF6366F1),
-                                      ),
-                                    ),
+                                  child: const Icon(
+                                    Icons.mark_email_read_rounded,
+                                    size: 48,
+                                    color: Color(0xFF003F91),
                                   ),
                                 ),
                               ),
@@ -332,7 +317,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                               child: const Text(
                                 'Verify Your Email',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: Color(0xFF011627),
                                   fontSize: 28,
                                   fontWeight: FontWeight.w900,
                                   height: 1.1,
@@ -348,12 +333,10 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                               opacity: _fadeSlide,
                               child: Column(
                                 children: [
-                                  Text(
+                                  const Text(
                                     'We\'ve sent a verification email to',
                                     style: TextStyle(
-                                      color: Colors.white.withValues(
-                                        alpha: 0.5,
-                                      ),
+                                      color: Color(0xFF011627),
                                       fontSize: 15,
                                       height: 1.5,
                                     ),
@@ -367,14 +350,14 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                     ),
                                     decoration: BoxDecoration(
                                       color: const Color(
-                                        0xFF6366F1,
-                                      ).withValues(alpha: 0.12),
+                                        0xFF003F91,
+                                      ).withValues(alpha: 0.08),
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                     child: Text(
                                       widget.email,
                                       style: const TextStyle(
-                                        color: Color(0xFF6366F1),
+                                        color: Color(0xFF003F91),
                                         fontSize: 15,
                                         fontWeight: FontWeight.w700,
                                       ),
@@ -393,11 +376,17 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                               child: Container(
                                 padding: const EdgeInsets.all(20),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.06),
+                                  color: Colors.white,
                                   borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: Colors.white.withValues(alpha: 0.08),
-                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(
+                                        0xFF003F91,
+                                      ).withValues(alpha: 0.08),
+                                      blurRadius: 24,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
                                 ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -437,12 +426,12 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                   decoration: BoxDecoration(
                                     color: const Color(
                                       0xFFEF4444,
-                                    ).withValues(alpha: 0.12),
+                                    ).withValues(alpha: 0.08),
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
                                       color: const Color(
                                         0xFFEF4444,
-                                      ).withValues(alpha: 0.25),
+                                      ).withValues(alpha: 0.2),
                                     ),
                                   ),
                                   child: Row(
@@ -479,12 +468,12 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                   decoration: BoxDecoration(
                                     color: const Color(
                                       0xFF4ADE80,
-                                    ).withValues(alpha: 0.12),
+                                    ).withValues(alpha: 0.08),
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
                                       color: const Color(
                                         0xFF4ADE80,
-                                      ).withValues(alpha: 0.25),
+                                      ).withValues(alpha: 0.2),
                                     ),
                                   ),
                                   child: Row(
@@ -518,16 +507,11 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                 child: DecoratedBox(
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(14),
-                                    gradient: const LinearGradient(
-                                      colors: [
-                                        Color(0xFF6366F1),
-                                        Color(0xFF8C52FF),
-                                      ],
-                                    ),
+                                    color: const Color(0xFF003F91),
                                     boxShadow: [
                                       BoxShadow(
                                         color: const Color(
-                                          0xFF6366F1,
+                                          0xFF003F91,
                                         ).withValues(alpha: 0.3),
                                         blurRadius: 12,
                                         offset: const Offset(0, 4),
@@ -605,7 +589,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                             strokeWidth: 2,
                                             valueColor:
                                                 AlwaysStoppedAnimation<Color>(
-                                                  Color(0xFF6366F1),
+                                                  Color(0xFF003F91),
                                                 ),
                                           ),
                                         )
@@ -623,15 +607,14 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                     ),
                                   ),
                                   style: OutlinedButton.styleFrom(
-                                    foregroundColor: const Color(0xFF6366F1),
-                                    side: BorderSide(
-                                      color: Colors.white.withValues(
-                                        alpha: 0.15,
-                                      ),
+                                    foregroundColor: const Color(0xFF003F91),
+                                    side: const BorderSide(
+                                      color: Color(0xFF003F91),
                                       width: 1.5,
                                     ),
-                                    disabledForegroundColor: Colors.white
-                                        .withValues(alpha: 0.2),
+                                    disabledForegroundColor: const Color(
+                                      0xFF003F91,
+                                    ).withValues(alpha: 0.3),
                                     padding: const EdgeInsets.symmetric(
                                       vertical: 16,
                                     ),
@@ -650,8 +633,8 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                               opacity: _fadeSlide,
                               child: Text(
                                 'Didn\'t receive the email? Check your spam folder or make sure you entered the correct email address.',
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.35),
+                                style: const TextStyle(
+                                  color: Color(0xFF011627),
                                   fontSize: 13,
                                   height: 1.5,
                                 ),
@@ -668,9 +651,9 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                 children: [
                                   Expanded(
                                     child: Divider(
-                                      color: Colors.white.withValues(
-                                        alpha: 0.08,
-                                      ),
+                                      color: const Color(
+                                        0xFF011627,
+                                      ).withValues(alpha: 0.12),
                                     ),
                                   ),
                                   Padding(
@@ -680,18 +663,18 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                     child: Text(
                                       'or',
                                       style: TextStyle(
-                                        color: Colors.white.withValues(
-                                          alpha: 0.3,
-                                        ),
+                                        color: const Color(
+                                          0xFF011627,
+                                        ).withValues(alpha: 0.3),
                                         fontSize: 13,
                                       ),
                                     ),
                                   ),
                                   Expanded(
                                     child: Divider(
-                                      color: Colors.white.withValues(
-                                        alpha: 0.08,
-                                      ),
+                                      color: const Color(
+                                        0xFF011627,
+                                      ).withValues(alpha: 0.12),
                                     ),
                                   ),
                                 ],
@@ -759,9 +742,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF6366F1), Color(0xFF8C52FF)],
-              ),
+              color: const Color(0xFF003F91),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, size: 22, color: Colors.white),
@@ -775,7 +756,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: Colors.white,
+                  color: Color(0xFF011627),
                   height: 1.4,
                 ),
               ),
@@ -787,106 +768,27 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
   }
 }
 
-// ── Particle Overlay ──
+// ── Light Pattern Overlay ──
 
-class _ParticleOverlay extends StatefulWidget {
-  @override
-  State<_ParticleOverlay> createState() => _ParticleOverlayState();
-}
-
-class _ParticleOverlayState extends State<_ParticleOverlay>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  final List<_Particle> _particles = [];
-  final math.Random _random = math.Random();
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 12),
-    )..repeat();
-
-    for (int i = 0; i < 20; i++) {
-      _particles.add(
-        _Particle(
-          x: _random.nextDouble(),
-          y: _random.nextDouble(),
-          size: 1.5 + _random.nextDouble() * 2.5,
-          opacity: 0.15 + _random.nextDouble() * 0.25,
-          speed: 0.3 + _random.nextDouble() * 0.7,
-        ),
-      );
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return CustomPaint(
-          painter: _ParticlePainter(
-            particles: _particles,
-            progress: _controller,
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _Particle {
-  final double x;
-  final double y;
-  final double size;
-  final double opacity;
-  final double speed;
-
-  const _Particle({
-    required this.x,
-    required this.y,
-    required this.size,
-    required this.opacity,
-    required this.speed,
-  });
-}
-
-class _ParticlePainter extends CustomPainter {
-  final List<_Particle> particles;
-  final Animation<double> progress;
-
-  _ParticlePainter({required this.particles, required this.progress});
-
+class _LightPatternPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()..style = PaintingStyle.fill;
 
-    for (int i = 0; i < particles.length; i++) {
-      final p = particles[i];
-      final t = progress.value * p.speed;
+    // Draw subtle decorative circles
+    paint.color = const Color(0xFF003F91).withValues(alpha: 0.03);
 
-      double y = (p.y - t * 0.08) % 1.0;
-      if (y < 0) y += 1.0;
-      final x = p.x + math.sin(t * 2.0 + i) * 0.005;
+    canvas.drawCircle(
+      Offset(size.width * 0.85, size.height * 0.15),
+      120,
+      paint,
+    );
 
-      double fade = 1.0;
-      if (y < 0.1) fade = y / 0.1;
-      if (y > 0.9) fade = (1.0 - y) / 0.1;
+    canvas.drawCircle(Offset(size.width * 0.1, size.height * 0.8), 80, paint);
 
-      final opacity = p.opacity * fade;
-      paint.color = Colors.white.withValues(alpha: opacity);
-      canvas.drawCircle(Offset(x * size.width, y * size.height), p.size, paint);
-    }
+    canvas.drawCircle(Offset(size.width * 0.5, size.height * 0.5), 200, paint);
   }
 
   @override
-  bool shouldRepaint(_ParticlePainter oldDelegate) => true;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

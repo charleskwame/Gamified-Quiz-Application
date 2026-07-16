@@ -31,14 +31,14 @@ class _ParticleBackgroundState extends State<ParticleBackground>
       duration: const Duration(seconds: 12),
     )..repeat();
 
-    // Generate 25 particles with random initial positions
-    for (int i = 0; i < 25; i++) {
+    // Generate 28 particles with random initial positions
+    for (int i = 0; i < 28; i++) {
       _particles.add(
         _Particle(
           x: _random.nextDouble(),
           y: _random.nextDouble(),
-          size: 1.5 + _random.nextDouble() * 2.5,
-          opacity: 0.15 + _random.nextDouble() * 0.35,
+          size: 2.0 + _random.nextDouble() * 3.0,
+          opacity: 0.4 + _random.nextDouble() * 0.4,
           speed: 0.3 + _random.nextDouble() * 0.7,
         ),
       );
@@ -125,7 +125,7 @@ class _ParticlePainter extends CustomPainter {
 
       final opacity = p.opacity * fade;
 
-      paint.color = Colors.white.withValues(alpha: opacity);
+      paint.color = const Color(0xFF011627).withValues(alpha: opacity);
       canvas.drawCircle(Offset(x * size.width, y * size.height), p.size, paint);
     }
   }

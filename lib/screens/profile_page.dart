@@ -112,7 +112,7 @@ class _ProfilePageState extends State<ProfilePage> {
         child: AnnotatedRegion<SystemUiOverlayStyle>(
           value: const SystemUiOverlayStyle(
             statusBarColor: Colors.transparent,
-            statusBarIconBrightness: Brightness.light,
+            statusBarIconBrightness: Brightness.dark,
           ),
           child: SafeArea(
             child: SingleChildScrollView(
@@ -234,6 +234,8 @@ class _ProfilePageState extends State<ProfilePage> {
                           icon: const Icon(Icons.login_rounded),
                           label: const Text('Log In / Sign Up'),
                           style: FilledButton.styleFrom(
+                            backgroundColor: const Color(0xFF003F91),
+                            foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(14),
@@ -431,16 +433,15 @@ class _ProfilePageState extends State<ProfilePage> {
                             vertical: 3,
                           ),
                           decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF6366F1), Color(0xFF8C52FF)],
-                            ),
+                            color: const Color(0xFF003F91),
                             borderRadius: BorderRadius.circular(8),
                             boxShadow: [
                               BoxShadow(
                                 color: const Color(
-                                  0xFF6366F1,
-                                ).withValues(alpha: 0.08),
-                                blurRadius: 2,
+                                  0xFF003F91,
+                                ).withValues(alpha: 0.3),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
                               ),
                             ],
                           ),
@@ -450,7 +451,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               Text(
                                 LevelSystem.getLevelName(totalScore),
                                 style: const TextStyle(
-                                  color: Color(0xFF003F91),
+                                  color: Colors.white,
                                   fontSize: 11,
                                   fontWeight: FontWeight.w900,
                                 ),

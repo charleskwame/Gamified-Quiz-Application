@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
-import 'dart:math' as math;
 import 'email_verification_screen.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -218,17 +217,17 @@ class _AuthScreenState extends State<AuthScreen>
     final showBackButton = canPop || widget.onBypass != null;
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: const Color(0xFFF0F8F8),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF060B1A),
-              Color(0xFF0A0E21),
-              Color(0xFF0F1832),
-              Color(0xFF141852),
+              Color(0xFFF0F8F8),
+              Color(0xFFE8F4F4),
+              Color(0xFFE0F0F0),
+              Color(0xFFD8ECEC),
             ],
             stops: [0.0, 0.3, 0.7, 1.0],
           ),
@@ -236,8 +235,10 @@ class _AuthScreenState extends State<AuthScreen>
         child: SafeArea(
           child: Stack(
             children: [
-              // Particle layer
-              Positioned.fill(child: _ParticleOverlay()),
+              // Subtle light decorative pattern
+              Positioned.fill(
+                child: CustomPaint(painter: _LightPatternPainter()),
+              ),
 
               // Content
               Positioned.fill(
@@ -260,14 +261,14 @@ class _AuthScreenState extends State<AuthScreen>
                                   icon: Container(
                                     padding: const EdgeInsets.all(8),
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withValues(
-                                        alpha: 0.08,
-                                      ),
+                                      color: const Color(
+                                        0xFF003F91,
+                                      ).withValues(alpha: 0.08),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: const Icon(
                                       Icons.arrow_back_rounded,
-                                      color: Colors.white,
+                                      color: Color(0xFF011627),
                                       size: 22,
                                     ),
                                   ),
@@ -295,7 +296,7 @@ class _AuthScreenState extends State<AuthScreen>
                                         ? 'Start Your Quest'
                                         : 'Welcome Back',
                                     style: const TextStyle(
-                                      color: Colors.white,
+                                      color: Color(0xFF011627),
                                       fontSize: 34,
                                       fontWeight: FontWeight.w900,
                                       height: 1.05,
@@ -306,10 +307,8 @@ class _AuthScreenState extends State<AuthScreen>
                                     _isSignUp
                                         ? 'Create an account to begin your learning journey'
                                         : 'Log in to continue your adventure',
-                                    style: TextStyle(
-                                      color: Colors.white.withValues(
-                                        alpha: 0.5,
-                                      ),
+                                    style: const TextStyle(
+                                      color: Color(0xFF011627),
                                       fontSize: 16,
                                       height: 1.5,
                                     ),
@@ -326,11 +325,17 @@ class _AuthScreenState extends State<AuthScreen>
                               child: Container(
                                 padding: const EdgeInsets.all(24),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.06),
+                                  color: Colors.white,
                                   borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: Colors.white.withValues(alpha: 0.08),
-                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(
+                                        0xFF003F91,
+                                      ).withValues(alpha: 0.08),
+                                      blurRadius: 24,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
                                 ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -340,9 +345,7 @@ class _AuthScreenState extends State<AuthScreen>
                                       child: Container(
                                         padding: const EdgeInsets.all(4),
                                         decoration: BoxDecoration(
-                                          color: Colors.white.withValues(
-                                            alpha: 0.06,
-                                          ),
+                                          color: const Color(0xFFECF8F8),
                                           borderRadius: BorderRadius.circular(
                                             14,
                                           ),
@@ -368,14 +371,14 @@ class _AuthScreenState extends State<AuthScreen>
                                         decoration: BoxDecoration(
                                           color: const Color(
                                             0xFFEF4444,
-                                          ).withValues(alpha: 0.12),
+                                          ).withValues(alpha: 0.08),
                                           borderRadius: BorderRadius.circular(
                                             12,
                                           ),
                                           border: Border.all(
                                             color: const Color(
                                               0xFFEF4444,
-                                            ).withValues(alpha: 0.25),
+                                            ).withValues(alpha: 0.2),
                                           ),
                                         ),
                                         child: Row(
@@ -453,16 +456,11 @@ class _AuthScreenState extends State<AuthScreen>
                                           borderRadius: BorderRadius.circular(
                                             14,
                                           ),
-                                          gradient: const LinearGradient(
-                                            colors: [
-                                              Color(0xFF6366F1),
-                                              Color(0xFF8C52FF),
-                                            ],
-                                          ),
+                                          color: const Color(0xFF003F91),
                                           boxShadow: [
                                             BoxShadow(
                                               color: const Color(
-                                                0xFF6366F1,
+                                                0xFF003F91,
                                               ).withValues(alpha: 0.3),
                                               blurRadius: 12,
                                               offset: const Offset(0, 4),
@@ -526,8 +524,8 @@ class _AuthScreenState extends State<AuthScreen>
                                   _isSignUp
                                       ? 'Already have an account?'
                                       : "Don't have an account?",
-                                  style: TextStyle(
-                                    color: Colors.white.withValues(alpha: 0.4),
+                                  style: const TextStyle(
+                                    color: Color(0xFF011627),
                                     fontSize: 14,
                                   ),
                                 ),
@@ -558,17 +556,13 @@ class _AuthScreenState extends State<AuthScreen>
         curve: Curves.easeOutCubic,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected
-              ? const Color(0xFF6366F1).withValues(alpha: 0.3)
-              : Colors.transparent,
+          color: isSelected ? const Color(0xFF003F91) : Colors.transparent,
           borderRadius: BorderRadius.circular(11),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: isSelected
-                ? Colors.white
-                : Colors.white.withValues(alpha: 0.4),
+            color: isSelected ? Colors.white : const Color(0xFF011627),
             fontSize: 14,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
           ),
@@ -591,42 +585,35 @@ class _AuthScreenState extends State<AuthScreen>
           controller: controller,
           obscureText: isPassword,
           keyboardType: keyboardType,
-          style: const TextStyle(color: Colors.white, fontSize: 15),
-          cursorColor: const Color(0xFF6366F1),
+          style: const TextStyle(color: Color(0xFF011627), fontSize: 15),
+          cursorColor: const Color(0xFF003F91),
           decoration: InputDecoration(
             labelText: label,
             hintText: hint,
-            labelStyle: TextStyle(
-              color: Colors.white.withValues(alpha: 0.5),
-              fontSize: 14,
-            ),
+            labelStyle: const TextStyle(color: Color(0xFF011627), fontSize: 14),
             hintStyle: TextStyle(
-              color: Colors.white.withValues(alpha: 0.2),
+              color: const Color(0xFF011627).withValues(alpha: 0.3),
               fontSize: 14,
             ),
             prefixIcon: Icon(
               icon,
-              color: Colors.white.withValues(alpha: 0.35),
+              color: const Color(0xFF011627).withValues(alpha: 0.35),
               size: 20,
             ),
             filled: true,
-            fillColor: Colors.white.withValues(alpha: 0.05),
+            fillColor: const Color(0xFFECF8F8),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(
-                color: Colors.white.withValues(alpha: 0.08),
-              ),
+              borderSide: const BorderSide(color: Color(0xFFB0C4DE)),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(
-                color: Colors.white.withValues(alpha: 0.08),
-              ),
+              borderSide: const BorderSide(color: Color(0xFFB0C4DE)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
               borderSide: const BorderSide(
-                color: Color(0xFF6366F1),
+                color: Color(0xFF003F91),
                 width: 1.5,
               ),
             ),
@@ -641,106 +628,27 @@ class _AuthScreenState extends State<AuthScreen>
   }
 }
 
-// ── Particle Overlay ──
+// ── Light Pattern Overlay ──
 
-class _ParticleOverlay extends StatefulWidget {
-  @override
-  State<_ParticleOverlay> createState() => _ParticleOverlayState();
-}
-
-class _ParticleOverlayState extends State<_ParticleOverlay>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  final List<_Particle> _particles = [];
-  final math.Random _random = math.Random();
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 12),
-    )..repeat();
-
-    for (int i = 0; i < 20; i++) {
-      _particles.add(
-        _Particle(
-          x: _random.nextDouble(),
-          y: _random.nextDouble(),
-          size: 1.5 + _random.nextDouble() * 2.5,
-          opacity: 0.15 + _random.nextDouble() * 0.25,
-          speed: 0.3 + _random.nextDouble() * 0.7,
-        ),
-      );
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return CustomPaint(
-          painter: _ParticlePainter(
-            particles: _particles,
-            progress: _controller,
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _Particle {
-  final double x;
-  final double y;
-  final double size;
-  final double opacity;
-  final double speed;
-
-  const _Particle({
-    required this.x,
-    required this.y,
-    required this.size,
-    required this.opacity,
-    required this.speed,
-  });
-}
-
-class _ParticlePainter extends CustomPainter {
-  final List<_Particle> particles;
-  final Animation<double> progress;
-
-  _ParticlePainter({required this.particles, required this.progress});
-
+class _LightPatternPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()..style = PaintingStyle.fill;
 
-    for (int i = 0; i < particles.length; i++) {
-      final p = particles[i];
-      final t = progress.value * p.speed;
+    // Draw subtle decorative circles
+    paint.color = const Color(0xFF003F91).withValues(alpha: 0.03);
 
-      double y = (p.y - t * 0.08) % 1.0;
-      if (y < 0) y += 1.0;
-      final x = p.x + math.sin(t * 2.0 + i) * 0.005;
+    canvas.drawCircle(
+      Offset(size.width * 0.85, size.height * 0.15),
+      120,
+      paint,
+    );
 
-      double fade = 1.0;
-      if (y < 0.1) fade = y / 0.1;
-      if (y > 0.9) fade = (1.0 - y) / 0.1;
+    canvas.drawCircle(Offset(size.width * 0.1, size.height * 0.8), 80, paint);
 
-      final opacity = p.opacity * fade;
-      paint.color = Colors.white.withValues(alpha: opacity);
-      canvas.drawCircle(Offset(x * size.width, y * size.height), p.size, paint);
-    }
+    canvas.drawCircle(Offset(size.width * 0.5, size.height * 0.5), 200, paint);
   }
 
   @override
-  bool shouldRepaint(_ParticlePainter oldDelegate) => true;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

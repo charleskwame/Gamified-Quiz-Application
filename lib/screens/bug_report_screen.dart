@@ -60,9 +60,9 @@ class _BugReportScreenState extends State<BugReportScreen> {
         'appVersion': appVersion,
       };
 
-      // Using http.post directly. It automatically follows 302 redirects by converting 
-      // POST to GET on redirect. Since Google Apps Script processes doPost on the 
-      // initial POST and returns the result at the redirect target via GET, this is 
+      // Using http.post directly. It automatically follows 302 redirects by converting
+      // POST to GET on redirect. Since Google Apps Script processes doPost on the
+      // initial POST and returns the result at the redirect target via GET, this is
       // the correct behavior to read the JSON response.
       final response = await http.post(
         Uri.parse(_bugReportUrl),
@@ -120,7 +120,7 @@ class _BugReportScreenState extends State<BugReportScreen> {
         child: AnnotatedRegion<SystemUiOverlayStyle>(
           value: const SystemUiOverlayStyle(
             statusBarColor: Colors.transparent,
-            statusBarIconBrightness: Brightness.light,
+            statusBarIconBrightness: Brightness.dark,
           ),
           child: SafeArea(
             child: SingleChildScrollView(
