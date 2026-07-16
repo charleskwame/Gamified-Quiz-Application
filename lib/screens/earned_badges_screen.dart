@@ -160,8 +160,6 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
   }
 
   void _showDownloadCardModal(BadgeDefinition badge) {
-    const String ownershipLabel = 'Ownership stats unavailable';
-
     showDialog(
       context: context,
       builder: (context) {
@@ -176,13 +174,15 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                            ownershipLabel,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
+                  RepaintBoundary(
+                    key: _repaintKey,
+                    child: Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E2246),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
                             color: badge.color.withValues(alpha: 0.06),
                             blurRadius: 3,
                             offset: const Offset(0, 2),
@@ -236,23 +236,14 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 16),
-                          loadingStats
-                              ? const SizedBox(
-                                  height: 14,
-                                  width: 14,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white70,
-                                  ),
-                                )
-                              : Text(
-                                  'Top ${percentage.toStringAsFixed(1)}% of players have this badge',
-                                  style: const TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
+                          const Text(
+                            'Ownership stats unavailable',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                           const SizedBox(height: 24),
                           Container(
                             padding: const EdgeInsets.symmetric(
