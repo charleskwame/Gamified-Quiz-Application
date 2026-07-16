@@ -61,11 +61,11 @@ class _QuizSkipIndicatorState extends State<QuizSkipIndicator> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: hasSkips
-                          ? const Color(0xFF4ADE80).withValues(alpha: 0.15)
+                          ? const Color(0xFFECF8F8)
                           : Colors.grey.withValues(alpha: 0.1),
                       border: Border.all(
                         color: hasSkips
-                            ? const Color(0xFF4ADE80).withValues(alpha: 0.4)
+                            ? const Color(0xFF003F91).withValues(alpha: 0.6)
                             : Colors.grey.withValues(alpha: 0.2),
                         width: 1.5,
                       ),

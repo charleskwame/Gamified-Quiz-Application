@@ -83,28 +83,28 @@ class _QuizGameOptionState extends State<QuizGameOption>
 
   @override
   Widget build(BuildContext context) {
-    Color borderColor = const Color(0xFF3D4375);
-    Color bgColor = const Color(0xFF2A2F5A);
-    Color labelBg = const Color(0xFF3D4375);
-    Color labelTextColor = Colors.white70;
+    Color borderColor = const Color(0xFFD1D5DB);
+    Color bgColor = const Color(0xFFFFFFFF);
+    Color labelBg = const Color(0xFFE5E7EB);
+    Color labelTextColor = const Color(0xFF6B7280);
     IconData? stateIcon;
     Color iconColor = Colors.white;
 
     if (widget.isAnswered) {
       if (_isCorrectOption) {
-        borderColor = const Color(0xFF4ADE80);
-        bgColor = const Color(0xFF1A3A2A);
-        labelBg = const Color(0xFF4ADE80);
+        borderColor = const Color(0xFF358600);
+        bgColor = const Color(0xFF358600);
+        labelBg = const Color(0xFF358600);
         labelTextColor = Colors.white;
         stateIcon = Icons.check_circle_rounded;
-        iconColor = const Color(0xFF4ADE80);
+        iconColor = Colors.white;
       } else if (_isSelected) {
-        borderColor = const Color(0xFFEF4444);
-        bgColor = const Color(0xFF3A1A1A);
-        labelBg = const Color(0xFFEF4444);
+        borderColor = const Color(0xFFFF101F);
+        bgColor = const Color(0xFFFF101F);
+        labelBg = const Color(0xFFFF101F);
         labelTextColor = Colors.white;
         stateIcon = Icons.cancel_rounded;
-        iconColor = const Color(0xFFEF4444);
+        iconColor = Colors.white;
       }
     }
 
@@ -135,8 +135,8 @@ class _QuizGameOptionState extends State<QuizGameOption>
           boxShadow: [
             if (widget.isAnswered && _isCorrectOption)
               BoxShadow(
-                color: const Color(0xFF4ADE80).withValues(alpha: 0.06),
-                blurRadius: 3,
+                color: const Color(0xFF358600).withValues(alpha: 0.2),
+                blurRadius: 6,
                 spreadRadius: 0,
               ),
           ],
@@ -146,8 +146,8 @@ class _QuizGameOptionState extends State<QuizGameOption>
           child: InkWell(
             onTap: widget.isAnswered ? null : _handleTap,
             borderRadius: BorderRadius.circular(16),
-            splashColor: Colors.white10,
-            highlightColor: Colors.white.withValues(alpha: 0.06),
+            splashColor: const Color(0xFF003F91).withValues(alpha: 0.1),
+            highlightColor: const Color(0xFF003F91).withValues(alpha: 0.05),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               child: Row(
@@ -180,7 +180,7 @@ class _QuizGameOptionState extends State<QuizGameOption>
                                 (widget.isAnswered && _isCorrectOption)
                             ? FontWeight.w700
                             : FontWeight.w500,
-                        color: Colors.white,
+                        color: const Color(0xFF011627),
                         height: 1.3,
                       ),
                     ),

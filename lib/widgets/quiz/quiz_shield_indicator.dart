@@ -47,7 +47,9 @@ class _QuizShieldIndicatorState extends State<QuizShieldIndicator> {
                 BoxShadow(
                   color: active
                       ? const Color(0xFFFFD700).withValues(alpha: glowAlpha)
-                      : const Color(0xFF6366F1).withValues(alpha: glowAlpha),
+                      : hasShields
+                      ? const Color(0xFF003F91).withValues(alpha: 0.1)
+                      : Colors.grey.withValues(alpha: 0.02),
                   blurRadius: glowRadius,
                   offset: const Offset(0, 1),
                 ),
@@ -67,13 +69,13 @@ class _QuizShieldIndicatorState extends State<QuizShieldIndicator> {
                       color: active
                           ? const Color(0xFFFFD700).withValues(alpha: 0.2)
                           : hasShields
-                          ? const Color(0xFF6366F1).withValues(alpha: 0.15)
+                          ? const Color(0xFFECF8F8)
                           : Colors.grey.withValues(alpha: 0.1),
                       border: Border.all(
                         color: active
                             ? const Color(0xFFFFD700).withValues(alpha: 0.8)
                             : hasShields
-                            ? const Color(0xFF6366F1).withValues(alpha: 0.4)
+                            ? const Color(0xFF003F91).withValues(alpha: 0.6)
                             : Colors.grey.withValues(alpha: 0.2),
                         width: active ? 2.5 : 1.5,
                       ),
@@ -83,7 +85,7 @@ class _QuizShieldIndicatorState extends State<QuizShieldIndicator> {
                       color: active
                           ? const Color(0xFFFFD700)
                           : hasShields
-                          ? const Color(0xFF818CF8)
+                          ? const Color(0xFF003F91)
                           : Colors.grey.withValues(alpha: 0.4),
                       size: 28,
                     ),
@@ -103,7 +105,7 @@ class _QuizShieldIndicatorState extends State<QuizShieldIndicator> {
                       color: active
                           ? const Color(0xFFFFD700)
                           : hasShields
-                          ? const Color(0xFF6366F1)
+                          ? const Color(0xFF003F91)
                           : Colors.grey.withValues(alpha: 0.5),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(

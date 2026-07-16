@@ -803,7 +803,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
             style: const TextStyle(
               fontWeight: FontWeight.w800,
               fontSize: 16,
-              color: Colors.white,
+              color: Color(0xFF011627),
             ),
           ),
           centerTitle: true,
@@ -812,7 +812,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
           elevation: 0,
           actions: [
             IconButton(
-              icon: const Icon(Icons.close_rounded, color: Colors.white70),
+              icon: const Icon(Icons.close_rounded, color: Color(0xFFFF101F)),
               onPressed: _showQuitDialog,
             ),
           ],
@@ -1001,11 +1001,11 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
                 borderRadius: BorderRadius.circular(2),
                 color: isPast && answerResult != null
                     ? (answerResult
-                          ? const Color(0xFF4ADE80) // green for correct
-                          : const Color(0xFFEF4444)) // red for incorrect
+                          ? const Color(0xFF358600) // green for correct
+                          : const Color(0xFFFF101F)) // red for incorrect
                     : isCurrent
                     ? const Color(0xFF6366F1)
-                    : const Color(0xFF3D4375),
+                    : const Color(0xFFD1D5DB),
               ),
             ),
           ),
@@ -1021,9 +1021,9 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF2A2F5A),
+        color: const Color(0xFFECF8F8),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF3D4375)),
+        border: Border.all(color: const Color(0xFF003F91)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1046,13 +1046,13 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
                     const Icon(
                       Icons.help_outline_rounded,
                       size: 12,
-                      color: Color(0xFF818CF8),
+                      color: Color(0xFF003F91),
                     ),
                     const SizedBox(width: 6),
                     Text(
                       'QUESTION ${_currentIndex + 1} OF ${_questions.length}',
                       style: const TextStyle(
-                        color: Color(0xFF818CF8),
+                        color: Color(0xFF003F91),
                         fontSize: 10,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 1.0,
@@ -1069,7 +1069,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w800,
-              color: Colors.white,
+              color: Color(0xFF011627),
               height: 1.45,
             ),
           ),
@@ -1083,9 +1083,9 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: const Color(0xFF252B55),
+        color: const Color(0xFFF0FAFA),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF3D4375)),
+        border: Border.all(color: const Color(0xFF003F91)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1103,7 +1103,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w800,
-                  color: Color(0xFF9CA3AF),
+                  color: Color(0xFF6B7280),
                 ),
               ),
             ],
@@ -1115,7 +1115,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
                 : question.explanation,
             style: const TextStyle(
               fontSize: 13,
-              color: Color(0xFFD1D5DB),
+              color: Color(0xFF4B5565),
               height: 1.5,
             ),
           ),
