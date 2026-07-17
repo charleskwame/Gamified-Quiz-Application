@@ -48,20 +48,58 @@ service cloud.firestore {
       allow delete: if isOwner(userId);
     }
 
-    match /{category}_questions/{questionId} {
+    match /computer_architecture_questions/{questionId} {
       allow read: if true;
       allow write: if false;
     }
 
-    match /{category}_questions_gotten_incorrectly/{questionId} {
+    match /computer_networking_questions/{questionId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /software_engineering_questions/{questionId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /computer_architecture_questions_gotten_incorrectly/{questionId} {
       allow read: if false;
       allow create, update: if signedIn()
         && request.resource.data.keys().hasOnly(['questionId', 'number_of_wrong'])
         && request.resource.data.questionId == questionId
         && request.resource.data.number_of_wrong is int
         && (
-          (!exists(/databases/$(database)/documents/$(category)_questions_gotten_incorrectly/$(questionId)) && request.resource.data.number_of_wrong == 1)
-          || (exists(/databases/$(database)/documents/$(category)_questions_gotten_incorrectly/$(questionId))
+          (!exists(/databases/$(database)/documents/computer_architecture_questions_gotten_incorrectly/$(questionId)) && request.resource.data.number_of_wrong == 1)
+          || (exists(/databases/$(database)/documents/computer_architecture_questions_gotten_incorrectly/$(questionId))
+              && request.resource.data.number_of_wrong == resource.data.number_of_wrong + 1)
+        );
+      allow delete: if false;
+    }
+
+    match /computer_networking_questions_gotten_incorrectly/{questionId} {
+      allow read: if false;
+      allow create, update: if signedIn()
+        && request.resource.data.keys().hasOnly(['questionId', 'number_of_wrong'])
+        && request.resource.data.questionId == questionId
+        && request.resource.data.number_of_wrong is int
+        && (
+          (!exists(/databases/$(database)/documents/computer_networking_questions_gotten_incorrectly/$(questionId)) && request.resource.data.number_of_wrong == 1)
+          || (exists(/databases/$(database)/documents/computer_networking_questions_gotten_incorrectly/$(questionId))
+              && request.resource.data.number_of_wrong == resource.data.number_of_wrong + 1)
+        );
+      allow delete: if false;
+    }
+
+    match /software_engineering_questions_gotten_incorrectly/{questionId} {
+      allow read: if false;
+      allow create, update: if signedIn()
+        && request.resource.data.keys().hasOnly(['questionId', 'number_of_wrong'])
+        && request.resource.data.questionId == questionId
+        && request.resource.data.number_of_wrong is int
+        && (
+          (!exists(/databases/$(database)/documents/software_engineering_questions_gotten_incorrectly/$(questionId)) && request.resource.data.number_of_wrong == 1)
+          || (exists(/databases/$(database)/documents/software_engineering_questions_gotten_incorrectly/$(questionId))
               && request.resource.data.number_of_wrong == resource.data.number_of_wrong + 1)
         );
       allow delete: if false;
