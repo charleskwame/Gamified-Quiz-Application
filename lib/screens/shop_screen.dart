@@ -299,21 +299,7 @@ class _ShopScreenState extends State<ShopScreen> {
   Widget _buildCoinBalance(int coins) {
     return Row(
       children: [
-        Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            color: const Color(0xFFFFD700).withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Center(
-            child: SvgPicture.asset(
-              'lib/assets/icon/coin.svg',
-              width: 24,
-              height: 24,
-            ),
-          ),
-        ),
+        SvgPicture.asset('lib/assets/icon/coin.svg', width: 40, height: 40),
         const SizedBox(width: 14),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -328,22 +314,13 @@ class _ShopScreenState extends State<ShopScreen> {
               ),
             ),
             const SizedBox(height: 2),
-            Row(
-              children: [
-                Text(
-                  '$coins ',
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFFFFD700),
-                  ),
-                ),
-                SvgPicture.asset(
-                  'lib/assets/icon/coin.svg',
-                  width: 22,
-                  height: 22,
-                ),
-              ],
+            Text(
+              '$coins',
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w900,
+                color: Color(0xFFFFD700),
+              ),
             ),
           ],
         ),
@@ -460,37 +437,24 @@ class _ShopItemCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   // Price tag
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFD700).withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: const Color(0xFFFFD700).withValues(alpha: 0.2),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SvgPicture.asset(
+                        'lib/assets/icon/coin.svg',
+                        width: 14,
+                        height: 14,
                       ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        SvgPicture.asset(
-                          'lib/assets/icon/coin.svg',
-                          width: 14,
-                          height: 14,
+                      const SizedBox(width: 4),
+                      Text(
+                        '${item.price}',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFFFFD700),
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${item.price}',
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFFFFD700),
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 8),
 
