@@ -277,9 +277,10 @@ CRITICAL INSTRUCTION: Be extremely direct and straight to the point. Answer imme
   Widget build(BuildContext context) {
     return Container(
       height: MediaQuery.of(context).size.height * 0.75,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: const Color(0xFFECF8F8),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        border: Border.all(color: const Color(0xFF003F91)),
       ),
       child: Column(
         children: [
@@ -340,7 +341,7 @@ CRITICAL INSTRUCTION: Be extremely direct and straight to the point. Answer imme
                         vertical: 12,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
+                        color: const Color(0xFFE8E9EB),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Row(
@@ -385,12 +386,9 @@ CRITICAL INSTRUCTION: Be extremely direct and straight to the point. Answer imme
                       maxWidth: MediaQuery.of(context).size.width * 0.75,
                     ),
                     decoration: BoxDecoration(
-                      gradient: message.isUser
-                          ? const LinearGradient(
-                              colors: [Color(0xFF141053), Color(0xFF141053)],
-                            )
-                          : null,
-                      color: message.isUser ? null : Colors.grey.shade100,
+                      color: message.isUser
+                          ? const Color(0xFF003F91)
+                          : const Color(0xFFE8E9EB),
                       borderRadius: BorderRadius.only(
                         topLeft: const Radius.circular(16),
                         topRight: const Radius.circular(16),
@@ -415,16 +413,16 @@ CRITICAL INSTRUCTION: Be extremely direct and straight to the point. Answer imme
                                   Theme.of(context),
                                 ).copyWith(
                                   p: TextStyle(
-                                    color: Colors.grey.shade800,
+                                    color: const Color(0xFF011627),
                                     fontSize: 14,
                                     height: 1.4,
                                   ),
                                   listBullet: TextStyle(
-                                    color: Colors.grey.shade800,
+                                    color: const Color(0xFF011627),
                                     fontSize: 14,
                                   ),
                                   strong: TextStyle(
-                                    color: Colors.grey.shade900,
+                                    color: const Color(0xFF011627),
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),

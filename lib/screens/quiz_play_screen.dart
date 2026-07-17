@@ -698,18 +698,71 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
 
   // ─── Quit Confirmation ─────────────────────────────────────────────────────
 
+  Future<void> _applyQuitPenalty() async {
+    // Only apply penalty for online modes
+    if (widget.isOffline) return;
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final deduction = widget.isTimed ? 15 : 10;
+
+    try {
+      // Read current score to clamp deduction so it doesn't go below 0
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      final currentScore = userDoc.data()?['score'] as int? ?? 0;
+      final clampedDeduction = deduction.clamp(0, currentScore);
+
+      if (clampedDeduction == 0) return;
+
+      // Apply the negative score increment to both user doc and public profile
+      await _db.updateUserQuizStats(
+        uid: user.uid,
+        category: widget.category,
+        scoreIncrement: -clampedDeduction,
+        correctIncrement: 0,
+        answeredIncrement: 0,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Quit penalty: -$clampedDeduction rank points'),
+            backgroundColor: const Color(0xFFEF4444),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.only(bottom: 100, left: 20, right: 20),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      // Silently catch network failures — don't trap the user
+    }
+  }
+
   void _showQuitDialog() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1E2246),
-        title: const Text(
-          'Quit Challenge?',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800),
+        title: Text(
+          widget.isTimed ? 'Quit Challenge?' : 'Quit Session?',
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w800,
+          ),
         ),
-        content: const Text(
-          'Are you sure you want to quit? Your progress for this challenge will be lost.',
-          style: TextStyle(color: Colors.white70),
+        content: Text(
+          widget.isTimed
+              ? 'Are you sure you want to quit? You will lose 15 rank points as a quit penalty.'
+              : 'Are you sure you want to quit? You will lose 10 rank points as a quit penalty.',
+          style: const TextStyle(color: Colors.white70),
         ),
         actions: [
           TextButton(
@@ -723,9 +776,10 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
             style: FilledButton.styleFrom(
               backgroundColor: const Color(0xFFEF4444),
             ),
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context); // Close dialog
-              Navigator.pop(context); // Exit quiz
+              await _applyQuitPenalty();
+              if (mounted) Navigator.pop(context); // Exit quiz
             },
             child: const Text('Quit'),
           ),

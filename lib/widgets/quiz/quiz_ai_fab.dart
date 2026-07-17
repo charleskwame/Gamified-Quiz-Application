@@ -38,8 +38,7 @@ class QuizAiFab extends StatelessWidget {
               ),
               child: const Row(
                 children: [
-                  Icon(Icons.auto_awesome, color: Color(0xFFFFD700), size: 14),
-                  SizedBox(width: 6),
+                  SizedBox(width: 6, height: 12),
                   Text(
                     'Need assistance?',
                     style: TextStyle(

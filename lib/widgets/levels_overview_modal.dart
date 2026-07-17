@@ -4,6 +4,7 @@ import '../models/level_system.dart';
 
 /// A full-screen modal showing all available levels, past levels,
 /// progress toward the next, and requirements for all levels.
+/// Uses the app's light aesthetic matching the shop and player header.
 class LevelsOverviewModal extends StatelessWidget {
   final int totalScore;
   final String? avatarUrl;
@@ -52,7 +53,7 @@ class LevelsOverviewModal extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color(0xFF1E1B4B), Color(0xFF0F172A)],
+          colors: [Color(0xFFF8FAFC), Color(0xFFE2E8F0)],
         ),
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
@@ -65,7 +66,7 @@ class LevelsOverviewModal extends StatelessWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
+                color: const Color(0xFF003F91).withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -83,7 +84,7 @@ class LevelsOverviewModal extends StatelessWidget {
                         const Text(
                           'Levels',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: Color(0xFF003F91),
                             fontSize: 28,
                             fontWeight: FontWeight.w900,
                           ),
@@ -93,12 +94,14 @@ class LevelsOverviewModal extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.08),
+                              color: const Color(
+                                0xFF003F91,
+                              ).withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: const Icon(
                               Icons.close_rounded,
-                              color: Colors.white54,
+                              color: Color(0xFF003F91),
                               size: 22,
                             ),
                           ),
@@ -128,14 +131,29 @@ class LevelsOverviewModal extends StatelessWidget {
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Text(
-                      'All Levels',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.6),
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1.0,
-                      ),
+                    child: Row(
+                      children: [
+                        Text(
+                          'All Levels',
+                          style: TextStyle(
+                            color: const Color(
+                              0xFF003F91,
+                            ).withValues(alpha: 0.6),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 1.0,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Container(
+                            height: 1,
+                            color: const Color(
+                              0xFF003F91,
+                            ).withValues(alpha: 0.12),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -188,14 +206,7 @@ class LevelsOverviewModal extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 24),
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            levelColors[0].withValues(alpha: 0.2),
-            levelColors[1].withValues(alpha: 0.08),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: levelColors[0].withValues(alpha: 0.3),
@@ -203,7 +214,7 @@ class LevelsOverviewModal extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: levelColors[0].withValues(alpha: 0.1),
+            color: levelColors[0].withValues(alpha: 0.08),
             blurRadius: 12,
             spreadRadius: 0,
           ),
@@ -213,10 +224,17 @@ class LevelsOverviewModal extends StatelessWidget {
         children: [
           // Level number badge
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             decoration: BoxDecoration(
               gradient: LinearGradient(colors: levelColors),
               borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: levelColors[0].withValues(alpha: 0.3),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Text(
               'Level ${currentLevel.level}',
@@ -232,10 +250,20 @@ class LevelsOverviewModal extends StatelessWidget {
 
           // Level name
           Text(
+            displayName,
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF6B7280),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
             currentLevel.name,
             style: TextStyle(
               fontSize: 40,
               fontWeight: FontWeight.w900,
+              color: const Color(0xFF121826),
               foreground: Paint()
                 ..shader = LinearGradient(
                   colors: levelColors,
@@ -251,11 +279,20 @@ class LevelsOverviewModal extends StatelessWidget {
               height: 80,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                gradient: SweepGradient(colors: levelColors),
+                gradient: const SweepGradient(
+                  colors: [
+                    Color(0xFF6366F1),
+                    Color(0xFF8C52FF),
+                    Color(0xFFFFD700),
+                    Color(0xFF4ADE80),
+                    Color(0xFF6366F1),
+                  ],
+                  stops: [0.0, 0.25, 0.5, 0.75, 1.0],
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: levelColors[0].withValues(alpha: 0.3),
-                    blurRadius: 16,
+                    color: const Color(0xFF6366F1).withValues(alpha: 0.2),
+                    blurRadius: 12,
                     spreadRadius: 1,
                   ),
                 ],
@@ -263,7 +300,7 @@ class LevelsOverviewModal extends StatelessWidget {
               padding: const EdgeInsets.all(3),
               child: Container(
                 decoration: const BoxDecoration(
-                  color: Color(0xFF0A0E21),
+                  color: Color(0xFFF8FAFC),
                   shape: BoxShape.circle,
                 ),
                 child: ClipOval(
@@ -272,7 +309,7 @@ class LevelsOverviewModal extends StatelessWidget {
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) => const Icon(
                       Icons.person_rounded,
-                      color: Colors.white70,
+                      color: Color(0xFF9CA3AF),
                       size: 36,
                     ),
                   ),
@@ -284,12 +321,12 @@ class LevelsOverviewModal extends StatelessWidget {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.08),
+                color: const Color(0xFFE5E7EB),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.person_rounded,
-                color: Colors.white54,
+                color: Color(0xFF9CA3AF),
                 size: 40,
               ),
             ),
@@ -304,19 +341,21 @@ class LevelsOverviewModal extends StatelessWidget {
               child: Container(
                 height: 12,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.1),
+                  color: const Color(0xFFE5E7EB),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: FractionallySizedBox(
                   widthFactor: progress.clamp(0.0, 1.0),
                   child: Container(
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(colors: levelColors),
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF4ADE80), Color(0xFF22C55E)],
+                      ),
                       borderRadius: BorderRadius.circular(10),
                       boxShadow: [
                         BoxShadow(
-                          color: levelColors[0].withValues(alpha: 0.3),
-                          blurRadius: 6,
+                          color: const Color(0xFF4ADE80).withValues(alpha: 0.3),
+                          blurRadius: 4,
                         ),
                       ],
                     ),
@@ -328,7 +367,7 @@ class LevelsOverviewModal extends StatelessWidget {
             Text(
               '$xpInLevel / $xpToNext XP to ${nextLevel.name}',
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.6),
+                color: const Color(0xFF003F91).withValues(alpha: 0.6),
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
               ),
@@ -386,13 +425,15 @@ class LevelsOverviewModal extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: isCurrent
-            ? colors[0].withValues(alpha: 0.1)
-            : Colors.white.withValues(alpha: 0.03),
+            ? colors[0].withValues(alpha: 0.08)
+            : isUnlocked
+            ? Colors.white
+            : const Color(0xFFF1F5F9),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isCurrent
               ? colors[0].withValues(alpha: 0.3)
-              : Colors.white.withValues(alpha: 0.05),
+              : const Color(0xFF003F91).withValues(alpha: 0.12),
         ),
       ),
       child: Row(
@@ -403,7 +444,7 @@ class LevelsOverviewModal extends StatelessWidget {
             height: 40,
             decoration: BoxDecoration(
               gradient: isUnlocked ? LinearGradient(colors: colors) : null,
-              color: isUnlocked ? null : Colors.white.withValues(alpha: 0.06),
+              color: isUnlocked ? null : const Color(0xFFE5E7EB),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
@@ -412,7 +453,7 @@ class LevelsOverviewModal extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w900,
-                  color: isUnlocked ? Colors.white : Colors.white38,
+                  color: isUnlocked ? Colors.white : const Color(0xFF9CA3AF),
                 ),
               ),
             ),
@@ -429,7 +470,9 @@ class LevelsOverviewModal extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: isUnlocked ? Colors.white : Colors.white38,
+                    color: isUnlocked
+                        ? const Color(0xFF121826)
+                        : const Color(0xFF9CA3AF),
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -443,8 +486,8 @@ class LevelsOverviewModal extends StatelessWidget {
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                     color: isUnlocked
-                        ? Colors.white.withValues(alpha: 0.5)
-                        : Colors.white.withValues(alpha: 0.25),
+                        ? const Color(0xFF9CA3AF)
+                        : const Color(0xFFCBD5E1),
                   ),
                 ),
               ],
@@ -456,9 +499,11 @@ class LevelsOverviewModal extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: colors[0].withValues(alpha: 0.2),
+                color: const Color(0xFF003F91).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: colors[0].withValues(alpha: 0.4)),
+                border: Border.all(
+                  color: const Color(0xFF003F91).withValues(alpha: 0.3),
+                ),
               ),
               child: Text(
                 'CURRENT',
@@ -473,15 +518,11 @@ class LevelsOverviewModal extends StatelessWidget {
           else if (isUnlocked && level.level > 1)
             Icon(
               Icons.check_circle_rounded,
-              color: colors[0].withValues(alpha: 0.7),
+              color: const Color(0xFF4ADE80),
               size: 22,
             )
           else if (!isUnlocked)
-            Icon(
-              Icons.lock_rounded,
-              color: Colors.white.withValues(alpha: 0.2),
-              size: 20,
-            ),
+            Icon(Icons.lock_rounded, color: const Color(0xFFCBD5E1), size: 20),
         ],
       ),
     );
