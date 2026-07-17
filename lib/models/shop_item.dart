@@ -5,7 +5,7 @@ class ShopItem {
   final String id;
   final String name;
   final String description;
-  final IconData icon;
+  final String iconAsset;
   final Color color;
   final int price;
 
@@ -13,7 +13,7 @@ class ShopItem {
     required this.id,
     required this.name,
     required this.description,
-    required this.icon,
+    required this.iconAsset,
     required this.color,
     required this.price,
   });
@@ -24,7 +24,7 @@ class ShopItem {
       id: 'shield',
       name: 'Shield',
       description: 'Protects you from one wrong answer penalty',
-      icon: Icons.shield_rounded,
+      iconAsset: 'lib/assets/icon/shield.svg',
       color: Color(0xFF6366F1),
       price: 50,
     ),
@@ -32,7 +32,7 @@ class ShopItem {
       id: 'skip_question',
       name: 'Skip Question',
       description: 'Skip a difficult question without penalty',
-      icon: Icons.skip_next_rounded,
+      iconAsset: 'lib/assets/icon/skip.svg',
       color: Color(0xFF4ADE80),
       price: 50,
     ),
@@ -40,9 +40,17 @@ class ShopItem {
       id: 'no_deductions',
       name: 'No Deductions',
       description: 'Negates all point deductions for one quiz',
-      icon: Icons.block_rounded,
+      iconAsset: 'lib/assets/icon/no-deductions.svg',
       color: Color(0xFFF59E0B),
       price: 75,
+    ),
+    ShopItem(
+      id: 'pause_timer',
+      name: 'Pause Timer',
+      description: 'Pauses the quiz timer to give yourself more time',
+      iconAsset: 'lib/assets/icon/pause.svg',
+      color: Color(0xFF8B5CF6),
+      price: 80,
     ),
   ];
 }

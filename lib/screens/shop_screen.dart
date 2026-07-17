@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/database_service.dart';
@@ -143,6 +144,8 @@ class _ShopScreenState extends State<ShopScreen> {
                   return skipCount;
                 case 'no_deductions':
                   return pauseCount;
+                case 'pause_timer':
+                  return pauseCount;
                 default:
                   return 0;
               }
@@ -155,13 +158,23 @@ class _ShopScreenState extends State<ShopScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // ─── Header ─────────────────────────────────
-                    const Text(
-                      '🏪 Shop',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w900,
-                        color: Color(0xFF003F91),
-                      ),
+                    Row(
+                      children: [
+                        SvgPicture.asset(
+                          'lib/assets/icon/store.svg',
+                          width: 32,
+                          height: 32,
+                        ),
+                        const SizedBox(width: 10),
+                        const Text(
+                          'Shop',
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF003F91),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 6),
                     Text(
@@ -395,15 +408,7 @@ class _ShopItemCard extends StatelessWidget {
           child: Row(
             children: [
               // ─── Icon ─────────────────────────────
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: item.color.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Icon(item.icon, color: item.color, size: 28),
-              ),
+              SvgPicture.asset(item.iconAsset, width: 56, height: 56),
               const SizedBox(width: 16),
 
               // ─── Name & Description ────────────────
