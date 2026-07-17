@@ -81,6 +81,12 @@ class _QuizGameOptionState extends State<QuizGameOption>
 
   static const List<String> _labels = ['A', 'B', 'C', 'D'];
 
+  /// Strips leading letter+") " prefix from option text (e.g., "a) Paris" -> "Paris")
+  String _stripPrefix(String text) {
+    final regex = RegExp(r'^[a-zA-Z]\)\s*');
+    return text.replaceFirst(regex, '');
+  }
+
   @override
   Widget build(BuildContext context) {
     Color borderColor = const Color(0xFFD1D5DB);
@@ -172,7 +178,7 @@ class _QuizGameOptionState extends State<QuizGameOption>
                   const SizedBox(width: 14),
                   Expanded(
                     child: Text(
-                      widget.option,
+                      _stripPrefix(widget.option),
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight:

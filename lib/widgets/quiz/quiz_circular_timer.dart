@@ -51,7 +51,7 @@ class QuizCircularTimer extends StatelessWidget {
                   size: const Size(48, 48),
                   painter: _CirclePainter(
                     progress: 1.0,
-                    color: const Color(0xFF2D3361),
+                    color: const Color(0xFFE8E9EB),
                     strokeWidth: 4,
                   ),
                 ),
@@ -74,7 +74,7 @@ class QuizCircularTimer extends StatelessWidget {
                         ? const Color(0xFFEF4444)
                         : isLow
                         ? const Color(0xFFF59E0B)
-                        : Colors.white,
+                        : const Color(0xFF003F91),
                   ),
                 ),
               ],
