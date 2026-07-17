@@ -596,17 +596,17 @@ class _ProfilePageState extends State<ProfilePage> {
         shape: BoxShape.circle,
         gradient: const SweepGradient(
           colors: [
-            Color(0xFF6366F1),
-            Color(0xFF8C52FF),
+            Color(0xFF003F91),
+            Color(0xFF003F91),
             Color(0xFFFFD700),
             Color(0xFF4ADE80),
-            Color(0xFF6366F1),
+            Color(0xFF003F91),
           ],
           stops: [0.0, 0.25, 0.5, 0.75, 1.0],
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF6366F1).withValues(alpha: 0.06),
+            color: const Color(0xFF003F91).withValues(alpha: 0.06),
             blurRadius: 3,
             spreadRadius: 0,
           ),
@@ -745,7 +745,7 @@ class _ProfilePageState extends State<ProfilePage> {
               icon: const Icon(Icons.arrow_forward_rounded, size: 16),
               label: const Text('See all'),
               style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFF6366F1),
+                foregroundColor: const Color(0xFF003F91),
               ),
             ),
           ),
@@ -805,8 +805,8 @@ class _ProfilePageState extends State<ProfilePage> {
                 rankBgColor = const Color(0xFF4ADE80).withValues(alpha: 0.15);
                 break;
               case 'B':
-                rankColor = const Color(0xFF6366F1);
-                rankBgColor = const Color(0xFF6366F1).withValues(alpha: 0.15);
+                rankColor = const Color(0xFF003F91);
+                rankBgColor = const Color(0xFF003F91).withValues(alpha: 0.15);
                 break;
               case 'C':
                 rankColor = const Color(0xFFF59E0B);

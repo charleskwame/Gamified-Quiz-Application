@@ -230,7 +230,7 @@ class _QuizResultsViewState extends State<QuizResultsView>
         .round();
     if (accuracy >= 90) return const Color(0xFFFFD700);
     if (accuracy >= 80) return const Color(0xFF4ADE80);
-    if (accuracy >= 70) return const Color(0xFF6366F1);
+    if (accuracy >= 70) return const Color(0xFF003F91);
     if (accuracy >= 60) return const Color(0xFFF59E0B);
     if (accuracy >= 50) return const Color(0xFFEF4444);
     return const Color(0xFF6B7280);
@@ -380,7 +380,7 @@ class _QuizResultsViewState extends State<QuizResultsView>
                                       _buildStatItem(
                                         'SCORE',
                                         '+$_displayScore pts',
-                                        const Color(0xFF6366F1),
+                                        const Color(0xFF003F91),
                                       ),
                                       Container(
                                         width: 1,
@@ -555,7 +555,7 @@ class _QuizResultsViewState extends State<QuizResultsView>
                                 icon: const Icon(Icons.home_rounded),
                                 label: const Text('Back to Course Selection'),
                                 style: FilledButton.styleFrom(
-                                  backgroundColor: const Color(0xFF6366F1),
+                                  backgroundColor: const Color(0xFF003F91),
                                   foregroundColor: Colors.white,
                                   padding: const EdgeInsets.symmetric(
                                     vertical: 14,
@@ -584,7 +584,7 @@ class _QuizResultsViewState extends State<QuizResultsView>
                                   children: [
                                     const Icon(
                                       Icons.format_quote_rounded,
-                                      color: Color(0xFF6366F1),
+                                      color: Color(0xFF003F91),
                                       size: 28,
                                     ),
                                     const SizedBox(height: 12),
@@ -658,7 +658,7 @@ class _QuizResultsViewState extends State<QuizResultsView>
                 colors: const [
                   Color(0xFFFFD700),
                   Color(0xFF4ADE80),
-                  Color(0xFF6366F1),
+                  Color(0xFF003F91),
                   Color(0xFFF59E0B),
                   Color(0xFFEF4444),
                   Colors.white,
@@ -766,7 +766,7 @@ class _QuizResultsViewState extends State<QuizResultsView>
                 child: Icon(
                   Icons.arrow_forward_rounded,
                   size: 14,
-                  color: const Color(0xFF6366F1),
+                  color: const Color(0xFF003F91),
                 ),
               ),
               Text(

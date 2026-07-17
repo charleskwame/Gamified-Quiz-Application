@@ -27,7 +27,7 @@ class GameStatPanel extends StatelessWidget {
               icon: Icons.forum_rounded,
               value: '$questionsAnswered',
               label: 'Attempted',
-              iconColor: const Color(0xFF6366F1),
+              iconColor: const Color(0xFF003F91),
             ),
           ),
           _divider(),

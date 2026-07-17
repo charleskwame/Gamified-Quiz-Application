@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
 class AppTheme {
   // Game-like accent colors
   static const Color primary = Color(0xFF111C4A);
-  static const Color indigoAccent = Color(0xFF6366F1);
+  static const Color indigoAccent = Color(0xFF003F91);
   static const Color gold = Color(0xFFFFD700);
   static const Color green = Color(0xFF4ADE80);
   static const Color amber = Color(0xFFF59E0B);

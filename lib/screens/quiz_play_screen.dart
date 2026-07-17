@@ -950,7 +950,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
                 gravity: 0.3,
                 colors: const [
                   Color(0xFF4ADE80),
-                  Color(0xFF6366F1),
+                  Color(0xFF003F91),
                   Color(0xFFF59E0B),
                   Color(0xFFEF4444),
                   Colors.white,
@@ -1058,7 +1058,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
                           ? const Color(0xFF358600) // green for correct
                           : const Color(0xFFFF101F)) // red for incorrect
                     : isCurrent
-                    ? const Color(0xFF6366F1)
+                    ? const Color(0xFF003F91)
                     : const Color(0xFFD1D5DB),
               ),
             ),
@@ -1091,7 +1091,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF6366F1).withValues(alpha: 0.2),
+                  color: const Color(0xFF003F91).withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
@@ -1192,7 +1192,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
         style: FilledButton.styleFrom(
           backgroundColor: isLast
               ? const Color(0xFFF59E0B)
-              : const Color(0xFF6366F1),
+              : const Color(0xFF003F91),
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 14),
           shape: RoundedRectangleBorder(

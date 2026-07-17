@@ -21,14 +21,20 @@ class AnalyticsScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text(
           'Your Analytics',
-          style: TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF121826)),
+          style: TextStyle(
+            fontWeight: FontWeight.w800,
+            color: Color(0xFF121826),
+          ),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: const IconThemeData(color: Color(0xFF121826)),
       ),
       body: StreamBuilder<DocumentSnapshot>(
-        stream: FirebaseFirestore.instance.collection('users').doc(user.uid).snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -59,8 +65,13 @@ class AnalyticsScreen extends StatelessWidget {
           final int seCorrect = data['seCorrect'] ?? 0;
           final int seIncorrect = seAnswered - seCorrect;
 
-          if (questionsAnswered == 0 && caPoints == 0 && cnPoints == 0 && sePoints == 0) {
-             return const Center(child: Text('Play some quizzes to generate analytics!'));
+          if (questionsAnswered == 0 &&
+              caPoints == 0 &&
+              cnPoints == 0 &&
+              sePoints == 0) {
+            return const Center(
+              child: Text('Play some quizzes to generate analytics!'),
+            );
           }
 
           return SingleChildScrollView(
@@ -70,7 +81,11 @@ class AnalyticsScreen extends StatelessWidget {
               children: [
                 _buildSectionTitle('Accuracy Breakdown'),
                 const SizedBox(height: 16),
-                _buildAccuracyPieChart(questionsCorrect, questionsIncorrect, questionsAnswered),
+                _buildAccuracyPieChart(
+                  questionsCorrect,
+                  questionsIncorrect,
+                  questionsAnswered,
+                ),
                 const SizedBox(height: 32),
                 _buildSectionTitle('Points by Subject'),
                 const SizedBox(height: 16),
@@ -78,11 +93,29 @@ class AnalyticsScreen extends StatelessWidget {
                 const SizedBox(height: 32),
                 _buildSectionTitle('Subject Statistics'),
                 const SizedBox(height: 16),
-                _buildSubjectStatsCard('Computer Architecture', caAnswered, caCorrect, caIncorrect, const Color(0xFF8C52FF)),
+                _buildSubjectStatsCard(
+                  'Computer Architecture',
+                  caAnswered,
+                  caCorrect,
+                  caIncorrect,
+                  const Color(0xFF003F91),
+                ),
                 const SizedBox(height: 16),
-                _buildSubjectStatsCard('Computer Networking', cnAnswered, cnCorrect, cnIncorrect, const Color(0xFF0091EA)),
+                _buildSubjectStatsCard(
+                  'Computer Networking',
+                  cnAnswered,
+                  cnCorrect,
+                  cnIncorrect,
+                  const Color(0xFF0091EA),
+                ),
                 const SizedBox(height: 16),
-                _buildSubjectStatsCard('Software Engineering', seAnswered, seCorrect, seIncorrect, const Color(0xFF37474F)),
+                _buildSubjectStatsCard(
+                  'Software Engineering',
+                  seAnswered,
+                  seCorrect,
+                  seIncorrect,
+                  const Color(0xFF37474F),
+                ),
               ],
             ),
           );
@@ -126,7 +159,11 @@ class AnalyticsScreen extends StatelessWidget {
                   value: correct.toDouble(),
                   title: '${((correct / total) * 100).round()}%',
                   radius: 40,
-                  titleStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+                  titleStyle: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
                 if (incorrect > 0)
                   PieChartSectionData(
@@ -134,7 +171,11 @@ class AnalyticsScreen extends StatelessWidget {
                     value: incorrect.toDouble(),
                     title: '${((incorrect / total) * 100).round()}%',
                     radius: 40,
-                    titleStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+                    titleStyle: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
               ],
             ),
@@ -144,11 +185,19 @@ class AnalyticsScreen extends StatelessWidget {
             children: [
               Text(
                 '$total',
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF121826)),
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF121826),
+                ),
               ),
               const Text(
                 'Total',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF6B7280)),
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF6B7280),
+                ),
               ),
             ],
           ),
@@ -158,7 +207,11 @@ class AnalyticsScreen extends StatelessWidget {
   }
 
   Widget _buildPointsBarChart(int ca, int cn, int se) {
-    final double maxPts = [ca, cn, se].reduce((a, b) => a > b ? a : b).toDouble();
+    final double maxPts = [
+      ca,
+      cn,
+      se,
+    ].reduce((a, b) => a > b ? a : b).toDouble();
 
     return Container(
       height: 300,
@@ -196,30 +249,64 @@ class AnalyticsScreen extends StatelessWidget {
                   }
                   return Padding(
                     padding: const EdgeInsets.only(top: 8.0),
-                    child: Text(text, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF6B7280))),
+                    child: Text(
+                      text,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF6B7280),
+                      ),
+                    ),
                   );
                 },
                 reservedSize: 28,
               ),
             ),
-            leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            leftTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
           ),
           gridData: const FlGridData(show: false),
           borderData: FlBorderData(show: false),
           barGroups: [
             BarChartGroupData(
               x: 0,
-              barRods: [BarChartRodData(toY: ca.toDouble(), color: const Color(0xFF8C52FF), width: 26, borderRadius: BorderRadius.circular(6))],
+              barRods: [
+                BarChartRodData(
+                  toY: ca.toDouble(),
+                  color: const Color(0xFF003F91),
+                  width: 26,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+              ],
             ),
             BarChartGroupData(
               x: 1,
-              barRods: [BarChartRodData(toY: cn.toDouble(), color: const Color(0xFF0091EA), width: 26, borderRadius: BorderRadius.circular(6))],
+              barRods: [
+                BarChartRodData(
+                  toY: cn.toDouble(),
+                  color: const Color(0xFF0091EA),
+                  width: 26,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+              ],
             ),
             BarChartGroupData(
               x: 2,
-              barRods: [BarChartRodData(toY: se.toDouble(), color: const Color(0xFF37474F), width: 26, borderRadius: BorderRadius.circular(6))],
+              barRods: [
+                BarChartRodData(
+                  toY: se.toDouble(),
+                  color: const Color(0xFF37474F),
+                  width: 26,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+              ],
             ),
           ],
         ),
@@ -227,7 +314,13 @@ class AnalyticsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSubjectStatsCard(String title, int answered, int correct, int wrong, Color color) {
+  Widget _buildSubjectStatsCard(
+    String title,
+    int answered,
+    int correct,
+    int wrong,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -249,7 +342,11 @@ class AnalyticsScreen extends StatelessWidget {
               Expanded(
                 child: Text(
                   title,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF121826)),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF121826),
+                  ),
                 ),
               ),
             ],
@@ -258,9 +355,21 @@ class AnalyticsScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildStatItem('Answered', answered.toString(), const Color(0xFF6B7280)),
-              _buildStatItem('Correct', correct.toString(), const Color(0xFF4CAF50)),
-              _buildStatItem('Wrong', wrong.toString(), const Color(0xFFF44336)),
+              _buildStatItem(
+                'Answered',
+                answered.toString(),
+                const Color(0xFF6B7280),
+              ),
+              _buildStatItem(
+                'Correct',
+                correct.toString(),
+                const Color(0xFF4CAF50),
+              ),
+              _buildStatItem(
+                'Wrong',
+                wrong.toString(),
+                const Color(0xFFF44336),
+              ),
             ],
           ),
         ],
@@ -273,12 +382,20 @@ class AnalyticsScreen extends StatelessWidget {
       children: [
         Text(
           value,
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: color),
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w900,
+            color: color,
+          ),
         ),
         const SizedBox(height: 4),
         Text(
           label,
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF9CA3AF)),
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF9CA3AF),
+          ),
         ),
       ],
     );

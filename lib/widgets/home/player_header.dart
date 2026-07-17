@@ -54,17 +54,17 @@ class PlayerHeader extends StatelessWidget {
         shape: BoxShape.circle,
         gradient: const SweepGradient(
           colors: [
-            Color(0xFF6366F1),
-            Color(0xFF8C52FF),
+            Color(0xFF003F91),
+            Color(0xFF003F91),
             Color(0xFFFFD700),
             Color(0xFF4ADE80),
-            Color(0xFF6366F1),
+            Color(0xFF003F91),
           ],
           stops: [0.0, 0.25, 0.5, 0.75, 1.0],
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF6366F1).withValues(alpha: 0.08),
+            color: const Color(0xFF003F91).withValues(alpha: 0.08),
             blurRadius: 4,
             spreadRadius: 0,
           ),

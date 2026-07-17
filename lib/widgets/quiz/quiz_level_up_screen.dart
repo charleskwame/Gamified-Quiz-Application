@@ -332,7 +332,7 @@ class _QuizLevelUpScreenState extends State<QuizLevelUpScreen>
           gradient: const SweepGradient(
             colors: [
               Color(0xFFFFD700),
-              Color(0xFF6366F1),
+              Color(0xFF003F91),
               Color(0xFFF59E0B),
               Color(0xFFFFD700),
             ],
@@ -357,7 +357,7 @@ class _QuizLevelUpScreenState extends State<QuizLevelUpScreen>
               placeholderBuilder: (context) => const Icon(
                 Icons.person_rounded,
                 size: 48,
-                color: Color(0xFF6366F1),
+                color: Color(0xFF003F91),
               ),
             ),
           ),
@@ -370,7 +370,7 @@ class _QuizLevelUpScreenState extends State<QuizLevelUpScreen>
       child: const Icon(
         Icons.person_rounded,
         size: 60,
-        color: Color(0xFF6366F1),
+        color: Color(0xFF003F91),
       ),
     );
   }
@@ -530,12 +530,12 @@ class _QuizLevelUpScreenState extends State<QuizLevelUpScreen>
                 child: Container(
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                      colors: [Color(0xFF003F91), Color(0xFF8B5CF6)],
                     ),
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF6366F1).withValues(alpha: 0.4),
+                        color: const Color(0xFF003F91).withValues(alpha: 0.4),
                         blurRadius: 8,
                       ),
                     ],
@@ -574,14 +574,14 @@ class _QuizLevelUpScreenState extends State<QuizLevelUpScreen>
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
             ),
             style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF6366F1),
+              backgroundColor: const Color(0xFF003F91),
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
               elevation: 8,
-              shadowColor: const Color(0xFF6366F1).withValues(alpha: 0.5),
+              shadowColor: const Color(0xFF003F91).withValues(alpha: 0.5),
             ),
           ),
         ),
@@ -682,7 +682,7 @@ class _Particle {
     const colors = [
       Color(0xFFFFD700),
       Color(0xFFF59E0B),
-      Color(0xFF6366F1),
+      Color(0xFF003F91),
       Color(0xFFEC4899),
       Color(0xFFFFFFFF),
       Color(0xFF4ADE80),

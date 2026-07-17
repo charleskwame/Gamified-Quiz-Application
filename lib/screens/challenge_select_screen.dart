@@ -226,7 +226,7 @@ class _ChallengeSelectScreenState extends State<ChallengeSelectScreen> {
             borderRadius: BorderRadius.circular(28),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF8C52FF).withValues(alpha: 0.06),
+                color: const Color(0xFF003F91).withValues(alpha: 0.06),
                 blurRadius: 4,
                 offset: const Offset(0, 2),
               ),

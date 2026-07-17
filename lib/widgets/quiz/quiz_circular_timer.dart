@@ -27,7 +27,7 @@ class QuizCircularTimer extends StatelessWidget {
     } else if (isLow) {
       timerColor = const Color(0xFFF59E0B);
     } else {
-      timerColor = const Color(0xFF6366F1);
+      timerColor = const Color(0xFF003F91);
     }
 
     return AnimatedBuilder(

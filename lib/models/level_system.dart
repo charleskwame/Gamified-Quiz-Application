@@ -120,7 +120,7 @@ class LevelSystem {
   /// Gradient colors for each level badge — gets more intense at higher levels.
   static List<Color> getLevelColors(int level) {
     const colorPairs = [
-      [Color(0xFF6366F1), Color(0xFF8C52FF)], // 1-2: Purple
+      [Color(0xFF003F91), Color(0xFF003F91)], // 1-2: Purple
       [Color(0xFF3B82F6), Color(0xFF06B6D4)], // 3-4: Blue
       [Color(0xFF10B981), Color(0xFF34D399)], // 5-6: Green
       [Color(0xFFF59E0B), Color(0xFFF97316)], // 7-8: Orange

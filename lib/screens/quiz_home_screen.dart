@@ -209,7 +209,7 @@ class QuizHomePage extends StatelessWidget {
               description:
                   'Dive into pipelines, processor architectures, ALU designs, and instruction execution dynamics.',
               icon: Icons.memory_rounded,
-              color1: const Color(0xFF8C52FF),
+              color1: const Color(0xFF003F91),
               color2: const Color(0xFF141053),
               onPressed: () {
                 Navigator.push(

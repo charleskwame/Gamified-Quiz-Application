@@ -15,8 +15,6 @@ class BadgeDefinition {
     required this.color,
   });
 
-  
-
   // Check if this badge is unlocked based on current user stats and latest quiz results
   bool checkUnlock({
     required int score,
@@ -559,14 +557,14 @@ const List<BadgeDefinition> allBadges = [
     name: 'Rookie',
     description: 'Reach Level 1 — Rookie (0 XP)',
     icon: Icons.egg_rounded,
-    color: Color(0xFF6366F1),
+    color: Color(0xFF003F91),
   ),
   BadgeDefinition(
     id: 'level_amateur',
     name: 'Amateur',
     description: 'Reach Level 2 — Amateur (100 XP)',
     icon: Icons.self_improvement_rounded,
-    color: Color(0xFF8C52FF),
+    color: Color(0xFF003F91),
   ),
   BadgeDefinition(
     id: 'level_scholar',

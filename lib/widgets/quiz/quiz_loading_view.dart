@@ -63,7 +63,7 @@ class _QuizLoadingViewState extends State<QuizLoadingView>
                         height: 100,
                         decoration: BoxDecoration(
                           color: const Color(
-                            0xFF6366F1,
+                            0xFF003F91,
                           ).withValues(alpha: 0.15),
                           shape: BoxShape.circle,
                         ),
@@ -117,7 +117,7 @@ class _QuizLoadingViewState extends State<QuizLoadingView>
                         minHeight: 4,
                         backgroundColor: const Color(0xFF2D3361),
                         valueColor: const AlwaysStoppedAnimation<Color>(
-                          Color(0xFF6366F1),
+                          Color(0xFF003F91),
                         ),
                       );
                     },

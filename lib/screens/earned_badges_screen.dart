@@ -319,7 +319,7 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
                             _isDownloading ? 'Saving...' : 'Save Card',
                           ),
                           style: FilledButton.styleFrom(
-                            backgroundColor: const Color(0xFF6366F1),
+                            backgroundColor: const Color(0xFF003F91),
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 10),
                             shape: RoundedRectangleBorder(
@@ -523,7 +523,7 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
               minHeight: 10,
               backgroundColor: Colors.white.withValues(alpha: 0.1),
               valueColor: const AlwaysStoppedAnimation<Color>(
-                Color(0xFF6366F1),
+                Color(0xFF003F91),
               ),
             ),
           ),
@@ -561,7 +561,7 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isSelected
-              ? const Color(0xFF6366F1)
+              ? const Color(0xFF003F91)
               : (isUnlocked
                     ? badge.color.withValues(alpha: 0.25)
                     : Colors.white.withValues(alpha: 0.06)),
@@ -570,7 +570,7 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
         boxShadow: [
           if (isSelected)
             BoxShadow(
-              color: const Color(0xFF6366F1).withValues(alpha: 0.06),
+              color: const Color(0xFF003F91).withValues(alpha: 0.06),
               blurRadius: 3,
             ),
           if (isUnlocked && !isSelected)
@@ -672,7 +672,7 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
               child: Container(
                 padding: const EdgeInsets.all(4),
                 decoration: const BoxDecoration(
-                  color: Color(0xFF6366F1),
+                  color: Color(0xFF003F91),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(

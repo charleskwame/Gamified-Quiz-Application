@@ -25,7 +25,7 @@ class ShopItem {
       name: 'Shield',
       description: 'Protects you from one wrong answer penalty',
       iconAsset: 'lib/assets/icon/shield.svg',
-      color: Color(0xFF6366F1),
+      color: Color(0xFF003F91),
       price: 50,
     ),
     ShopItem(
