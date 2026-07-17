@@ -255,7 +255,7 @@ class _ShopScreenState extends State<ShopScreen> {
                             size: 16,
                           ),
                           label: const Text(
-                            '🪙 Give 100 coins to all existing users',
+                            'Give 100 coins to all existing users',
                           ),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: const Color(0xFFFFD700),
@@ -297,73 +297,76 @@ class _ShopScreenState extends State<ShopScreen> {
   }
 
   Widget _buildCoinBalance(int coins) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: const Color(0xFF003F91).withValues(alpha: 0.3),
+    return Row(
+      children: [
+        Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFD700).withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Center(
+            child: SvgPicture.asset(
+              'lib/assets/icon/coin.svg',
+              width: 24,
+              height: 24,
+            ),
+          ),
         ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFD700).withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: const Center(
-              child: Text('🪙', style: TextStyle(fontSize: 24)),
-            ),
-          ),
-          const SizedBox(width: 14),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Quiz Coins',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.grey.shade600,
-                  letterSpacing: 0.5,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                '$coins 🪙',
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w900,
-                  color: Color(0xFFFFD700),
-                ),
-              ),
-            ],
-          ),
-          const Spacer(),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: const Color(0xFF003F91).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: const Color(0xFF003F91).withValues(alpha: 0.2),
-              ),
-            ),
-            child: const Text(
-              'Earn more',
+        const SizedBox(width: 14),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Quiz Coins',
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF003F91),
+                color: Colors.grey.shade600,
+                letterSpacing: 0.5,
               ),
             ),
+            const SizedBox(height: 2),
+            Row(
+              children: [
+                Text(
+                  '$coins ',
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFFFFD700),
+                  ),
+                ),
+                SvgPicture.asset(
+                  'lib/assets/icon/coin.svg',
+                  width: 22,
+                  height: 22,
+                ),
+              ],
+            ),
+          ],
+        ),
+        const Spacer(),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: const Color(0xFF003F91).withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: const Color(0xFF003F91).withValues(alpha: 0.2),
+            ),
           ),
-        ],
-      ),
+          child: const Text(
+            'Earn more',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF003F91),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -472,7 +475,11 @@ class _ShopItemCard extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text('🪙', style: TextStyle(fontSize: 12)),
+                        SvgPicture.asset(
+                          'lib/assets/icon/coin.svg',
+                          width: 14,
+                          height: 14,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           '${item.price}',

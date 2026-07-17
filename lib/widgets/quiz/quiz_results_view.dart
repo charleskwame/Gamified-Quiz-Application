@@ -426,9 +426,10 @@ class _QuizResultsViewState extends State<QuizResultsView>
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          const Text(
-                                            '🪙',
-                                            style: TextStyle(fontSize: 14),
+                                          SvgPicture.asset(
+                                            'lib/assets/icon/coin.svg',
+                                            width: 16,
+                                            height: 16,
                                           ),
                                           const SizedBox(width: 4),
                                           Text(
