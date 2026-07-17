@@ -82,7 +82,7 @@ class _AvatarCustomizerDialogState extends State<AvatarCustomizerDialog>
             style: const TextStyle(
               fontWeight: FontWeight.w700,
               fontSize: 13,
-              color: Color(0xFF011627),
+              color: Color(0xFF003F91),
             ),
           ),
           const SizedBox(height: 4),
@@ -93,7 +93,7 @@ class _AvatarCustomizerDialogState extends State<AvatarCustomizerDialog>
                 value: opt.value,
                 child: Text(
                   opt.label,
-                  style: const TextStyle(color: Color(0xFF011627)),
+                  style: const TextStyle(color: Color(0xFF003F91)),
                 ),
               );
             }).toList(),
@@ -164,7 +164,7 @@ class _AvatarCustomizerDialogState extends State<AvatarCustomizerDialog>
                       style: TextStyle(
                         fontWeight: FontWeight.w900,
                         fontSize: 20,
-                        color: Color(0xFF011627),
+                        color: Color(0xFF003F91),
                       ),
                     ),
                     Container(
@@ -175,7 +175,7 @@ class _AvatarCustomizerDialogState extends State<AvatarCustomizerDialog>
                       child: IconButton(
                         icon: const Icon(
                           Icons.close_rounded,
-                          color: Color(0xFF011627),
+                          color: Color(0xFF003F91),
                           size: 20,
                         ),
                         padding: const EdgeInsets.all(8),
@@ -278,7 +278,7 @@ class _AvatarCustomizerDialogState extends State<AvatarCustomizerDialog>
                           : () => Navigator.pop(context),
                       style: TextButton.styleFrom(
                         foregroundColor: const Color(
-                          0xFF011627,
+                          0xFF003F91,
                         ).withValues(alpha: 0.6),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,

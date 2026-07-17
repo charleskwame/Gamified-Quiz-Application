@@ -413,16 +413,16 @@ CRITICAL INSTRUCTION: Be extremely direct and straight to the point. Answer imme
                                   Theme.of(context),
                                 ).copyWith(
                                   p: TextStyle(
-                                    color: const Color(0xFF011627),
+                                    color: const Color(0xFF003F91),
                                     fontSize: 14,
                                     height: 1.4,
                                   ),
                                   listBullet: TextStyle(
-                                    color: const Color(0xFF011627),
+                                    color: const Color(0xFF003F91),
                                     fontSize: 14,
                                   ),
                                   strong: TextStyle(
-                                    color: const Color(0xFF011627),
+                                    color: const Color(0xFF003F91),
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),

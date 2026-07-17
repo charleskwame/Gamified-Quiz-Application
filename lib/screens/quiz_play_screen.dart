@@ -857,7 +857,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
             style: const TextStyle(
               fontWeight: FontWeight.w800,
               fontSize: 16,
-              color: Color(0xFF011627),
+              color: Color(0xFF003F91),
             ),
           ),
           centerTitle: true,
@@ -1123,7 +1123,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w800,
-              color: Color(0xFF011627),
+              color: Color(0xFF003F91),
               height: 1.45,
             ),
           ),

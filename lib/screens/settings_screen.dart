@@ -114,14 +114,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         content: const Text(
           'Warning: This action is irreversible. Your entire progress, achievements, points, earned badges, and offline saved questions will be permanently deleted from the system.',
-          style: TextStyle(color: Color(0xFF011627)),
+          style: TextStyle(color: Color(0xFF003F91)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: const Text(
               'Cancel',
-              style: TextStyle(color: Color(0xFF011627)),
+              style: TextStyle(color: Color(0xFF003F91)),
             ),
           ),
           FilledButton(
@@ -155,7 +155,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: const Text(
                 'Confirm Password',
                 style: TextStyle(
-                  color: Color(0xFF011627),
+                  color: Color(0xFF003F91),
                   fontWeight: FontWeight.w900,
                 ),
               ),
@@ -164,7 +164,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: [
                   const Text(
                     'For security, please enter your password to confirm account deletion.',
-                    style: TextStyle(color: Color(0xFF011627), fontSize: 14),
+                    style: TextStyle(color: Color(0xFF003F91), fontSize: 14),
                   ),
                   const SizedBox(height: 16),
                   TextField(
@@ -172,13 +172,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     obscureText: true,
                     autofocus: true,
                     style: const TextStyle(
-                      color: Color(0xFF011627),
+                      color: Color(0xFF003F91),
                       fontSize: 15,
                     ),
                     decoration: InputDecoration(
                       labelText: 'Password',
                       labelStyle: const TextStyle(
-                        color: Color(0xFF011627),
+                        color: Color(0xFF003F91),
                         fontSize: 14,
                       ),
                       errorText: errorText,
@@ -208,7 +208,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   onPressed: () => Navigator.pop(context, null),
                   child: const Text(
                     'Cancel',
-                    style: TextStyle(color: Color(0xFF011627)),
+                    style: TextStyle(color: Color(0xFF003F91)),
                   ),
                 ),
                 FilledButton(
@@ -394,7 +394,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             child: const Icon(
               Icons.arrow_back_rounded,
-              color: Color(0xFF011627),
+              color: Color(0xFF003F91),
               size: 22,
             ),
           ),
@@ -404,7 +404,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         const Text(
           'Settings',
           style: TextStyle(
-            color: Color(0xFF011627),
+            color: Color(0xFF003F91),
             fontSize: 28,
             fontWeight: FontWeight.w900,
           ),
@@ -432,12 +432,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             icon: const Icon(
               Icons.face_retouching_natural_rounded,
               size: 18,
-              color: Color(0xFF011627),
+              color: Color(0xFF003F91),
             ),
             label: const Text(
               'Customize Avatar',
               style: TextStyle(
-                color: Color(0xFF011627),
+                color: Color(0xFF003F91),
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -488,13 +488,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     placeholderBuilder: (context) => const Icon(
                       Icons.person_rounded,
                       size: 60,
-                      color: Color(0xFF011627),
+                      color: Color(0xFF003F91),
                     ),
                   )
                 : const Icon(
                     Icons.person_rounded,
                     size: 60,
-                    color: Color(0xFF011627),
+                    color: Color(0xFF003F91),
                   ),
           ),
         ),
@@ -526,7 +526,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const Text(
             'Update Account Info',
             style: TextStyle(
-              color: Color(0xFF011627),
+              color: Color(0xFF003F91),
               fontSize: 20,
               fontWeight: FontWeight.w900,
             ),
@@ -547,7 +547,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Text(
             'Full Name',
             style: const TextStyle(
-              color: Color(0xFF011627),
+              color: Color(0xFF003F91),
               fontSize: 14,
               fontWeight: FontWeight.w700,
             ),
@@ -555,17 +555,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 8),
           TextField(
             controller: _displayNameController,
-            style: const TextStyle(color: Color(0xFF011627), fontSize: 15),
+            style: const TextStyle(color: Color(0xFF003F91), fontSize: 15),
             cursorColor: const Color(0xFF003F91),
             decoration: InputDecoration(
               hintText: 'Enter your full name',
               hintStyle: TextStyle(
-                color: const Color(0xFF011627).withValues(alpha: 0.3),
+                color: const Color(0xFF003F91).withValues(alpha: 0.3),
                 fontSize: 14,
               ),
               prefixIcon: Icon(
                 Icons.person_rounded,
-                color: const Color(0xFF011627).withValues(alpha: 0.35),
+                color: const Color(0xFF003F91).withValues(alpha: 0.35),
                 size: 20,
               ),
               filled: true,
@@ -738,7 +738,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         Text(
           'This action cannot be undone. All your data will be permanently removed.',
           style: TextStyle(
-            color: const Color(0xFF011627).withValues(alpha: 0.35),
+            color: const Color(0xFF003F91).withValues(alpha: 0.35),
             fontSize: 12,
             fontWeight: FontWeight.w500,
           ),

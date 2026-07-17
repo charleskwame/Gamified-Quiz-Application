@@ -125,7 +125,7 @@ class _ParticlePainter extends CustomPainter {
 
       final opacity = p.opacity * fade;
 
-      paint.color = const Color(0xFF011627).withValues(alpha: opacity);
+      paint.color = const Color(0xFF003F91).withValues(alpha: opacity);
       canvas.drawCircle(Offset(x * size.width, y * size.height), p.size, paint);
     }
   }

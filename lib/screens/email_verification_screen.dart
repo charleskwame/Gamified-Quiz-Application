@@ -317,7 +317,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                               child: const Text(
                                 'Verify Your Email',
                                 style: TextStyle(
-                                  color: Color(0xFF011627),
+                                  color: Color(0xFF003F91),
                                   fontSize: 28,
                                   fontWeight: FontWeight.w900,
                                   height: 1.1,
@@ -336,7 +336,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                   const Text(
                                     'We\'ve sent a verification email to',
                                     style: TextStyle(
-                                      color: Color(0xFF011627),
+                                      color: Color(0xFF003F91),
                                       fontSize: 15,
                                       height: 1.5,
                                     ),
@@ -634,7 +634,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                               child: Text(
                                 'Didn\'t receive the email? Check your spam folder or make sure you entered the correct email address.',
                                 style: const TextStyle(
-                                  color: Color(0xFF011627),
+                                  color: Color(0xFF003F91),
                                   fontSize: 13,
                                   height: 1.5,
                                 ),
@@ -652,7 +652,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                   Expanded(
                                     child: Divider(
                                       color: const Color(
-                                        0xFF011627,
+                                        0xFF003F91,
                                       ).withValues(alpha: 0.12),
                                     ),
                                   ),
@@ -664,7 +664,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                       'or',
                                       style: TextStyle(
                                         color: const Color(
-                                          0xFF011627,
+                                          0xFF003F91,
                                         ).withValues(alpha: 0.3),
                                         fontSize: 13,
                                       ),
@@ -673,7 +673,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                   Expanded(
                                     child: Divider(
                                       color: const Color(
-                                        0xFF011627,
+                                        0xFF003F91,
                                       ).withValues(alpha: 0.12),
                                     ),
                                   ),
@@ -756,7 +756,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF011627),
+                  color: Color(0xFF003F91),
                   height: 1.4,
                 ),
               ),

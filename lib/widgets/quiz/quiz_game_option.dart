@@ -186,7 +186,7 @@ class _QuizGameOptionState extends State<QuizGameOption>
                                 (widget.isAnswered && _isCorrectOption)
                             ? FontWeight.w700
                             : FontWeight.w500,
-                        color: const Color(0xFF011627),
+                        color: const Color(0xFF003F91),
                         height: 1.3,
                       ),
                     ),

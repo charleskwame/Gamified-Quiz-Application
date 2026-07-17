@@ -162,7 +162,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       child: Text(
                         'Sign in or create an account to start earning badges!',
                         style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.5),
+                          color: const Color(0xFF003F91).withValues(alpha: 0.5),
                           fontStyle: FontStyle.italic,
                           fontSize: 14,
                         ),
@@ -314,20 +314,20 @@ class _ProfilePageState extends State<ProfilePage> {
                       title: const Text(
                         'Log Out',
                         style: TextStyle(
-                          color: Color(0xFF011627),
+                          color: Color(0xFF003F91),
                           fontWeight: FontWeight.w900,
                         ),
                       ),
                       content: const Text(
                         'Are you sure you want to log out?',
-                        style: TextStyle(color: Color(0xFF011627)),
+                        style: TextStyle(color: Color(0xFF003F91)),
                       ),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.pop(context),
                           child: const Text(
                             'Cancel',
-                            style: TextStyle(color: Color(0xFF011627)),
+                            style: TextStyle(color: Color(0xFF003F91)),
                           ),
                         ),
                         FilledButton(
@@ -368,9 +368,11 @@ class _ProfilePageState extends State<ProfilePage> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.06),
+        color: const Color(0xFF003F91).withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        border: Border.all(
+          color: const Color(0xFF003F91).withValues(alpha: 0.08),
+        ),
       ),
       child: IconButton(
         onPressed: onPressed,
@@ -762,15 +764,15 @@ class _ProfilePageState extends State<ProfilePage> {
       stream: DatabaseService().getRankHistoryStream(uid),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Padding(
-            padding: EdgeInsets.symmetric(vertical: 20),
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20),
             child: Center(
               child: SizedBox(
                 width: 24,
                 height: 24,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: Colors.white54,
+                  color: const Color(0xFF003F91).withValues(alpha: 0.3),
                 ),
               ),
             ),
@@ -829,13 +831,18 @@ class _ProfilePageState extends State<ProfilePage> {
             return Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+                color: const Color(0xFFECF8F8),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                border: Border.all(
+                  color: const Color(0xFF003F91).withValues(alpha: 0.08),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: Row(
                 children: [
@@ -864,7 +871,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
-                            color: Colors.white,
+                            color: Color(0xFF003F91),
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -884,7 +891,9 @@ class _ProfilePageState extends State<ProfilePage> {
                                 dateStr,
                                 style: TextStyle(
                                   fontSize: 11,
-                                  color: Colors.white.withValues(alpha: 0.4),
+                                  color: const Color(
+                                    0xFF003F91,
+                                  ).withValues(alpha: 0.4),
                                 ),
                               ),
                             ),
@@ -907,20 +916,25 @@ class _ProfilePageState extends State<ProfilePage> {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: const Color(0xFFECF8F8),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+        border: Border.all(
+          color: const Color(0xFF003F91).withValues(alpha: 0.08),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         children: [
           Icon(
             Icons.leaderboard_rounded,
             size: 40,
-            color: Colors.white.withValues(alpha: 0.15),
+            color: const Color(0xFF003F91).withValues(alpha: 0.15),
           ),
           const SizedBox(height: 12),
           Text(
@@ -928,7 +942,7 @@ class _ProfilePageState extends State<ProfilePage> {
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w600,
-              color: Colors.white.withValues(alpha: 0.6),
+              color: const Color(0xFF003F91).withValues(alpha: 0.6),
             ),
           ),
           const SizedBox(height: 4),
@@ -936,7 +950,7 @@ class _ProfilePageState extends State<ProfilePage> {
             'Complete a quiz to see your rank!',
             style: TextStyle(
               fontSize: 12,
-              color: Colors.white.withValues(alpha: 0.35),
+              color: const Color(0xFF003F91).withValues(alpha: 0.35),
             ),
           ),
         ],

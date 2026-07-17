@@ -149,7 +149,7 @@ class _BugReportScreenState extends State<BugReportScreen> {
                   const Text(
                     'Report a Bug',
                     style: TextStyle(
-                      color: Color(0xFF011627),
+                      color: Color(0xFF003F91),
                       fontSize: 34,
                       fontWeight: FontWeight.w900,
                       height: 1.05,
@@ -159,7 +159,7 @@ class _BugReportScreenState extends State<BugReportScreen> {
                   Text(
                     'Help us improve the app by reporting any issues you encounter.',
                     style: TextStyle(
-                      color: const Color(0xFF011627).withValues(alpha: 0.6),
+                      color: const Color(0xFF003F91).withValues(alpha: 0.6),
                       fontSize: 16,
                       height: 1.5,
                     ),
@@ -316,7 +316,7 @@ class _BugReportScreenState extends State<BugReportScreen> {
         ),
         child: const Icon(
           Icons.arrow_back_rounded,
-          color: Color(0xFF011627),
+          color: Color(0xFF003F91),
           size: 22,
         ),
       ),
@@ -339,7 +339,7 @@ class _BugReportScreenState extends State<BugReportScreen> {
         Text(
           label,
           style: const TextStyle(
-            color: Color(0xFF011627),
+            color: Color(0xFF003F91),
             fontSize: 14,
             fontWeight: FontWeight.w700,
           ),
@@ -358,7 +358,7 @@ class _BugReportScreenState extends State<BugReportScreen> {
               Icon(
                 icon,
                 size: 18,
-                color: const Color(0xFF011627).withValues(alpha: 0.35),
+                color: const Color(0xFF003F91).withValues(alpha: 0.35),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -366,8 +366,8 @@ class _BugReportScreenState extends State<BugReportScreen> {
                   value.isNotEmpty ? value : 'Not signed in',
                   style: TextStyle(
                     color: value.isNotEmpty
-                        ? const Color(0xFF011627).withValues(alpha: 0.7)
-                        : const Color(0xFF011627).withValues(alpha: 0.35),
+                        ? const Color(0xFF003F91).withValues(alpha: 0.7)
+                        : const Color(0xFF003F91).withValues(alpha: 0.35),
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
@@ -398,7 +398,7 @@ class _BugReportScreenState extends State<BugReportScreen> {
         Text(
           label,
           style: const TextStyle(
-            color: Color(0xFF011627),
+            color: Color(0xFF003F91),
             fontSize: 14,
             fontWeight: FontWeight.w700,
           ),
@@ -408,17 +408,17 @@ class _BugReportScreenState extends State<BugReportScreen> {
           controller: controller,
           maxLines: maxLines,
           maxLength: maxLength,
-          style: const TextStyle(color: Color(0xFF011627), fontSize: 15),
+          style: const TextStyle(color: Color(0xFF003F91), fontSize: 15),
           cursorColor: const Color(0xFF003F91),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(
-              color: const Color(0xFF011627).withValues(alpha: 0.3),
+              color: const Color(0xFF003F91).withValues(alpha: 0.3),
               fontSize: 14,
             ),
             prefixIcon: Icon(
               icon,
-              color: const Color(0xFF011627).withValues(alpha: 0.35),
+              color: const Color(0xFF003F91).withValues(alpha: 0.35),
               size: 20,
             ),
             filled: true,
@@ -443,7 +443,7 @@ class _BugReportScreenState extends State<BugReportScreen> {
               vertical: 14,
             ),
             counterStyle: TextStyle(
-              color: const Color(0xFF011627).withValues(alpha: 0.35),
+              color: const Color(0xFF003F91).withValues(alpha: 0.35),
               fontSize: 12,
             ),
           ),

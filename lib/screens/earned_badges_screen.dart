@@ -126,7 +126,7 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Text(
-                  '🎉 Badge Card Saved successfully!',
+                  'Badge Card Saved successfully!',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -166,7 +166,7 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
         return StatefulBuilder(
           builder: (context, setModalState) {
             return AlertDialog(
-              backgroundColor: const Color(0xFF1E2246),
+              backgroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(28),
               ),
@@ -179,7 +179,7 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1E2246),
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
@@ -195,7 +195,7 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
                           const Text(
                             'GAMIFIED QUIZ APP',
                             style: TextStyle(
-                              color: Colors.white30,
+                              color: Color(0xFF003F91),
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
                               letterSpacing: 2.0,
@@ -218,7 +218,7 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
                           Text(
                             badge.name,
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: Color(0xFF003F91),
                               fontSize: 20,
                               fontWeight: FontWeight.w900,
                             ),
@@ -228,7 +228,7 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
                           Text(
                             badge.description,
                             style: const TextStyle(
-                              color: Colors.white70,
+                              color: Color(0xFF003F91),
                               fontSize: 13,
                               fontWeight: FontWeight.w500,
                               height: 1.3,
@@ -239,7 +239,7 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
                           const Text(
                             'Ownership stats unavailable',
                             style: TextStyle(
-                              color: Colors.white70,
+                              color: Color(0xFF003F91),
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
                             ),
@@ -251,7 +251,9 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.1),
+                              color: const Color(
+                                0xFF003F91,
+                              ).withValues(alpha: 0.06),
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: Row(
@@ -259,14 +261,14 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
                               children: const [
                                 Icon(
                                   Icons.check_circle_outline,
-                                  color: Colors.greenAccent,
+                                  color: Color(0xFF003F91),
                                   size: 14,
                                 ),
                                 SizedBox(width: 4),
                                 Text(
                                   'OFFICIAL ACHIEVEMENT',
                                   style: TextStyle(
-                                    color: Colors.white,
+                                    color: Color(0xFF003F91),
                                     fontSize: 9,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -286,7 +288,7 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
                           onPressed: () => Navigator.pop(context),
                           child: const Text(
                             'Close',
-                            style: TextStyle(color: Colors.white60),
+                            style: TextStyle(color: Color(0xFF003F91)),
                           ),
                         ),
                       ),
@@ -374,7 +376,7 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
                   child: Text(
                     'All Achievements (${allBadges.length})',
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: Color(0xFF003F91),
                       fontSize: 20,
                       fontWeight: FontWeight.w900,
                     ),
@@ -431,14 +433,16 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
       children: [
         Container(
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.06),
+            color: const Color(0xFF003F91).withValues(alpha: 0.06),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+            border: Border.all(
+              color: const Color(0xFF003F91).withValues(alpha: 0.08),
+            ),
           ),
           child: IconButton(
             onPressed: () => Navigator.pop(context),
             icon: const Icon(Icons.arrow_back_rounded),
-            color: Colors.white,
+            color: const Color(0xFF003F91),
             padding: const EdgeInsets.all(10),
             constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
           ),
@@ -447,7 +451,7 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
         const Text(
           'Badges & Achievements',
           style: TextStyle(
-            color: Colors.white,
+            color: Color(0xFF003F91),
             fontSize: 24,
             fontWeight: FontWeight.w900,
           ),
@@ -465,13 +469,18 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: const Color(0xFFECF8F8),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+        border: Border.all(
+          color: const Color(0xFF003F91).withValues(alpha: 0.08),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -484,7 +493,7 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
                   Text(
                     'YOUR PROGRESS',
                     style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.5),
+                      color: const Color(0xFF003F91).withValues(alpha: 0.5),
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 1.5,
@@ -494,7 +503,7 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
                   Text(
                     '$unlockedCount of ${allBadges.length} Unlocked',
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: Color(0xFF003F91),
                       fontSize: 24,
                       fontWeight: FontWeight.w800,
                     ),
@@ -504,7 +513,7 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.1),
+                  color: const Color(0xFF003F91).withValues(alpha: 0.06),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -521,7 +530,7 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
             child: LinearProgressIndicator(
               value: progress,
               minHeight: 10,
-              backgroundColor: Colors.white.withValues(alpha: 0.1),
+              backgroundColor: const Color(0xFF003F91).withValues(alpha: 0.1),
               valueColor: const AlwaysStoppedAnimation<Color>(
                 Color(0xFF003F91),
               ),
@@ -531,7 +540,7 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
           Text(
             'Tapping unlocked badges displays them in your rank profile (max 3).',
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.5),
+              color: const Color(0xFF003F91).withValues(alpha: 0.5),
               fontSize: 12,
               fontWeight: FontWeight.w500,
             ),
@@ -553,30 +562,31 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: const Color(0xFFECF8F8),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isSelected
               ? const Color(0xFF003F91)
               : (isUnlocked
-                    ? badge.color.withValues(alpha: 0.25)
-                    : Colors.white.withValues(alpha: 0.06)),
+                    ? badge.color.withValues(alpha: 0.3)
+                    : const Color(0xFF003F91).withValues(alpha: 0.08)),
           width: isSelected ? 2.5 : 1,
         ),
         boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
           if (isSelected)
             BoxShadow(
-              color: const Color(0xFF003F91).withValues(alpha: 0.06),
-              blurRadius: 3,
+              color: const Color(0xFF003F91).withValues(alpha: 0.08),
+              blurRadius: 4,
             ),
           if (isUnlocked && !isSelected)
             BoxShadow(
-              color: badge.color.withValues(alpha: 0.03),
-              blurRadius: 2,
+              color: badge.color.withValues(alpha: 0.06),
+              blurRadius: 3,
             ),
         ],
       ),
@@ -598,12 +608,14 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
                         decoration: BoxDecoration(
                           color: isUnlocked
                               ? badge.color.withValues(alpha: 0.15)
-                              : Colors.white.withValues(alpha: 0.06),
+                              : const Color(0xFF003F91).withValues(alpha: 0.06),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
                           isUnlocked ? badge.icon : Icons.lock_rounded,
-                          color: isUnlocked ? badge.color : Colors.white38,
+                          color: isUnlocked
+                              ? badge.color
+                              : const Color(0xFF003F91).withValues(alpha: 0.3),
                           size: 32,
                         ),
                       ),
@@ -616,7 +628,9 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w800,
-                          color: isUnlocked ? Colors.white : Colors.white54,
+                          color: isUnlocked
+                              ? const Color(0xFF003F91)
+                              : const Color(0xFF003F91).withValues(alpha: 0.5),
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -629,9 +643,9 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
                           style: TextStyle(
                             fontSize: 10.5,
                             fontWeight: FontWeight.w500,
-                            color: Colors.white.withValues(
-                              alpha: isUnlocked ? 0.5 : 0.3,
-                            ),
+                            color: const Color(
+                              0xFF003F91,
+                            ).withValues(alpha: isUnlocked ? 0.5 : 0.3),
                             height: 1.3,
                           ),
                         ),
@@ -649,9 +663,11 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
                             ),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 6),
-                              foregroundColor: Colors.white70,
+                              foregroundColor: const Color(0xFF003F91),
                               side: BorderSide(
-                                color: Colors.white.withValues(alpha: 0.15),
+                                color: const Color(
+                                  0xFF003F91,
+                                ).withValues(alpha: 0.2),
                               ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),

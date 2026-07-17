@@ -268,7 +268,7 @@ class _AuthScreenState extends State<AuthScreen>
                                     ),
                                     child: const Icon(
                                       Icons.arrow_back_rounded,
-                                      color: Color(0xFF011627),
+                                      color: Color(0xFF003F91),
                                       size: 22,
                                     ),
                                   ),
@@ -296,7 +296,7 @@ class _AuthScreenState extends State<AuthScreen>
                                         ? 'Start Your Quest'
                                         : 'Welcome Back',
                                     style: const TextStyle(
-                                      color: Color(0xFF011627),
+                                      color: Color(0xFF003F91),
                                       fontSize: 34,
                                       fontWeight: FontWeight.w900,
                                       height: 1.05,
@@ -308,7 +308,7 @@ class _AuthScreenState extends State<AuthScreen>
                                         ? 'Create an account to begin your learning journey'
                                         : 'Log in to continue your adventure',
                                     style: const TextStyle(
-                                      color: Color(0xFF011627),
+                                      color: Color(0xFF003F91),
                                       fontSize: 16,
                                       height: 1.5,
                                     ),
@@ -525,7 +525,7 @@ class _AuthScreenState extends State<AuthScreen>
                                       ? 'Already have an account?'
                                       : "Don't have an account?",
                                   style: const TextStyle(
-                                    color: Color(0xFF011627),
+                                    color: Color(0xFF003F91),
                                     fontSize: 14,
                                   ),
                                 ),
@@ -562,7 +562,7 @@ class _AuthScreenState extends State<AuthScreen>
         child: Text(
           label,
           style: TextStyle(
-            color: isSelected ? Colors.white : const Color(0xFF011627),
+            color: isSelected ? Colors.white : const Color(0xFF003F91),
             fontSize: 14,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
           ),
@@ -585,19 +585,19 @@ class _AuthScreenState extends State<AuthScreen>
           controller: controller,
           obscureText: isPassword,
           keyboardType: keyboardType,
-          style: const TextStyle(color: Color(0xFF011627), fontSize: 15),
+          style: const TextStyle(color: Color(0xFF003F91), fontSize: 15),
           cursorColor: const Color(0xFF003F91),
           decoration: InputDecoration(
             labelText: label,
             hintText: hint,
-            labelStyle: const TextStyle(color: Color(0xFF011627), fontSize: 14),
+            labelStyle: const TextStyle(color: Color(0xFF003F91), fontSize: 14),
             hintStyle: TextStyle(
-              color: const Color(0xFF011627).withValues(alpha: 0.3),
+              color: const Color(0xFF003F91).withValues(alpha: 0.3),
               fontSize: 14,
             ),
             prefixIcon: Icon(
               icon,
-              color: const Color(0xFF011627).withValues(alpha: 0.35),
+              color: const Color(0xFF003F91).withValues(alpha: 0.35),
               size: 20,
             ),
             filled: true,
