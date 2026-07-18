@@ -750,11 +750,11 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E2246),
+        backgroundColor: const Color(0xFFECF8F8),
         title: Text(
           widget.isTimed ? 'Quit Challenge?' : 'Quit Session?',
           style: const TextStyle(
-            color: Colors.white,
+            color: Color(0xFF003F91),
             fontWeight: FontWeight.w800,
           ),
         ),
@@ -762,19 +762,19 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
           widget.isTimed
               ? 'Are you sure you want to quit? You will lose 15 rank points as a quit penalty.'
               : 'Are you sure you want to quit? You will lose 10 rank points as a quit penalty.',
-          style: const TextStyle(color: Colors.white70),
+          style: const TextStyle(color: Color(0xFF003F91)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text(
               'Cancel',
-              style: TextStyle(color: Colors.white60),
+              style: TextStyle(color: Color(0xFF003F91)),
             ),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFFEF4444),
+               backgroundColor: const Color(0xFFEF4444),
             ),
             onPressed: () async {
               Navigator.pop(context); // Close dialog
