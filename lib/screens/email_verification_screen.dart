@@ -4,6 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
 import '../services/database_service.dart';
 
+import '../widgets/main_navigation.dart';
+
 class EmailVerificationScreen extends StatefulWidget {
   final String email;
 
@@ -228,9 +230,16 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
     await _authService.logOut();
   }
 
-  // AuthGate's periodic timer handles the actual navigation to MainNavigation
   void _navigateToApp() {
-    // Verification is detected — AuthGate will transition within 3 seconds
+    if (mounted) {
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      } else {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const MainNavigation()),
+        );
+      }
+    }
   }
 
   @override
