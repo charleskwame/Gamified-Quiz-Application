@@ -179,13 +179,24 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            badge.color.withValues(alpha: 0.15),
+                            badge.color.withValues(alpha: 0.04),
+                          ],
+                        ),
                         borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: badge.color.withValues(alpha: 0.3),
+                          width: 1.5,
+                        ),
                         boxShadow: [
                           BoxShadow(
-                            color: badge.color.withValues(alpha: 0.06),
-                            blurRadius: 3,
-                            offset: const Offset(0, 2),
+                            color: badge.color.withValues(alpha: 0.08),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
                           ),
                         ],
                       ),
@@ -472,7 +483,7 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
         color: const Color(0xFFECF8F8),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: const Color(0xFF003F91).withValues(alpha: 0.08),
+          color: const Color(0xFF003F91),
         ),
         boxShadow: [
           BoxShadow(

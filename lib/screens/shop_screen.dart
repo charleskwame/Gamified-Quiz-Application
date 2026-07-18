@@ -325,21 +325,58 @@ class _ShopScreenState extends State<ShopScreen> {
           ],
         ),
         const Spacer(),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: const Color(0xFF003F91).withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: const Color(0xFF003F91).withValues(alpha: 0.2),
+        GestureDetector(
+          onTap: () {
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                backgroundColor: const Color(0xFFECF8F8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  side: const BorderSide(
+                    color: Color(0xFF003F91),
+                    width: 2,
+                  ),
+                ),
+                content: const Text(
+                  'You can earn more coins by competing in quiz sessions',
+                  style: TextStyle(
+                    color: Color(0xFF003F91),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text(
+                      'Close',
+                      style: TextStyle(
+                        color: Color(0xFF003F91),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: const Color(0xFF003F91).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: const Color(0xFF003F91).withValues(alpha: 0.2),
+              ),
             ),
-          ),
-          child: const Text(
-            'Earn more',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF003F91),
+            child: const Text(
+              'Earn more',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF003F91),
+              ),
             ),
           ),
         ),

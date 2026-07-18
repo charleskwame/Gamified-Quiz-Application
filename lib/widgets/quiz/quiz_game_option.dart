@@ -95,6 +95,7 @@ class _QuizGameOptionState extends State<QuizGameOption>
     Color labelTextColor = const Color(0xFF6B7280);
     IconData? stateIcon;
     Color iconColor = Colors.white;
+    Color textColor = const Color(0xFF003F91);
 
     if (widget.isAnswered) {
       if (_isCorrectOption) {
@@ -104,6 +105,7 @@ class _QuizGameOptionState extends State<QuizGameOption>
         labelTextColor = Colors.white;
         stateIcon = Icons.check_circle_rounded;
         iconColor = Colors.white;
+        textColor = const Color(0xFFFBFBFB);
       } else if (_isSelected) {
         borderColor = const Color(0xFFFF101F);
         bgColor = const Color(0xFFFF101F);
@@ -111,6 +113,7 @@ class _QuizGameOptionState extends State<QuizGameOption>
         labelTextColor = Colors.white;
         stateIcon = Icons.cancel_rounded;
         iconColor = Colors.white;
+        textColor = const Color(0xFFFBFBFB);
       }
     }
 
@@ -186,7 +189,7 @@ class _QuizGameOptionState extends State<QuizGameOption>
                                 (widget.isAnswered && _isCorrectOption)
                             ? FontWeight.w700
                             : FontWeight.w500,
-                        color: const Color(0xFF003F91),
+                        color: textColor,
                         height: 1.3,
                       ),
                     ),

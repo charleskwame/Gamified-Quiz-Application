@@ -110,6 +110,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
   final List<int> _streakSegments = [];
 
   // Level-up tracking
+  int _userStartingLevel = 1;
   int _oldLevel = 1;
   int _oldTotalScore = 0;
   int _updatedTotalScore = 0;
@@ -187,7 +188,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
         _isLoading = false;
       });
 
-      // Fetch item counts from Firestore
+      // Fetch item counts and score from Firestore
       _fetchItemCounts();
 
       if (widget.isTimed) {
@@ -212,10 +213,12 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
     ) {
       if (mounted) {
         final data = snap.data();
+        final score = data?['score'] as int? ?? 0;
         setState(() {
           _shieldsRemaining = data?['shieldCount'] as int? ?? 0;
           _skipCount = data?['skipCount'] as int? ?? 0;
           _pauseTimerCount = data?['pauseTimerCount'] as int? ?? 0;
+          _userStartingLevel = LevelSystem.getLevelNumber(score);
         });
       }
     });
@@ -378,7 +381,9 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
         _lastScoreIncrement = 0;
       });
     } else {
-      final penalty = QuizEngine.timeoutPenalty(_consecutiveIncorrect);
+      final penalty = (_userStartingLevel >= 2)
+          ? QuizEngine.timeoutPenalty(_consecutiveIncorrect)
+          : 0;
       setState(() {
         _isAnswered = true;
         _selectedOption = '';
@@ -474,10 +479,12 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
           _showScorePopup = false;
         } else {
           // Apply immediate penalty for wrong answer (compounds with consecutive wrongs)
-          final penalty = QuizEngine.incorrectPenalty(
-            _consecutiveIncorrect,
-            isTimed: widget.isTimed,
-          );
+          final penalty = (_userStartingLevel >= 2)
+              ? QuizEngine.incorrectPenalty(
+                  _consecutiveIncorrect,
+                  isTimed: widget.isTimed,
+                )
+              : 0;
           final deduction = penalty.clamp(0, _score);
           if (deduction > 0) {
             _score -= deduction;
@@ -567,7 +574,12 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
 
         // Apply session XP cap: the session score cannot exceed 30% of XP needed for next level
         final sessionXpCap = QuizEngine.sessionXpCap(oldTotalScore);
-        finalSessionScore = _score.clamp(0, sessionXpCap);
+        
+        // Add small XP bonus of 15 XP for users below Amateur rank (Level 1)
+        final isBelowAmateur = LevelSystem.getLevelNumber(oldTotalScore) < 2;
+        final bonusXp = isBelowAmateur ? 15 : 0;
+        
+        finalSessionScore = (_score + bonusXp).clamp(0, sessionXpCap);
 
         // Calculate coins earned for this session
         // Add any remaining streak segment not yet recorded
@@ -701,6 +713,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
   Future<void> _applyQuitPenalty() async {
     // Only apply penalty for online modes
     if (widget.isOffline) return;
+    if (_userStartingLevel < 2) return; // Penalty only affects Amateur and above
 
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -759,9 +772,11 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
           ),
         ),
         content: Text(
-          widget.isTimed
-              ? 'Are you sure you want to quit? You will lose 15 rank points as a quit penalty.'
-              : 'Are you sure you want to quit? You will lose 10 rank points as a quit penalty.',
+          _userStartingLevel < 2
+              ? 'Are you sure you want to quit? You will not lose any points since you are in the Rookie rank.'
+              : (widget.isTimed
+                  ? 'Are you sure you want to quit? You will lose 15 rank points as a quit penalty.'
+                  : 'Are you sure you want to quit? You will lose 10 rank points as a quit penalty.'),
           style: const TextStyle(color: Color(0xFF003F91)),
         ),
         actions: [

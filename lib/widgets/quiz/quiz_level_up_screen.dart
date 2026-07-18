@@ -297,6 +297,44 @@ class _QuizLevelUpScreenState extends State<QuizLevelUpScreen>
                               // Level counter: LV. OLD → NEW
                               if (_levelCounterVisible) _buildLevelCounter(),
 
+                              if (widget.data.newLevel == 2) ...[
+                                const SizedBox(height: 16),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFEF4444).withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: const Color(0xFFEF4444).withValues(alpha: 0.3),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: const [
+                                        Icon(
+                                          Icons.warning_amber_rounded,
+                                          color: Color(0xFFEF4444),
+                                          size: 18,
+                                        ),
+                                        SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            'The penalty system is now in effect from this rank onwards.',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFFEF4444),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+
                               const SizedBox(height: 32),
 
                               // XP Progress bar
