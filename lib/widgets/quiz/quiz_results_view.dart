@@ -257,13 +257,7 @@ class _QuizResultsViewState extends State<QuizResultsView>
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF0F172A), Color(0xFF1E1B4B), Color(0xFF111C4A)],
-          ),
-        ),
+        color: const Color(0xFFECF8F8),
         child: Stack(
           children: [
             SafeArea(
@@ -531,13 +525,17 @@ class _QuizResultsViewState extends State<QuizResultsView>
                                   return Chip(
                                     avatar: Icon(
                                       badge.icon,
-                                      color: Colors.white,
+                                      color: const Color(0xFF003F91),
                                       size: 16,
                                     ),
                                     label: Text(badge.name),
-                                    backgroundColor: badge.color,
+                                    backgroundColor: const Color(0xFFECF8F8),
+                                    shape: RoundedRectangleBorder(
+                                      side: const BorderSide(color: Color(0xFF003F91)),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
                                     labelStyle: const TextStyle(
-                                      color: Colors.white,
+                                      color: Color(0xFF003F91),
                                       fontWeight: FontWeight.bold,
                                     ),
                                   );
@@ -556,7 +554,7 @@ class _QuizResultsViewState extends State<QuizResultsView>
                                 label: const Text('Back to Course Selection'),
                                 style: FilledButton.styleFrom(
                                   backgroundColor: const Color(0xFF003F91),
-                                  foregroundColor: Colors.white,
+                                  foregroundColor: const Color(0xFFFBFBFB),
                                   padding: const EdgeInsets.symmetric(
                                     vertical: 14,
                                   ),

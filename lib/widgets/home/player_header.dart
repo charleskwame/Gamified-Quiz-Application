@@ -40,7 +40,7 @@ class PlayerHeader extends StatelessWidget {
           Expanded(child: _buildPlayerInfo()),
           const SizedBox(width: 12),
           // Streak badge
-          if (streakNumber > 0) _buildStreakBadge(),
+          _buildStreakBadge(),
         ],
       ),
     );
