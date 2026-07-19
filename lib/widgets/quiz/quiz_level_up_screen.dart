@@ -249,110 +249,111 @@ class _QuizLevelUpScreenState extends State<QuizLevelUpScreen>
 
             // Main content wrapped in RepaintBoundary for screenshot
             RepaintBoundary(
-            key: _repaintKey,
-            child: AspectRatio(
-              aspectRatio: 1 / 1.4,
-              child: SafeArea(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    return SingleChildScrollView(
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minHeight: constraints.maxHeight,
-                        ),
-                        child: IntrinsicHeight(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const SizedBox(height: 40),
+              key: _repaintKey,
+              child: AspectRatio(
+                aspectRatio: 1 / 1.4,
+                child: SafeArea(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return SingleChildScrollView(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: constraints.maxHeight,
+                          ),
+                          child: IntrinsicHeight(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const SizedBox(height: 40),
 
-                              // Avatar
-                              _buildAvatar(),
-                              const SizedBox(height: 12),
+                                // Avatar
+                                _buildAvatar(),
+                                const SizedBox(height: 12),
 
-                              // Player name
-                              Text(
-                                widget.data.displayName,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFFD1D5DB),
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                              const SizedBox(height: 32),
-
-                              // Badge: "LEVEL UP!"
-                              if (_badgeVisible)
-                                AnimatedBuilder(
-                                  animation: _badgeScale,
-                                  builder: (context, _) {
-                                    return Transform.scale(
-                                      scale: _badgeScale.value,
-                                      child: _buildLevelUpBadge(),
-                                    );
-                                  },
-                                ),
-
-                              const SizedBox(height: 40),
-
-                              // Level counter: LV. OLD → NEW
-                              if (_levelCounterVisible) _buildLevelCounter(),
-
-                              if (widget.data.newLevel == 2) ...[
-                                const SizedBox(height: 16),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 32.0),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFEF4444).withValues(alpha: 0.15),
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: const Color(0xFFEF4444).withValues(alpha: 0.3),
-                                      ),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: const [
-                                        Icon(
-                                          Icons.warning_amber_rounded,
-                                          color: Color(0xFFEF4444),
-                                          size: 18,
-                                        ),
-                                        SizedBox(width: 8),
-                                        Expanded(
-                                          child: Text(
-                                            'The penalty system is now in effect from this rank onwards.',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
-                                              color: Color(0xFFEF4444),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                // Player name
+                                Text(
+                                  widget.data.displayName,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFFD1D5DB),
+                                    letterSpacing: 0.5,
                                   ),
                                 ),
+                                const SizedBox(height: 32),
+
+                                // Badge: "LEVEL UP!"
+                                if (_badgeVisible)
+                                  AnimatedBuilder(
+                                    animation: _badgeScale,
+                                    builder: (context, _) {
+                                      return Transform.scale(
+                                        scale: _badgeScale.value,
+                                        child: _buildLevelUpBadge(),
+                                      );
+                                    },
+                                  ),
+
+                                const SizedBox(height: 40),
+
+                                // Level counter: LV. OLD → NEW
+                                if (_levelCounterVisible) _buildLevelCounter(),
+
+                                if (widget.data.newLevel == 2) ...[
+                                  const SizedBox(height: 16),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFEF4444).withValues(alpha: 0.15),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: const Color(0xFFEF4444).withValues(alpha: 0.3),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: const [
+                                          Icon(
+                                            Icons.warning_amber_rounded,
+                                            color: Color(0xFFEF4444),
+                                            size: 18,
+                                          ),
+                                          SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              'The penalty system is now in effect from this rank onwards.',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                                color: Color(0xFFEF4444),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+
+                                const SizedBox(height: 32),
+
+                                // XP Progress bar
+                                if (_xpBarVisible) _buildXpBar(),
+                                const SizedBox(height: 48),
+
+                                // Buttons
+                                if (_buttonsVisible) _buildButtons(),
+
+                                const SizedBox(height: 40),
                               ],
-
-                              const SizedBox(height: 32),
-
-                              // XP Progress bar
-                              if (_xpBarVisible) _buildXpBar(),
-                              const SizedBox(height: 48),
-
-                              // Buttons
-                              if (_buttonsVisible) _buildButtons(),
-
-                              const SizedBox(height: 40),
-                            ],
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
               ),
             ),

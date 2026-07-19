@@ -180,19 +180,17 @@ class _StreakCardModalState extends State<StreakCardModal> {
           const SizedBox(height: 8),
           RepaintBoundary(
             key: _repaintKey,
-            child: AspectRatio(
-              aspectRatio: 1 / 1.4,
-              child: Container(
-                width: 280,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: _gradientColors,
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(24),
+            child: Container(
+              width: 280,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: _gradientColors,
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
+                borderRadius: BorderRadius.circular(24),
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [

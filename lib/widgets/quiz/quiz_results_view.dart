@@ -609,7 +609,7 @@ class _QuizResultsViewState extends State<QuizResultsView>
                                   ],
                                 ),
                               ),
-                            ),
+                            ],
                           ],
                         ),
                       ),
