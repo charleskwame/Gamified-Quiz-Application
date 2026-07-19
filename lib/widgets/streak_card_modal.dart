@@ -180,17 +180,19 @@ class _StreakCardModalState extends State<StreakCardModal> {
           const SizedBox(height: 8),
           RepaintBoundary(
             key: _repaintKey,
-            child: Container(
-              width: 280,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: _gradientColors,
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+            child: AspectRatio(
+              aspectRatio: 1 / 1.4,
+              child: Container(
+                width: 280,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: _gradientColors,
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(24),
                 ),
-                borderRadius: BorderRadius.circular(24),
-              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -257,25 +259,48 @@ class _StreakCardModalState extends State<StreakCardModal> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
-                  Text(
-                    '${widget.streakNumber} Challenges Completed',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 28,
-                      fontWeight: FontWeight.w900,
+                  if (widget.streakNumber > 0) ...[
+                    const SizedBox(height: 24),
+                    Text(
+                      '${widget.streakNumber} Challenges Completed',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 28,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Keep the fire burning!',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Keep the fire burning!',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
+                  ] else ...[
+                    const SizedBox(height: 24),
+                    const Text(
+                      'No streak yet!',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Complete a session and answer at least half of the questions correctly to start your streak.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 24),
                   Container(
                     padding: const EdgeInsets.symmetric(

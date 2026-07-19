@@ -309,11 +309,10 @@ class _QuizResultsViewState extends State<QuizResultsView>
                             const SizedBox(height: 12),
                             Text(
                               'Challenge Completed!',
-                              style: Theme.of(context).textTheme.headlineMedium
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.w800,
-                                    color: Colors.white,
-                                  ),
+                              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                      fontWeight: FontWeight.w800,
+                                      color: const Color(0xFF003F91),
+                                    ),
                             ),
                             const SizedBox(height: 8),
                             Text(
@@ -359,12 +358,12 @@ class _QuizResultsViewState extends State<QuizResultsView>
                             Container(
                               padding: const EdgeInsets.all(24),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF1E2246),
-                                borderRadius: BorderRadius.circular(24),
-                                border: Border.all(
-                                  color: const Color(0xFF2D3361),
-                                ),
-                              ),
+                                 color: const Color(0xFFECF8F8),
+                                 borderRadius: BorderRadius.circular(24),
+                                 border: Border.all(
+                                   color: const Color(0xFF003F91),
+                                 ),
+                               ),
                               child: Column(
                                 children: [
                                   Row(
@@ -572,12 +571,12 @@ class _QuizResultsViewState extends State<QuizResultsView>
                                 width: double.infinity,
                                 padding: const EdgeInsets.all(20),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF1A1E3E),
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: const Color(0xFF2D3361),
-                                  ),
-                                ),
+                                   color: const Color(0xFFECF8F8),
+                                   borderRadius: BorderRadius.circular(20),
+                                   border: Border.all(
+                                     color: const Color(0xFF003F91),
+                                   ),
+                                 ),
                                 child: Column(
                                   children: [
                                     const Icon(
@@ -593,7 +592,7 @@ class _QuizResultsViewState extends State<QuizResultsView>
                                         fontSize: 15,
                                         fontStyle: FontStyle.italic,
                                         fontWeight: FontWeight.w500,
-                                        color: Color(0xFFD1D5DB),
+                                        color: Color(0xFF003F91),
                                         height: 1.5,
                                       ),
                                     ),
@@ -610,7 +609,7 @@ class _QuizResultsViewState extends State<QuizResultsView>
                                   ],
                                 ),
                               ),
-                            ],
+                            ),
                           ],
                         ),
                       ),
@@ -684,16 +683,14 @@ class _QuizResultsViewState extends State<QuizResultsView>
     final newLevelColor = LevelSystem.getLevelColors(newLevel);
 
     return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E2246),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: leveledUp
-              ? const Color(0xFFFFD700).withValues(alpha: 0.4)
-              : const Color(0xFF2D3361),
-        ),
-      ),
+       padding: const EdgeInsets.all(20),
+       decoration: BoxDecoration(
+         color: const Color(0xFFECF8F8),
+         borderRadius: BorderRadius.circular(24),
+         border: Border.all(
+           color: const Color(0xFF003F91),
+         ),
+       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

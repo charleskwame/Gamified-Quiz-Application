@@ -311,10 +311,12 @@ class DatabaseService {
         seCorrect += correctIncrement;
       }
 
-      // Calculate streak: increment if user scored at least half correct
+      // Calculate streak: increment if user scored at least half correct; otherwise reset
       if (answeredIncrement > 0 &&
           correctIncrement >= (answeredIncrement / 2).ceil()) {
         streakNumber += 1;
+      } else {
+        streakNumber = 0;
       }
 
       // Evaluate badges

@@ -249,7 +249,9 @@ class _QuizLevelUpScreenState extends State<QuizLevelUpScreen>
 
             // Main content wrapped in RepaintBoundary for screenshot
             RepaintBoundary(
-              key: _repaintKey,
+            key: _repaintKey,
+            child: AspectRatio(
+              aspectRatio: 1 / 1.4,
               child: SafeArea(
                 child: LayoutBuilder(
                   builder: (context, constraints) {
