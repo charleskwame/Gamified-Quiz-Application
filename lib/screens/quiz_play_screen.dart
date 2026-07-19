@@ -22,6 +22,8 @@ import '../widgets/quiz/quiz_ai_fab.dart';
 import '../widgets/quiz/quiz_game_option.dart';
 import '../widgets/quiz/quiz_score_popup.dart';
 import '../widgets/quiz/quiz_circular_timer.dart';
+import '../models/guest_user.dart';
+import '../services/local_progress_service.dart';
 import '../widgets/quiz/quiz_shield_indicator.dart';
 import '../widgets/quiz/quiz_skip_indicator.dart';
 import '../widgets/quiz/quiz_pause_indicator.dart';
@@ -636,6 +638,39 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
         );
       } catch (e) {
         // Silently catch network failures or write problems in offline context
+      }
+    } else {
+      // User is either a guest or explicitly offline. Save progress locally.
+      try {
+        final guest = await LocalProgressService.loadGuestUser();
+        final guestName = guest?.username ?? 'Guest';
+        displayName = guestName;
+        
+        final sessionXpCap = QuizEngine.sessionXpCap(0);
+        finalSessionScore = _score.clamp(0, sessionXpCap);
+        
+        if (_currentStreakLength > 0) {
+          _streakSegments.add(_currentStreakLength);
+        }
+        coinsEarned = CoinService.totalCoinsWithBreaks(
+          _streakSegments,
+          widget.isTimed,
+        );
+        _coinsEarned = coinsEarned;
+
+        final localProgress = GuestProgress(
+          challengeId: 'challenge_${widget.category.toLowerCase().replaceAll(' ', '_')}_${DateTime.now().millisecondsSinceEpoch}',
+          category: widget.category,
+          score: finalSessionScore,
+          correctAnswers: _correctAnswers,
+          totalQuestions: _questions.length,
+          playedAt: DateTime.now(),
+          isTimed: widget.isTimed,
+        );
+
+        await LocalProgressService.addProgress(localProgress);
+      } catch (e) {
+        // Silently catch exceptions
       }
     }
 

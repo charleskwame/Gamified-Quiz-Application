@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../services/local_progress_service.dart';
+import '../screens/guest_name_screen.dart';
 import 'main_navigation.dart';
 
 class AuthGate extends StatefulWidget {
@@ -10,17 +13,28 @@ class AuthGate extends StatefulWidget {
 
 class _AuthGateState extends State<AuthGate> {
   bool _initialized = false;
+  bool _needsGuestSetup = false;
 
   @override
   void initState() {
     super.initState();
+    _checkStatus();
+  }
 
-    // Wait briefly for auth to resolve, then show main screen regardless
-    // This ensures the main screen is the first thing users see.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        setState(() => _initialized = true);
+  Future<void> _checkStatus() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      final guest = await LocalProgressService.loadGuestUser();
+      if (guest == null) {
+        setState(() {
+          _needsGuestSetup = true;
+          _initialized = true;
+        });
+        return;
       }
+    }
+    setState(() {
+      _initialized = true;
     });
   }
 
@@ -30,8 +44,17 @@ class _AuthGateState extends State<AuthGate> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    // Always show the main navigation on launch.
-    // Authentication is accessible from the Profile tab.
+    if (_needsGuestSetup) {
+      return GuestNameScreen(
+        onSetupComplete: () {
+          setState(() {
+            _needsGuestSetup = false;
+          });
+        },
+      );
+    }
+
     return const MainNavigation();
   }
 }
+

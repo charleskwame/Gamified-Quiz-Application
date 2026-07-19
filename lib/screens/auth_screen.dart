@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
+import '../services/local_progress_service.dart';
 import 'email_verification_screen.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -42,6 +43,14 @@ class _AuthScreenState extends State<AuthScreen>
       parent: _animController,
       curve: const Interval(0.3, 1.0, curve: Curves.easeOutBack),
     );
+    _prefillGuestName();
+  }
+
+  Future<void> _prefillGuestName() async {
+    final guest = await LocalProgressService.loadGuestUser();
+    if (guest != null) {
+      _displayNameController.text = guest.username;
+    }
   }
 
   @override

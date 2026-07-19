@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'database_service.dart';
+import 'sync_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -123,6 +124,8 @@ class AuthService {
           displayName,
           email,
         );
+        // Sync local guest progress to remote Firestore
+        await SyncService.syncGuestProgressToRemote(user.uid);
       }
 
       await _saveCredentials(email, password);
