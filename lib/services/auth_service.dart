@@ -262,15 +262,13 @@ class AuthService {
   ///
   /// [password] is required to reauthenticate before deletion for security.
   ///
-  /// Deletion order (safe — auth deleted FIRST so any failure leaves Firestore intact):
+  /// Deletion order (safe — Firestore data deleted FIRST so any failure leaves Auth intact):
   ///   1. Reauthenticate (throws if wrong password)
-  ///   2. Delete Firebase Auth account
-  ///   3. Delete Firestore user document & subcollections
-  ///   4. Clear local offline question cache (SharedPreferences)
-  ///   5. Clear local session data (SharedPreferences + SecureStorage)
+  ///   2. Delete Firestore user document & subcollections
+  ///   3. Delete Firebase Auth account
+  ///   4. Clear local session data (SharedPreferences + SecureStorage)
   ///
-  /// If step 2 fails (e.g. network error), steps 3–5 are never reached,
-  /// preserving the user's Firestore data.
+  /// If step 2 fails, the auth deletion is not attempted, preserving the account.
   Future<void> deleteAccount({required String password}) async {
     final user = _auth.currentUser;
     if (user == null) {
@@ -282,11 +280,11 @@ class AuthService {
 
     final uid = user.uid;
 
-    // 2. Delete Firebase Auth account FIRST — if this fails, Firestore is untouched
-    await user.delete();
-
-    // 3. Clean up Firestore data
+    // 2. Clean up Firestore data first
     await DatabaseService().deleteUserAccount(uid);
+
+    // 3. Delete Firebase Auth account
+    await user.delete();
 
     // 4. Clear local session data
     await _clearSession();

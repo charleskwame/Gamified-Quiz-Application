@@ -138,6 +138,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     if (confirmed != true) return;
 
+    if (!mounted) return;
+
     // Step 2: Password reauthentication dialog
     final password = await showDialog<String>(
       context: context,

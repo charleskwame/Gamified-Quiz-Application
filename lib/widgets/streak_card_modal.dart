@@ -7,7 +7,7 @@ import 'package:flutter/rendering.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../services/database_service.dart';
+
 
 class StreakCardModal extends StatefulWidget {
   final int streakNumber;

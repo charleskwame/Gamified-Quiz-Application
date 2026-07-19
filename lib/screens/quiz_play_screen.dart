@@ -792,9 +792,10 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
                backgroundColor: const Color(0xFFEF4444),
             ),
             onPressed: () async {
-              Navigator.pop(context); // Close dialog
+              final navigator = Navigator.of(context);
+              navigator.pop(); // Close dialog
               await _applyQuitPenalty();
-              if (mounted) Navigator.pop(context); // Exit quiz
+              if (mounted) navigator.pop(); // Exit quiz
             },
             child: const Text('Quit'),
           ),
