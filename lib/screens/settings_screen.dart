@@ -312,7 +312,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         }
 
         return Scaffold(
-          backgroundColor: const Color(0xFFF0F8F8),
+          backgroundColor: const Color(0xFFECF8F8),
           body: Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
