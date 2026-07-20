@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/local_progress_service.dart';
@@ -14,11 +15,20 @@ class AuthGate extends StatefulWidget {
 class _AuthGateState extends State<AuthGate> {
   bool _initialized = false;
   bool _needsGuestSetup = false;
+  StreamSubscription<User?>? _authSubscription;
 
   @override
   void initState() {
     super.initState();
-    _checkStatus();
+    _authSubscription = FirebaseAuth.instance.authStateChanges().listen((user) {
+      _checkStatus();
+    });
+  }
+
+  @override
+  void dispose() {
+    _authSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _checkStatus() async {
@@ -26,16 +36,21 @@ class _AuthGateState extends State<AuthGate> {
     if (user == null) {
       final guest = await LocalProgressService.loadGuestUser();
       if (guest == null) {
-        setState(() {
-          _needsGuestSetup = true;
-          _initialized = true;
-        });
+        if (mounted) {
+          setState(() {
+            _needsGuestSetup = true;
+            _initialized = true;
+          });
+        }
         return;
       }
     }
-    setState(() {
-      _initialized = true;
-    });
+    if (mounted) {
+      setState(() {
+        _needsGuestSetup = false;
+        _initialized = true;
+      });
+    }
   }
 
   @override
@@ -47,9 +62,11 @@ class _AuthGateState extends State<AuthGate> {
     if (_needsGuestSetup) {
       return GuestNameScreen(
         onSetupComplete: () {
-          setState(() {
-            _needsGuestSetup = false;
-          });
+          if (mounted) {
+            setState(() {
+              _needsGuestSetup = false;
+            });
+          }
         },
       );
     }

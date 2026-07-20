@@ -16,6 +16,7 @@ import 'auth_screen.dart';
 import 'earned_badges_screen.dart';
 import 'settings_screen.dart';
 import 'bug_report_screen.dart';
+import '../services/local_progress_service.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -32,16 +33,22 @@ class _ProfilePageState extends State<ProfilePage> {
     final user = _authService.currentUser;
 
     if (user == null) {
-      return _buildScaffold(
-        context: context,
-        user: null,
-        displayName: 'Guest User',
-        email: 'Sign in to sync progress',
-        streakNumber: 0,
-        unlockedBadgeIds: [],
-        selectedBadges: [],
-        avatarUrl: null,
-        totalScore: 0,
+      return FutureBuilder(
+        future: LocalProgressService.loadGuestUser(),
+        builder: (context, snapshot) {
+          final guestName = snapshot.data?.username ?? 'Guest User';
+          return _buildScaffold(
+            context: context,
+            user: null,
+            displayName: guestName,
+            email: 'Sign in to sync progress',
+            streakNumber: 0,
+            unlockedBadgeIds: [],
+            selectedBadges: [],
+            avatarUrl: null,
+            totalScore: 0,
+          );
+        },
       );
     }
 

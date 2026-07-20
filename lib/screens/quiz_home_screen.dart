@@ -10,6 +10,7 @@ import '../widgets/home/leaderboard_carousel.dart';
 import '../widgets/levels_overview_modal.dart';
 import '../widgets/streak_card_modal.dart';
 import 'challenge_select_screen.dart';
+import '../services/local_progress_service.dart';
 
 class QuizHomePage extends StatelessWidget {
   final VoidCallback onNavigateToRanks;
@@ -21,13 +22,19 @@ class QuizHomePage extends StatelessWidget {
     final user = FirebaseAuth.instance.currentUser;
 
     if (user == null) {
-      return _buildHomeContent(
-        context: context,
-        displayName: 'Guest',
-        questionsAnswered: 0,
-        accuracyPercent: 0,
-        streakNumber: 0,
-        totalScore: 0,
+      return FutureBuilder(
+        future: LocalProgressService.loadGuestUser(),
+        builder: (context, snapshot) {
+          final displayName = snapshot.data?.username ?? 'Guest';
+          return _buildHomeContent(
+            context: context,
+            displayName: displayName,
+            questionsAnswered: 0,
+            accuracyPercent: 0,
+            streakNumber: 0,
+            totalScore: 0,
+          );
+        },
       );
     }
 
