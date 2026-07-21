@@ -1,0 +1,476 @@
+================================================================================
+                    GAMIFIED QUIZ APPLICATION - TESTING GUIDE
+================================================================================
+This guide contains a comprehensive checklist of features, user flows, expected 
+outcomes, and edge cases to test throughout the Gamified Quiz Application. 
+It covers both client-side UI animations/interactions and backend logic (database 
+validation, service metrics, and synchronization).
+
+--------------------------------------------------------------------------------
+TABLE OF CONTENTS
+--------------------------------------------------------------------------------
+1. Setup and Onboarding Flow
+2. Authentication Flows (Login, Sign Up, & Verification)
+3. Offline & Category Challenge Setup
+4. Core Gameplay & Quiz Play Mechanics
+5. Power-ups & Lifeline Operations
+6. AI Assistant Integration (DeepSeek Chat Sheet)
+7. Progression System (Levels, Streaks, & Badges)
+8. Shop, Economy, & Currency Rules (With Known Bugs)
+9. Leaderboards & Rankings
+10. Data Synchronization (Local to Remote)
+11. Settings & Account Profile Customization
+12. Bug Reporting Flow
+
+================================================================================
+1. SETUP AND ONBOARDING FLOW
+================================================================================
+Goal: Ensure first-time users can establish a local identity immediately.
+
+[ ] First-Time Launch (Guest Check)
+    - Flow: Launch the app for the very first time (or clear app data).
+    - Expected: The app detects that no authenticated user session exists and 
+      no local guest profile is saved in SQLite/Preferences.
+    - Result: The user is greeted directly by the "Create Guest Username" screen.
+    
+[ ] Guest Username Creation
+    - Flow: Input a username and submit.
+    - Test Case 1 (Empty Field): Attempt to submit an empty or whitespace-only name.
+      * Expected: Validator triggers with "Please enter a username".
+    - Test Case 2 (Too Short): Input a name of 1 or 2 characters.
+      * Expected: Validator triggers with "Username must be at least 3 characters".
+    - Test Case 3 (Valid Input): Input a name >= 3 characters (e.g., "QuizMaster") 
+      and tap "Continue as Guest".
+      * Expected: The app generates a UUID, stores the guest user locally via 
+        LocalProgressService, and redirects immediately to the Home Screen.
+    
+[ ] Onboarding Account Transition
+    - Flow: On the Guest Name Screen, tap the "Create an Account" button.
+    - Expected: Redirects to the Authentication (Login/Sign Up) Screen.
+
+================================================================================
+2. AUTHENTICATION FLOWS (LOGIN, SIGN UP, & VERIFICATION)
+================================================================================
+Goal: Verify registration, error handling, session persistence, and security gates.
+
+[ ] Register / Sign Up Flow
+    - Flow: Select "Sign Up" tab, input Email, Password, Display Name, and submit.
+    - UI Verification: Check smooth sliding fade-in animations on tab transition.
+    - Pre-fill behavior: If a guest profile already exists, verify that the guest's 
+      username is automatically pre-filled into the "Display Name" field.
+    - Error Case 1 (Weak Password): Sign up with a password under 6 characters.
+      * Expected: SnackBar/Error displays: "Your password is too weak. Use at 
+        least 6 characters..."
+    - Error Case 2 (Duplicate Email): Sign up with an already registered email.
+      * Expected: SnackBar/Error displays: "This email is already registered..."
+    - Success Case: Enter a valid, unregistered email, a strong password, and tap 
+      "Register".
+      * Expected: 
+        1. Firebase user is created.
+        2. A verification email is sent to the registered address.
+        3. A public profile document is initialized in Firestore under `users/` 
+           with default values (score=0, shieldCount=0, skipCount=0, etc.).
+        4. Local guest progress sync is initiated.
+        5. User is redirected to the Email Verification Screen.
+
+[ ] Login Flow
+    - Flow: Toggle to "Log In" tab, input Email, Password, and submit.
+    - Error Case 1 (Wrong Credentials): Input an incorrect password or email.
+      * Expected: Displays: "Incorrect password..." or "Invalid email or password..."
+    - Error Case 2 (Non-Existent User): Input an email not registered.
+      * Expected: Displays: "No account found with this email address..."
+    - Success Case: Input valid email and password and tap "Log In".
+      * Expected: Authenticates via Firebase, updates session cache, checks if the 
+        user is verified, and navigates to the home view or verification gate.
+
+[ ] Email Verification Gate & Cooldown
+    - Flow: Landing on the Email Verification Screen.
+    - Polling: Verify that the app automatically checks verification status 
+      silently every 5 seconds.
+    - App Lifecycle Resume: While on this screen, lock/unlock the phone or background 
+      the app, open the verification link in an email client, and resume the quiz app.
+      * Expected: On app resume, the verification check triggers instantly and 
+        redirects you to the main dashboard.
+    - Resend Button Cooldown: Tap "Resend Verification Email".
+      * Expected: An email is resent, and a countdown cooldown timer starts, 
+        disabling the button until the timer reaches zero.
+    - Logout Action: Tap "Cancel / Log Out" on the verification screen.
+      * Expected: Signs out the Firebase user, clears session data, and returns 
+        the user safely to the Guest onboarding screen.
+
+================================================================================
+3. OFFLINE & CATEGORY CHALLENGE SETUP
+================================================================================
+Goal: Verify category routes, downloading for offline play, and network detection.
+
+[ ] Category Selection Routing
+    - Flow: From the Home screen available quests, tap on a category card (e.g., 
+      "Computer Architecture", "Software Engineering", or "Computer Networking").
+    - Expected: Navigates to the respective Challenge Select Screen, loading the 
+      selected category's details, appropriate icons, and color gradients.
+
+[ ] Downloading for Offline Play
+    - Flow: Logged-in user taps "Download for Offline Use" at the bottom of the 
+      challenge screen. (Note: This option is hidden for guest users).
+    - Expected:
+      1. Downloading animation state shows.
+      2. 50 questions are fetched from Firestore and stored locally in the 
+         SQLite database service under that category.
+      3. Success SnackBar triggers: "Successfully downloaded 50 questions for offline use!"
+      4. The "Play Offline" mode card appears dynamically.
+
+[ ] Offline Play Gate
+    - Flow: Launch the app with internet disabled (Airplane mode) or play as guest.
+    - Expected:
+      * If questions were previously downloaded, the "Play Offline" card is selectable.
+      * Tapping "Normal Challenge" or "Timed Challenge" in offline mode without 
+        local data shows appropriate error states.
+
+================================================================================
+4. CORE GAMEPLAY & QUIZ PLAY MECHANICS
+================================================================================
+Goal: Verify question flow, timers, transitions, scoring logic, and progression metrics.
+
+[ ] Question Load & Render
+    - Flow: Start any challenge.
+    - Expected: Shows an animated skeleton loader while fetching/decryption occurs. 
+      App selects exactly 10 questions at random using the Fisher-Yates shuffle 
+      algorithm.
+    - Question Layout: Visualizes index (e.g. "Question 3 of 10"), XP progress dots, 
+      the question text, 4 choices, active lifeline icons, and current score popup.
+
+[ ] Answer Selection Visuals
+    - Flow: Tap an answer.
+    - Expected:
+      * Once tapped, options are locked (cannot tap another choice).
+      * The tapped option highlights: Green if correct; Red if incorrect (with the 
+        correct option highlighted in Green).
+      * A score popup indicates points gained or lost (e.g. green "+2 XP" or red "-4 XP").
+
+[ ] Normal Challenge Scoring
+    - Rules: No timer exists.
+    - Correct Answer: Score increments by a base of +2 XP.
+    - Incorrect Answer:
+      * Level 1 User: No penalty points deducted.
+      * Level >=2 User: Penalty point deductions are applied. Points deducted 
+        compound on consecutive incorrect answers:
+        - 1st consecutive incorrect = -1 XP
+        - 2nd consecutive incorrect = -2 XP
+        - 3rd consecutive incorrect = -3 XP ... and so on.
+    - Verification: Play a normal quiz, answer incorrectly, and check that 
+      the deductions match the math above (and score never drops below 0).
+
+[ ] Timed Challenge Scoring & Timers
+    - Rules: 15-second limit per question.
+    - Circular Timer Check: Visual timer ring shrinks and color shifts (from green/blue 
+      to orange/red) as time runs out.
+    - Correct Answer (Streak Bonus): Score increments by +3 base points plus streak 
+      additive bonus:
+      * 1st correct: +3 XP
+      * 2nd consecutive correct: +4 XP (includes +1 streak bonus)
+      * 3rd consecutive correct: +5 XP (includes +2 streak bonus)
+      * Formula: `3 + (consecutiveCorrect - 1)`
+    - Incorrect Answer:
+      * Level >=2 User: Base penalty is doubled. Compounding penalty formula is:
+        - 1st consecutive incorrect = -2 XP
+        - 2nd consecutive incorrect = -4 XP
+        - 3rd consecutive incorrect = -6 XP
+        - Formula: `consecutiveIncorrect * 2`
+    - Timeout (No Answer Selected): Treated as incorrect. Triggers the same 
+      doubled penalties as incorrect answers.
+
+[ ] Session XP Cap (Capping Rules)
+    - Formula: The maximum score that can be earned in a single quiz session is capped 
+      at 30% of the XP required to reach the next level from your current score.
+    - Test Setup: Check user's starting score. For instance:
+      * At 0 XP (Level 1), the threshold to Level 2 (Amateur) is 250 XP. The 
+        next level XP required is 250.
+      * Session cap: `250 * 0.3 = 75 XP`.
+      * Verify that at the end of the session, if the score sum (+ bonus XP) 
+        exceeds 75, it is clamped to 75.
+      * Level 1 Bonus XP: Verify that users below Amateur rank (Level 1) receive 
+        an additional +15 XP bonus, which is added prior to applying the cap.
+
+[ ] Completion Screen (Quiz Results View)
+    - Flow: Finish all 10 questions.
+    - UI Check: Confetti triggers if performance is high. Animated counters roll 
+      up the session score, total XP progress bar fills, and a motivational quote 
+      with author credit is fetched and displayed.
+    - Performance Rank: Verify rank letter awards:
+      * S Rank: >= 90% accuracy (9 or 10 correct)
+      * A Rank: >= 80% accuracy (8 correct)
+      * B Rank: >= 70% accuracy (7 correct)
+      * C Rank: >= 60% accuracy (6 correct)
+      * D Rank: >= 50% accuracy (5 correct)
+      * E Rank: < 50% accuracy (4 or fewer correct)
+
+================================================================================
+5. POWER-UPS & LIFELINE OPERATIONS
+================================================================================
+Goal: Verify functional limits, visual animations, and state persistence of lifelines.
+
+[ ] Shield Power-up
+    - Setup: Ensure you own at least 1 Shield (check from settings or shop).
+    - Flow: Start a quiz. Tap the Shield button before selecting an option.
+    - Expected:
+      * Shield indicator pulses and is active.
+      * If you select a correct answer: Shield remains active (not consumed).
+      * If you select an incorrect answer or time out: Shield absorbs the 
+        point penalty (0 XP deducted), the shield is consumed, the indicator 
+        turns off, and your score remains unaffected.
+
+[ ] Skip Question Power-up
+    - Setup: Ensure you have at least 1 Skip Question item.
+    - Flow: During gameplay, tap the Skip button before selecting an option.
+    - Expected:
+      * The current question is immediately discarded.
+      * The question counter increments, and the next question slides in.
+      * No point deduction is applied. 1 Skip is consumed from your inventory.
+      * Tapping Skip on the final (10th) question immediately finishes the quiz 
+        and routes to the Results screen.
+
+[ ] Pause Timer Power-up (Timed Mode Only)
+    - Setup: Ensure you have at least 1 Pause Timer item.
+    - Flow: Start a Timed challenge. Tap the Pause button.
+    - Expected:
+      * The countdown timer freezes immediately.
+      * The circular progress bar stops animating.
+      * 1 Pause Timer item is consumed. The user can take as much time as 
+        desired to select an answer. Once selected, normal timing resumes for 
+        subsequent questions.
+
+================================================================================
+6. AI ASSISTANT INTEGRATION (DEEPSEEK CHAT SHEET)
+================================================================================
+Goal: Verify AI context, streaming response, and UI performance.
+
+[ ] AI Floating Action Button (FAB)
+    - Setup: Start a quiz.
+    - Expected: Floating Action Button with AI icon is displayed. It features a 
+      pulsing glow ring and rotates slowly to catch the user's attention.
+
+[ ] AI Chat Sheet Loading & Streaming
+    - Flow: Tap the AI FAB.
+    - Expected:
+      * A bottom sheet rises containing chat messages.
+      * The current quiz question, choices, and your selected answer (if answered) 
+        are passed as context.
+      * A response is requested from the Supabase Edge Function proxy to DeepSeek.
+      * Text chunks stream in real-time (SSE streaming) with smooth typing animation.
+      * An input box allows typing follow-up questions. Sending a custom message 
+        displays your message in the chat bubble and prompts the AI for a response.
+
+[ ] Offline AI State
+    - Flow: Disconnect the network (Offline play) and tap the AI FAB.
+    - Expected: Bottom sheet displays a notice that the AI Assistant is 
+      unavailable offline. Follow-up input is disabled.
+
+================================================================================
+7. PROGRESSION SYSTEM (LEVELS, STREAKS, & BADGES)
+================================================================================
+Goal: Verify level calculations, streak preservation, and badge showcase configurations.
+
+[ ] Level Up Triggers
+    - Level Thresholds:
+      * Level 1 (Novice): 0 XP
+      * Level 2 (Amateur): 250 XP
+      * Level 3 (Apprentice): 600 XP
+      * Level 4 (Initiate): 1,200 XP
+      * Level 5 (Scholar): 2,000 XP
+      * Level 6 (Specialist): 3,000 XP
+      * Level 7 (Expert): 4,500 XP
+      * Level 8 (Master): 6,500 XP
+      * Level 9 (Grandmaster): 9,000 XP
+      * Level 10 (Sage): 12,000 XP
+      * Level 11 (Legend): 16,000 XP
+      * Level 12 (Mythic): 21,000 XP
+      * Level 13 (Ascended): 27,000 XP
+      * Level 14 (Demigod): 34,000 XP
+      * Level 15 (Deity): 44,000 XP
+    - Test Case: Earn enough points to cross a threshold during a quiz (e.g. crossing 250 XP).
+      * Expected: On quiz completion, a full-screen "Level Up!" celebration screen 
+        triggers displaying your new Level Number, Rank Title, stats, and a level-up animation.
+
+[ ] Level Progress Modal
+    - Flow: On the Home page, tap the level badge/progress bar in the player header.
+    - Expected: Shows the `LevelsOverviewModal` listing all 15 ranks, highlighting 
+      your current level and indicating exactly how much XP is needed for the next rank.
+
+[ ] Streak Card Modal
+    - Flow: On the Home page, tap the Flame/Streak count badge.
+    - Expected: Displays the `StreakCardModal` indicating consecutive days active, 
+      active multiplier details, and daily completion checklists.
+
+[ ] Badges Showcase Selection
+    - Flow: Navigate to Profile screen -> Earned Badges section -> Tap "View All".
+    - Badge display: Verify grid shows unlocked badges in color and locked ones grayed out.
+    - Selection Limit Test:
+      * Toggle badge checkboxes to select badges for rankings showcase.
+      * Expected: You can select up to 3 badges.
+      * Attempt to select a 4th badge: The checkbox block fails and shows an error 
+        SnackBar: "You can select a maximum of 3 badges to display in rankings."
+      * Unselect a badge: Selection count drops and allows choosing a different one.
+
+[ ] Badge Achievement Card Export (Permissions & Image Render)
+    - Flow: Tap any UNLOCKED badge to view the details popup. Tap "Export Card".
+    - Expected:
+      1. Renders the card within a RepaintBoundary.
+      2. Triggers system storage/photos permission popups.
+      3. Deny Permission Check: App handles denial gracefully, displaying permission 
+         requirement instructions in a SnackBar.
+      4. Grant Permission Check: Renders and saves a high-res PNG image locally.
+         - Android Path: `/storage/emulated/0/Pictures/Gamified Quiz App Badges/`
+         - iOS Path: App Documents Directory.
+         - Notification: A SnackBar appears stating: "Badge Card Saved successfully!" 
+           with the exact filepath.
+
+================================================================================
+8. SHOP, ECONOMY, & CURRENCY RULES
+================================================================================
+Goal: Verify transaction safety, inventories, cap capacities, and edge cases.
+
+[ ] Coin Balance Live Sync
+    - Setup: Complete quizzes or purchase items.
+    - Expected: Coin count in the top-right of the Shop tab updates in real-time, 
+      fetching live values from Firestore.
+
+[ ] Item Cost Validation (Insufficient Coins)
+    - Setup: Have under 50 coins. Tap "BUY" on the Shield card (Cost: 50).
+    - Expected: Purchase is blocked. SnackBar displays: "Not enough coins or at 
+      max capacity (3)!"
+
+[ ] Maximum Inventory Capacity Cap
+    - Setup: Purchase Shields until you hold exactly 3. Attempt to buy a 4th.
+    - Expected: Transaction block. SnackBar displays: "Not enough coins or at 
+      max capacity (3)!"
+
+--------------------------------------------------------------------------------
+CRITICAL KNOWN SHOP BUGS (TO BE VERIFIED BY TESTERS):
+--------------------------------------------------------------------------------
+1. Pause Timer Purchase Bug:
+   - Location: `lib/services/database_service.dart:672`
+   - Symptom: Tapping "BUY" on the "Pause Timer" (80 coins) in the shop returns 
+     no success and does not deduct coins. 
+   - Cause: The switch-case in `database_service.dart` does not handle the item 
+     ID `'pause_timer'`. It hits `default: return;`.
+   - Action: Attempt to purchase "Pause Timer" with sufficient coins. Confirm 
+     it fails or does not increment the count. Mark this test failed until the fix is deployed.
+
+2. Identical Inventory Counter Variable Mapping Bug:
+   - Location: `lib/screens/shop_screen.dart:144`
+   - Symptom: Purchasing the "No Deductions" power-up mistakenly increments the 
+     "Pause Timer" owned counter, and vice versa.
+   - Cause: Both `no_deductions` and `pause_timer` are hardcoded to map to 
+     `pauseCount` (representing `pauseTimerCount` in Firestore) in `shop_screen.dart`.
+   - Action: Purchase "No Deductions" and verify if "Pause Timer" count increases. 
+     Mark this test failed until the logic separation fix is verified.
+--------------------------------------------------------------------------------
+
+================================================================================
+9. LEADERBOARDS & RANKINGS
+================================================================================
+Goal: Verify indexing correctness, filtering sorting, and badge display.
+
+[ ] Score Sorting Toggles
+    - Flow: Open Rankings tab. Tap the arrow sort toggle button in the top-right.
+    - Expected:
+      * Descending: Ranks users from highest score to lowest (1st, 2nd, 3rd...).
+      * Ascending: Inverts the list, showing lowest score users first.
+
+[ ] Category Point Filters
+    - Flow: Tap horizontal filter chips ('All', 'Computer Architecture', 
+      'Software Engineering', 'Computer Networking').
+    - Expected:
+      * Points column headers and scores shift instantly to display category-specific XP.
+      * User rankings list re-sorts automatically based on points in that specific 
+        category (e.g. a user with high Networking score but low overall score moves up 
+        when filtering to Networking).
+
+[ ] Badge Integration
+    - Flow: Look at user ranking cards.
+    - Expected: Up to 3 selected badges are rendered visually next to or below 
+      each user's display name. Tapping another user's rank card displays details.
+
+================================================================================
+10. DATA SYNCHRONIZATION (LOCAL TO REMOTE)
+================================================================================
+Goal: Verify local SQLite progress successfully migrates to Cloud Firestore on sign up.
+
+[ ] Synchronization Flow Verification
+    - Step 1: Clear app storage, start as Guest, and select a Guest username.
+    - Step 2: Play 2 normal or timed quizzes offline, answering questions to 
+      accumulate score and correct answers (e.g. Score = +20 XP).
+    - Step 3: Verify on home screen that stats show "+20 XP".
+    - Step 4: Navigate to Profile, tap "Log In / Sign Up", switch to the "Sign Up" 
+      tab and register a new account. Go through the verification gate.
+    - Step 5: Once signed in, inspect the Firestore `users/{uid}` document.
+      * Expected: The newly created online profile should show the transferred stats:
+        - `score` = 20
+        - `questionsAnswered` = 20
+        - `questionsCorrect` matching offline results.
+      * Verify local sqlite data: Local progress is cleared (`LocalProgressService.clearProgress()`) 
+        to prevent duplicate syncs.
+    - Step 6: Log In vs. Sign Up restriction.
+      * Note: If you already have an online account, logging in (Log In tab) will 
+        NOT trigger a guest sync. This is by design to prevent a guest session from 
+        corrupting existing high-score remote accounts. Verify that logging in 
+        leaves guest data intact or discards it depending on session preference.
+
+================================================================================
+11. SETTINGS & ACCOUNT PROFILE CUSTOMIZATION
+================================================================================
+Goal: Verify profile changes, avatar customization generator, and account destruction.
+
+[ ] Editing Profile Display Name
+    - Flow: Settings Screen -> Edit Display Name input field -> Change name & tap "Save".
+    - Expected: The field updates. A success message appears. The player headers 
+      across all views (Home, Profile, Rankings) reflect the new display name instantly.
+
+[ ] Toon-Head Avatar Customizer (DiceBear SVG Generator)
+    - Flow: Settings Screen -> Tap on user avatar -> Opens Avatar Customizer.
+    - Dropdowns: Verify customization dropdown options for:
+      * Style, Skin Tone, Eyes, Eyebrows, Mouth, Hair style, Beard style, Clothes style,
+        Hair color, Clothes color.
+      * Changing any dropdown instantly updates the SVG avatar preview image.
+    - Randomize: Tap the "Randomize" button.
+      * Expected: Triggers a randomized combination of variables, updating the 
+        preview image instantly.
+    - Save: Tap "Save Avatar".
+      * Expected: Saves details map and SVG URL to Firestore user document. The 
+        avatar updates immediately in settings, profile header, home header, and navigation.
+
+[ ] Account Deletion Gate (Destructive Action)
+    - Flow: Settings Screen -> Tap "Delete Account" button at the bottom.
+    - Step 1 (Confirmation Warning): Displays warning modal stating deletion is permanent. 
+      Tap "Delete Permanently".
+    - Step 2 (Password Verification): Prompt for password re-authentication. 
+      Input password and submit.
+    - Expected:
+      * System verifies credentials.
+      * Deletes public user document in Cloud Firestore database.
+      * Deletes auth user instance in Firebase Authentication.
+      * Redirects user back to initial Guest Onboarding screen.
+
+================================================================================
+12. BUG REPORTING FLOW
+================================================================================
+Goal: Verify web app submission endpoints, validations, and loading states.
+
+[ ] Form Validation
+    - Flow: Navigate to Bug Report screen (tap bug icon in profile header).
+    - Description Check: Leave "Describe the bug" field empty, input expected 
+      behavior, and tap "Submit".
+      * Expected: Submission is blocked. SnackBar displays: "Please describe the bug."
+
+[ ] Submission Delivery (Google Apps Script API)
+    - Flow: Input a bug description and expected behavior, then tap "Submit".
+    - Loading State: Verify the button changes to a progress spinner and user 
+      inputs are disabled during submission.
+    - Expected:
+      * App posts payload to Apps Script endpoint including: User email (or 
+        `unknown@guest` if a guest user), description, expected behavior, and hardcoded 
+        app version (`1.1.0+3`).
+      * Upon HTTP status 200/302 success, SnackBar displays: "Bug report submitted 
+        successfully! Thank you."
+      * The screen automatically closes and returns to the profile dashboard.
+================================================================================
