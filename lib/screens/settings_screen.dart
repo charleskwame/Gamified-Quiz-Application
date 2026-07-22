@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../services/auth_service.dart';
 import '../services/database_service.dart';
+import '../services/onboarding_service.dart';
 import '../widgets/avatar_customizer_dialog.dart';
 import '../widgets/main_navigation.dart';
 
@@ -352,6 +353,86 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _StaggeredFadeSlide(
                       index: 2,
                       child: _buildAccountInfoSection(),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // ── Tour Setting ──
+                    _StaggeredFadeSlide(
+                      index: 3,
+                      child: Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF003F91).withValues(alpha: 0.08),
+                              blurRadius: 24,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'App Tour',
+                              style: TextStyle(
+                                color: Color(0xFF003F91),
+                                fontSize: 20,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Want to learn about the features again? Reset the onboarding tour.',
+                              style: TextStyle(
+                                color: const Color(0xFF003F91).withOpacity(0.7),
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton.icon(
+                                onPressed: () async {
+                                  await OnboardingService.resetTour();
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('App Tour has been reset. It will show on next launch!'),
+                                        backgroundColor: Color(0xFF003F91),
+                                      ),
+                                    );
+                                  }
+                                },
+                                icon: const Icon(
+                                  Icons.restart_alt_rounded,
+                                  color: Color(0xFF003F91),
+                                ),
+                                label: const Text(
+                                  'Reset App Tour',
+                                  style: TextStyle(
+                                    color: Color(0xFF003F91),
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  side: const BorderSide(
+                                    color: Color(0xFF003F91),
+                                    width: 1.5,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
 
                     const SizedBox(height: 32),

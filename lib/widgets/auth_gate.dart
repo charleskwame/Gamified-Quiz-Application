@@ -2,7 +2,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/local_progress_service.dart';
+import '../services/onboarding_service.dart';
 import '../screens/guest_name_screen.dart';
+import '../screens/onboarding_tour_screen.dart';
 import 'main_navigation.dart';
 
 class AuthGate extends StatefulWidget {
@@ -15,6 +17,7 @@ class AuthGate extends StatefulWidget {
 class _AuthGateState extends State<AuthGate> {
   bool _initialized = false;
   bool _needsGuestSetup = false;
+  bool _showOnboarding = false;
   StreamSubscription<User?>? _authSubscription;
 
   @override
@@ -45,9 +48,14 @@ class _AuthGateState extends State<AuthGate> {
         return;
       }
     }
+    
+    // Check if the onboarding tour is required
+    final showTour = await OnboardingService.isFirstLaunch();
+    
     if (mounted) {
       setState(() {
         _needsGuestSetup = false;
+        _showOnboarding = showTour;
         _initialized = true;
       });
     }
@@ -62,9 +70,18 @@ class _AuthGateState extends State<AuthGate> {
     if (_needsGuestSetup) {
       return GuestNameScreen(
         onSetupComplete: () {
+          _checkStatus();
+        },
+      );
+    }
+
+    if (_showOnboarding) {
+      return OnboardingTourScreen(
+        onComplete: () async {
+          await OnboardingService.markTourCompleted();
           if (mounted) {
             setState(() {
-              _needsGuestSetup = false;
+              _showOnboarding = false;
             });
           }
         },
@@ -74,4 +91,5 @@ class _AuthGateState extends State<AuthGate> {
     return const MainNavigation();
   }
 }
+
 
