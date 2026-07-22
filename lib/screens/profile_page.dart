@@ -17,6 +17,7 @@ import 'earned_badges_screen.dart';
 import 'settings_screen.dart';
 import 'bug_report_screen.dart';
 import '../services/local_progress_service.dart';
+import '../models/guest_user.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -33,20 +34,34 @@ class _ProfilePageState extends State<ProfilePage> {
     final user = _authService.currentUser;
 
     if (user == null) {
-      return FutureBuilder(
-        future: LocalProgressService.loadGuestUser(),
+      return FutureBuilder<List<dynamic>>(
+        future: Future.wait([
+          LocalProgressService.loadGuestUser(),
+          LocalProgressService.getAggregatedStats(),
+        ]),
         builder: (context, snapshot) {
-          final guestName = snapshot.data?.username ?? 'Guest User';
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+          final guest = snapshot.data?[0] as GuestUser?;
+          final stats = snapshot.data?[1] as GuestStats?;
+          
+          final guestName = guest?.username ?? 'Guest User';
+          final streakNumber = stats?.streakNumber ?? 0;
+          final totalScore = stats?.score ?? 0;
+
           return _buildScaffold(
             context: context,
             user: null,
             displayName: guestName,
             email: 'Sign in to sync progress',
-            streakNumber: 0,
+            streakNumber: streakNumber,
             unlockedBadgeIds: [],
             selectedBadges: [],
             avatarUrl: null,
-            totalScore: 0,
+            totalScore: totalScore,
           );
         },
       );

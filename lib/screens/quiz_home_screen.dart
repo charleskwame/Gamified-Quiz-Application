@@ -11,6 +11,7 @@ import '../widgets/levels_overview_modal.dart';
 import '../widgets/streak_card_modal.dart';
 import 'challenge_select_screen.dart';
 import '../services/local_progress_service.dart';
+import '../models/guest_user.dart';
 
 class QuizHomePage extends StatelessWidget {
   final VoidCallback onNavigateToRanks;
@@ -22,17 +23,37 @@ class QuizHomePage extends StatelessWidget {
     final user = FirebaseAuth.instance.currentUser;
 
     if (user == null) {
-      return FutureBuilder(
-        future: LocalProgressService.loadGuestUser(),
+      return FutureBuilder<List<dynamic>>(
+        future: Future.wait([
+          LocalProgressService.loadGuestUser(),
+          LocalProgressService.getAggregatedStats(),
+        ]),
         builder: (context, snapshot) {
-          final displayName = snapshot.data?.username ?? 'Guest';
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+          final guest = snapshot.data?[0] as GuestUser?;
+          final stats = snapshot.data?[1] as GuestStats?;
+          
+          final displayName = guest?.username ?? 'Guest';
+          final questionsAnswered = stats?.questionsAnswered ?? 0;
+          final questionsCorrect = stats?.questionsCorrect ?? 0;
+          final streakNumber = stats?.streakNumber ?? 0;
+          final totalScore = stats?.score ?? 0;
+          
+          final accuracyPercent = questionsAnswered > 0
+              ? ((questionsCorrect / questionsAnswered) * 100).round()
+              : 0;
+
           return _buildHomeContent(
             context: context,
             displayName: displayName,
-            questionsAnswered: 0,
-            accuracyPercent: 0,
-            streakNumber: 0,
-            totalScore: 0,
+            questionsAnswered: questionsAnswered,
+            accuracyPercent: accuracyPercent,
+            streakNumber: streakNumber,
+            totalScore: totalScore,
           );
         },
       );

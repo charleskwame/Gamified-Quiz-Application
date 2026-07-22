@@ -646,8 +646,13 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
         final guestName = guest?.username ?? 'Guest';
         displayName = guestName;
         
-        final sessionXpCap = QuizEngine.sessionXpCap(0);
+        final guestStats = await LocalProgressService.getAggregatedStats();
+        final guestCurrentScore = guestStats.score;
+        oldTotalScore = guestCurrentScore; // set oldTotalScore so results screen starts from correct total
+        
+        final sessionXpCap = QuizEngine.sessionXpCap(guestCurrentScore);
         finalSessionScore = _score.clamp(0, sessionXpCap);
+        updatedTotalScore = guestCurrentScore + finalSessionScore;
         
         if (_currentStreakLength > 0) {
           _streakSegments.add(_currentStreakLength);
