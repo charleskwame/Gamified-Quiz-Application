@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../services/local_progress_service.dart';
 
 class AnalyticsScreen extends StatelessWidget {
   const AnalyticsScreen({super.key});
@@ -10,9 +11,47 @@ class AnalyticsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Analytics')),
-        body: const Center(child: Text('Please log in to view analytics.')),
+      return FutureBuilder<GuestStats>(
+        future: LocalProgressService.getAggregatedStats(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+          final stats = snapshot.data ?? GuestStats.empty();
+          if (stats.questionsAnswered == 0) {
+            return Scaffold(
+              appBar: AppBar(title: const Text('Analytics')),
+              body: const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(24.0),
+                  child: Text(
+                    'Play some quizzes in Guest Mode to generate analytics here!\n\nOr sign up/log in to sync progress.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 16, color: Color(0xFF6B7280)),
+                  ),
+                ),
+              ),
+            );
+          }
+          
+          return _buildAnalyticsContent(
+            context: context,
+            questionsAnswered: stats.questionsAnswered,
+            questionsCorrect: stats.questionsCorrect,
+            caPoints: stats.computerArchitecturePoints,
+            cnPoints: stats.computerNetworkingPoints,
+            sePoints: stats.softwareEngineeringPoints,
+            caAnswered: stats.caAnswered,
+            caCorrect: stats.caCorrect,
+            cnAnswered: stats.cnAnswered,
+            cnCorrect: stats.cnCorrect,
+            seAnswered: stats.seAnswered,
+            seCorrect: stats.seCorrect,
+            isGuest: true,
+          );
+        },
       );
     }
 
@@ -47,7 +86,6 @@ class AnalyticsScreen extends StatelessWidget {
           final data = snapshot.data!.data() as Map<String, dynamic>;
           final int questionsAnswered = data['questionsAnswered'] ?? 0;
           final int questionsCorrect = data['questionsCorrect'] ?? 0;
-          final int questionsIncorrect = questionsAnswered - questionsCorrect;
 
           final int caPoints = data['computerArchitecturePoints'] ?? 0;
           final int cnPoints = data['computerNetworkingPoints'] ?? 0;
@@ -55,15 +93,12 @@ class AnalyticsScreen extends StatelessWidget {
 
           final int caAnswered = data['caAnswered'] ?? 0;
           final int caCorrect = data['caCorrect'] ?? 0;
-          final int caIncorrect = caAnswered - caCorrect;
 
           final int cnAnswered = data['cnAnswered'] ?? 0;
           final int cnCorrect = data['cnCorrect'] ?? 0;
-          final int cnIncorrect = cnAnswered - cnCorrect;
 
           final int seAnswered = data['seAnswered'] ?? 0;
           final int seCorrect = data['seCorrect'] ?? 0;
-          final int seIncorrect = seAnswered - seCorrect;
 
           if (questionsAnswered == 0 &&
               caPoints == 0 &&
@@ -74,52 +109,132 @@ class AnalyticsScreen extends StatelessWidget {
             );
           }
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildSectionTitle('Accuracy Breakdown'),
-                const SizedBox(height: 16),
-                _buildAccuracyPieChart(
-                  questionsCorrect,
-                  questionsIncorrect,
-                  questionsAnswered,
-                ),
-                const SizedBox(height: 32),
-                _buildSectionTitle('Points by Subject'),
-                const SizedBox(height: 16),
-                _buildPointsBarChart(caPoints, cnPoints, sePoints),
-                const SizedBox(height: 32),
-                _buildSectionTitle('Subject Statistics'),
-                const SizedBox(height: 16),
-                _buildSubjectStatsCard(
-                  'Computer Architecture',
-                  caAnswered,
-                  caCorrect,
-                  caIncorrect,
-                  const Color(0xFF003F91),
-                ),
-                const SizedBox(height: 16),
-                _buildSubjectStatsCard(
-                  'Computer Networking',
-                  cnAnswered,
-                  cnCorrect,
-                  cnIncorrect,
-                  const Color(0xFF0091EA),
-                ),
-                const SizedBox(height: 16),
-                _buildSubjectStatsCard(
-                  'Software Engineering',
-                  seAnswered,
-                  seCorrect,
-                  seIncorrect,
-                  const Color(0xFF37474F),
-                ),
-              ],
-            ),
+          return _buildAnalyticsContent(
+            context: context,
+            questionsAnswered: questionsAnswered,
+            questionsCorrect: questionsCorrect,
+            caPoints: caPoints,
+            cnPoints: cnPoints,
+            sePoints: sePoints,
+            caAnswered: caAnswered,
+            caCorrect: caCorrect,
+            cnAnswered: cnAnswered,
+            cnCorrect: cnCorrect,
+            seAnswered: seAnswered,
+            seCorrect: seCorrect,
+            isGuest: false,
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildAnalyticsContent({
+    required BuildContext context,
+    required int questionsAnswered,
+    required int questionsCorrect,
+    required int caPoints,
+    required int cnPoints,
+    required int sePoints,
+    required int caAnswered,
+    required int caCorrect,
+    required int cnAnswered,
+    required int cnCorrect,
+    required int seAnswered,
+    required int seCorrect,
+    required bool isGuest,
+  }) {
+    final int questionsIncorrect = questionsAnswered - questionsCorrect;
+    final int caIncorrect = caAnswered - caCorrect;
+    final int cnIncorrect = cnAnswered - cnCorrect;
+    final int seIncorrect = seAnswered - seCorrect;
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: isGuest ? AppBar(
+        title: const Text(
+          'Guest Analytics',
+          style: TextStyle(
+            fontWeight: FontWeight.w800,
+            color: Color(0xFF121826),
+          ),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Color(0xFF121826)),
+      ) : null,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (isGuest) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF003F91).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFF003F91).withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  children: const [
+                    Icon(Icons.info_outline_rounded, color: Color(0xFF003F91)),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Showing local guest stats. Create an account to backup your progress!',
+                        style: TextStyle(
+                          color: Color(0xFF003F91),
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+            _buildSectionTitle('Accuracy Breakdown'),
+            const SizedBox(height: 16),
+            _buildAccuracyPieChart(
+              questionsCorrect,
+              questionsIncorrect,
+              questionsAnswered,
+            ),
+            const SizedBox(height: 32),
+            _buildSectionTitle('Points by Subject'),
+            const SizedBox(height: 16),
+            _buildPointsBarChart(caPoints, cnPoints, sePoints),
+            const SizedBox(height: 32),
+            _buildSectionTitle('Subject Statistics'),
+            const SizedBox(height: 16),
+            _buildSubjectStatsCard(
+              'Computer Architecture',
+              caAnswered,
+              caCorrect,
+              caIncorrect,
+              const Color(0xFF003F91),
+            ),
+            const SizedBox(height: 16),
+            _buildSubjectStatsCard(
+              'Computer Networking',
+              cnAnswered,
+              cnCorrect,
+              cnIncorrect,
+              const Color(0xFF0091EA),
+            ),
+            const SizedBox(height: 16),
+            _buildSubjectStatsCard(
+              'Software Engineering',
+              seAnswered,
+              seCorrect,
+              seIncorrect,
+              const Color(0xFF37474F),
+            ),
+          ],
+        ),
       ),
     );
   }
