@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/guest_user.dart';
 import '../services/local_progress_service.dart';
 import '../services/database_service.dart';
 
@@ -23,7 +21,7 @@ class SyncService {
           isTimed: p.isTimed,
           // Since it's synced progress from a guest, we do not add/modify shields or skips
           // unless they were acquired by the guest during play. Defaulting to 0.
-          coinsEarned: 0, 
+          coinsEarned: 0,
         );
 
         // Record a rank history entry for each synced game if appropriate

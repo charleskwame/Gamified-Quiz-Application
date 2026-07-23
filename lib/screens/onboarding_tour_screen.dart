@@ -31,7 +31,10 @@ class _OnboardingTourScreenState extends State<OnboardingTourScreen> {
           children: [
             // Top Skip Button Bar
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8.0,
+              ),
               child: Align(
                 alignment: Alignment.topRight,
                 child: isLastPage
@@ -88,7 +91,7 @@ class _OnboardingTourScreenState extends State<OnboardingTourScreen> {
                     decoration: BoxDecoration(
                       color: _currentPage == index
                           ? colorPrimary
-                          : colorPrimary.withOpacity(0.25),
+                          : colorPrimary.withValues(alpha: 0.25),
                       borderRadius: BorderRadius.circular(4.0),
                     ),
                   ),
@@ -111,9 +114,7 @@ class _OnboardingTourScreenState extends State<OnboardingTourScreen> {
                           curve: Curves.easeInOut,
                         );
                       },
-                      style: TextButton.styleFrom(
-                        foregroundColor: colorDark,
-                      ),
+                      style: TextButton.styleFrom(foregroundColor: colorDark),
                       child: const Text(
                         'Back',
                         style: TextStyle(
@@ -132,7 +133,10 @@ class _OnboardingTourScreenState extends State<OnboardingTourScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: colorPrimary,
                         foregroundColor: colorLight,
-                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 32,
+                          vertical: 16,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -157,7 +161,10 @@ class _OnboardingTourScreenState extends State<OnboardingTourScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: colorPrimary,
                         foregroundColor: colorLight,
-                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 32,
+                          vertical: 16,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -252,7 +259,7 @@ class _OnboardingPageContentState extends State<OnboardingPageContent>
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: widget.colorPrimary.withOpacity(0.2),
+                    color: widget.colorPrimary.withValues(alpha: 0.2),
                     blurRadius: 20,
                     offset: const Offset(0, 10),
                   ),
@@ -266,7 +273,7 @@ class _OnboardingPageContentState extends State<OnboardingPageContent>
             ),
           ),
           const SizedBox(height: 48),
-          
+
           // Title
           FadeTransition(
             opacity: _fadeAnimation,
@@ -282,7 +289,7 @@ class _OnboardingPageContentState extends State<OnboardingPageContent>
             ),
           ),
           const SizedBox(height: 16),
-          
+
           // Description
           FadeTransition(
             opacity: _fadeAnimation,
@@ -290,7 +297,7 @@ class _OnboardingPageContentState extends State<OnboardingPageContent>
               widget.data.description,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: widget.colorDark.withOpacity(0.7),
+                color: widget.colorDark.withValues(alpha: 0.7),
                 fontSize: 16,
                 height: 1.5,
               ),

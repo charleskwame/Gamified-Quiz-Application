@@ -367,7 +367,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF003F91).withValues(alpha: 0.08),
+                              color: const Color(
+                                0xFF003F91,
+                              ).withValues(alpha: 0.08),
                               blurRadius: 24,
                               offset: const Offset(0, 4),
                             ),
@@ -388,7 +390,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             Text(
                               'Want to learn about the features again? Reset the onboarding tour.',
                               style: TextStyle(
-                                color: const Color(0xFF003F91).withOpacity(0.7),
+                                color: const Color(
+                                  0xFF003F91,
+                                ).withValues(alpha: 0.7),
                                 fontSize: 14,
                               ),
                             ),
@@ -401,7 +405,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   if (mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
-                                        content: Text('App Tour has been reset. It will show on next launch!'),
+                                        content: Text(
+                                          'App Tour has been reset. It will show on next launch!',
+                                        ),
                                         backgroundColor: Color(0xFF003F91),
                                       ),
                                     );
@@ -426,7 +432,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(14),
                                   ),
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                  ),
                                 ),
                               ),
                             ),

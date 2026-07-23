@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:gamified_quiz_app/services/onboarding_service.dart';
 import 'package:gamified_quiz_app/screens/onboarding_tour_screen.dart';
-import 'package:gamified_quiz_app/models/onboarding_page_data.dart';
 
 void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  testWidgets('OnboardingTourScreen renders correctly and navigates', (WidgetTester tester) async {
+  testWidgets('OnboardingTourScreen renders correctly and navigates', (
+    WidgetTester tester,
+  ) async {
     bool completed = false;
 
     await tester.pumpWidget(
