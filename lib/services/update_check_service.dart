@@ -17,11 +17,15 @@ class UpdateInfo {
   /// Optional release notes (GitHub release body, may be markdown).
   final String? releaseNotes;
 
+  /// Commit message subjects introduced since the previous release.
+  final List<String> commitMessages;
+
   const UpdateInfo({
     required this.latestVersion,
     required this.installedVersion,
     required this.downloadUrl,
     this.releaseNotes,
+    this.commitMessages = const [],
   });
 }
 
@@ -39,6 +43,14 @@ class UpdateCheckService {
   static const String _releasesUrl =
       'https://api.github.com/repos/$_repoOwner/$_repoName/releases/latest';
 
+  static const String _releasesListUrl =
+      'https://api.github.com/repos/$_repoOwner/$_repoName/releases?per_page=2';
+
+  static const Map<String, String> _apiHeaders = {
+    'Accept': 'application/vnd.github+json',
+    'User-Agent': 'Gamified-Quiz-App',
+  };
+
   static const Duration _timeout = Duration(seconds: 8);
 
   final http.Client _client;
@@ -52,13 +64,7 @@ class UpdateCheckService {
       final installedVersion = normalizeVersion(packageInfo.version);
 
       final response = await _client
-          .get(
-            Uri.parse(_releasesUrl),
-            headers: const {
-              'Accept': 'application/vnd.github+json',
-              'User-Agent': 'Gamified-Quiz-App',
-            },
-          )
+          .get(Uri.parse(_releasesUrl), headers: _apiHeaders)
           .timeout(_timeout);
 
       if (response.statusCode != 200) return null;
@@ -80,6 +86,7 @@ class UpdateCheckService {
         installedVersion: installedVersion,
         downloadUrl: downloadUrl,
         releaseNotes: data['body'] as String?,
+        commitMessages: await _fetchCommitMessages(latestVersion),
       );
     } catch (_) {
       return null;
@@ -95,6 +102,53 @@ class UpdateCheckService {
       if (url != null && name.toLowerCase().endsWith('.apk')) return url;
     }
     return null;
+  }
+
+  /// Fetches the commit message subjects introduced since the previous release.
+  /// Never throws - any failure yields an empty list.
+  Future<List<String>> _fetchCommitMessages(String latestTag) async {
+    try {
+      final releasesResponse = await _client
+          .get(Uri.parse(_releasesListUrl), headers: _apiHeaders)
+          .timeout(_timeout);
+      if (releasesResponse.statusCode != 200) return const [];
+
+      final releases = jsonDecode(releasesResponse.body);
+      if (releases is! List || releases.length < 2) return const [];
+
+      final previous = releases[1];
+      if (previous is! Map<String, dynamic>) return const [];
+      final previousTag = previous['tag_name'] as String? ?? '';
+      if (previousTag.isEmpty) return const [];
+
+      final compareUrl =
+          'https://api.github.com/repos/$_repoOwner/$_repoName/compare/'
+          '${Uri.encodeComponent(previousTag)}...${Uri.encodeComponent(latestTag)}';
+      final compareResponse = await _client
+          .get(Uri.parse(compareUrl), headers: _apiHeaders)
+          .timeout(_timeout);
+      if (compareResponse.statusCode != 200) return const [];
+
+      final data = jsonDecode(compareResponse.body);
+      if (data is! Map<String, dynamic>) return const [];
+
+      final commits = data['commits'];
+      if (commits is! List) return const [];
+
+      final messages = <String>[];
+      for (final commitEntry in commits) {
+        if (commitEntry is! Map<String, dynamic>) continue;
+        final commit = commitEntry['commit'];
+        if (commit is! Map<String, dynamic>) continue;
+        final message = (commit['message'] as String? ?? '').trim();
+        if (message.isEmpty) continue;
+        final subject = message.split('\n').first.trim();
+        if (subject.isNotEmpty) messages.add(subject);
+      }
+      return messages;
+    } catch (_) {
+      return const [];
+    }
   }
 }
 
