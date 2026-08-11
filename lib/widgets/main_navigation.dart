@@ -7,7 +7,9 @@ import '../screens/rankings_page.dart';
 import '../screens/shop_screen.dart';
 import '../screens/profile_page.dart';
 import '../services/auth_service.dart';
+import '../services/update_check_service.dart';
 import 'home/particle_background.dart';
+import 'update_app_dialog.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -23,6 +25,25 @@ class _MainNavigationState extends State<MainNavigation> {
   /// Set to false to temporarily hide the bottom navigation bar.
   /// For debugging purposes only remove after use
   static bool showNavBar = true;
+
+  /// Guards the update check so it only runs once per app launch.
+  static bool _updateCheckTriggered = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkForUpdate());
+  }
+
+  Future<void> _checkForUpdate() async {
+    if (_updateCheckTriggered || !mounted) return;
+    _updateCheckTriggered = true;
+
+    final info = await UpdateCheckService().checkForUpdate();
+    if (info == null || !mounted) return;
+
+    UpdateAppDialog.show(context, info);
+  }
 
   Widget _buildProfileIcon() {
     final user = _authService.currentUser;
