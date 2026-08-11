@@ -34,12 +34,15 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
+          cache: gradle # cache Gradle + Android Gradle Plugin dependencies (~/.gradle)
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: "3.44.4"
           channel: stable
+          cache: true # cache the Flutter SDK (avoids the ~2GB download each run)
+          pub-cache: true # cache pub dependencies so `flutter pub get` is fast
 
       - name: Install dependencies
         run: flutter pub get
