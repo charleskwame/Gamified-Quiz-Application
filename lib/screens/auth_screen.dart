@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
 import '../services/local_progress_service.dart';
-import 'email_verification_screen.dart';
 
 class AuthScreen extends StatefulWidget {
   final VoidCallback? onBypass;
@@ -159,14 +158,11 @@ class _AuthScreenState extends State<AuthScreen>
           displayName: _displayNameController.text.trim(),
         );
 
-        // After successful sign-up, navigate to email verification screen
+        // Sign-up success. Do NOT navigate here — AuthGate re-evaluates on the
+        // auth-state change and, because the new account is unverified, renders
+        // the email verification screen itself. Pop back to reveal it.
         if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (_) => EmailVerificationScreen(email: email),
-            ),
-          );
+          Navigator.of(context).popUntil((route) => route.isFirst);
         }
         return;
       } else {

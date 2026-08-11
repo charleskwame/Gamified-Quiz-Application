@@ -4,12 +4,18 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
 import '../services/database_service.dart';
 
-import '../widgets/main_navigation.dart';
-
 class EmailVerificationScreen extends StatefulWidget {
   final String email;
 
-  const EmailVerificationScreen({super.key, required this.email});
+  /// Called when the user's email is confirmed verified so the [AuthGate] can
+  /// re-evaluate and let them into the main app.
+  final VoidCallback onVerified;
+
+  const EmailVerificationScreen({
+    super.key,
+    required this.email,
+    required this.onVerified,
+  });
 
   @override
   State<EmailVerificationScreen> createState() =>
@@ -17,7 +23,7 @@ class EmailVerificationScreen extends StatefulWidget {
 }
 
 class _EmailVerificationScreenState extends State<EmailVerificationScreen>
-    with WidgetsBindingObserver, SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin {
   final AuthService _authService = AuthService();
   bool _isChecking = false;
   bool _isVerified = false;
@@ -28,7 +34,6 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
 
   int _resendCooldown = 0;
   Timer? _cooldownTimer;
-  Timer? _pollingTimer;
 
   late AnimationController _animController;
   late Animation<double> _fadeSlide;
@@ -37,7 +42,6 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
 
     _animController = AnimationController(
       vsync: this,
@@ -53,47 +57,17 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
         curve: const Interval(0.0, 0.4, curve: Curves.easeOutBack),
       ),
     );
-
-    _startPolling();
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    _pollingTimer?.cancel();
     _cooldownTimer?.cancel();
     _animController.dispose();
     super.dispose();
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed && !_isVerified) {
-      _checkVerificationSilently();
-    }
-  }
-
-  void _startPolling() {
-    _pollingTimer = Timer.periodic(const Duration(seconds: 5), (_) async {
-      if (!_isVerified && mounted) {
-        await _checkVerificationSilently();
-      }
-    });
-  }
-
-  Future<void> _checkVerificationSilently() async {
-    final verified = await _authService.checkEmailVerification();
-    if (verified && mounted) {
-      setState(() => _isVerified = true);
-      _pollingTimer?.cancel();
-      final user = _authService.currentUser;
-      if (user != null) {
-        await DatabaseService().updateEmailVerificationStatus(user.uid, true);
-      }
-      _navigateToApp();
-    }
-  }
-
+  // Verification is intentionally NOT polled automatically. The status is
+  // checked only when the user taps the "I've Verified" button below.
   Future<void> _checkVerificationManually() async {
     setState(() {
       _isChecking = true;
@@ -105,7 +79,6 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
       if (mounted) {
         if (verified) {
           setState(() => _isVerified = true);
-          _pollingTimer?.cancel();
           final user = _authService.currentUser;
           if (user != null) {
             await DatabaseService().updateEmailVerificationStatus(
@@ -113,7 +86,8 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
               true,
             );
           }
-          _navigateToApp();
+          // Let AuthGate re-evaluate and route into the main app.
+          widget.onVerified();
         } else {
           setState(() {
             _errorMessage =
@@ -225,21 +199,8 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
 
   Future<void> _logOut() async {
     setState(() => _isLoggingOut = true);
-    _pollingTimer?.cancel();
     _cooldownTimer?.cancel();
     await _authService.logOut();
-  }
-
-  void _navigateToApp() {
-    if (mounted) {
-      if (Navigator.of(context).canPop()) {
-        Navigator.of(context).pop();
-      } else {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const MainNavigation()),
-        );
-      }
-    }
   }
 
   @override
