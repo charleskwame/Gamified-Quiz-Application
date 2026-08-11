@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'database_service.dart';
+import 'local_progress_service.dart';
 import 'sync_service.dart';
 
 class AuthService {
@@ -100,6 +101,27 @@ class AuthService {
     await prefs.remove(_sessionKey);
     await _secureStorage.deleteAll();
     await _clearCredentials();
+    // Clear any locally cached guest profile/progress so a stale name card
+    // doesn't reappear after sign-out or account deletion.
+    await LocalProgressService.clearAll();
+  }
+
+  /// Repair a stale state left behind by a restored Android backup.
+  ///
+  /// On reinstall, Android Auto Backup can restore the plaintext
+  /// `firebase_session_active` flag and the guest profile, but NOT the
+  /// KeyStore-bound Firebase auth token. That leaves the app signed-out yet
+  /// still displaying an old guest name card. If the flag says a session was
+  /// active but no Firebase user was restored, clear the stale flag and guest
+  /// data so the next launch starts fresh. Secure-storage credentials are kept
+  /// so a silent re-login can still be retried later.
+  Future<void> repairRestoredSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    final wasSessionActive = prefs.getBool(_sessionKey) ?? false;
+    if (wasSessionActive && _auth.currentUser == null) {
+      await prefs.remove(_sessionKey);
+      await LocalProgressService.clearAll();
+    }
   }
 
   // Sign up with email and password

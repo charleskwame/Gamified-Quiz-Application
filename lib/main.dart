@@ -30,5 +30,10 @@ void main() async {
   // if R8 has stripped the KeyStore/crypto classes needed for persistence.
   await AuthService().waitForSessionRestore();
 
+  // Self-heal a stale restored-from-backup state: if a previous install had a
+  // session but Firebase could not restore it, wipe the leftover guest profile
+  // so an old name card isn't shown to a signed-out user.
+  await AuthService().repairRestoredSession();
+
   runApp(const MyApp());
 }
