@@ -56,27 +56,36 @@ jobs:
           keyPassword=$KEY_PASSWORD
           EOF
 
-      - name: Build release APK
-        run: flutter build apk --release
-
-      - name: Build release App Bundle
-        run: flutter build appbundle --release
-
-      # Tag = pubspec version (1.1.0+3 -> v1.1.0), overridable via client_payload
+      # Version comes from the client_payload (set by scripts/deploy.ps1),
+      # falling back to the version in pubspec.yaml for manual UI runs.
       - name: Determine release version
         id: version
         run: |
           VERSION="${{ github.event.client_payload.version }}"
+          BUILD_NUMBER="${{ github.event.client_payload.buildNumber }}"
           if [ -z "$VERSION" ]; then
             VERSION=$(grep -m1 '^version:' pubspec.yaml | awk '{print $2}' | cut -d'+' -f1)
           fi
+          if [ -z "$BUILD_NUMBER" ]; then
+            BUILD_NUMBER=$(grep -m1 '^version:' pubspec.yaml | awk '{print $2}' | awk -F'+' '{print $2}')
+            [ -z "$BUILD_NUMBER" ] && BUILD_NUMBER=1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "buildNumber=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
           echo "tag=v${VERSION}" >> "$GITHUB_OUTPUT"
+
+      # --build-name/--build-number set versionName/versionCode on the APK/AAB
+      - name: Build release APK
+        run: flutter build apk --release --build-name=${{ steps.version.outputs.version }} --build-number=${{ steps.version.outputs.buildNumber }}
+
+      - name: Build release App Bundle
+        run: flutter build appbundle --release --build-name=${{ steps.version.outputs.version }} --build-number=${{ steps.version.outputs.buildNumber }}
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.version.outputs.tag }}
-          name: Release ${{ steps.version.outputs.tag }}
+          name: gamified-quiz-release-${{ steps.version.outputs.version }}
           generate_release_notes: true
           # If a release already exists for this tag, it is updated (default behavior)
           files: |

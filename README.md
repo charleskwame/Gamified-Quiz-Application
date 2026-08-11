@@ -11,20 +11,25 @@ This project is a starting point for a Flutter application.
 Build a signed Android **APK + App Bundle** and publish them as a GitHub Release with one command:
 
 ```powershell
-# Windows (PowerShell)
-.\scripts\deploy.ps1                      # uses the version from pubspec.yaml
-.\scripts\deploy.ps1 -Version 1.2.0       # override the release version
+# Windows (PowerShell) — auto-increments the patch version each deployment
+.\scripts\deploy.ps1                     # v1.1.0 -> v1.1.1 -> v1.1.2 ...
+.\scripts\deploy.ps1 -Version 1.2.0      # explicit version
+.\scripts\deploy.ps1 -NoAutoIncrement    # use the static version from pubspec.yaml
 ```
 
 ```bash
 # macOS / Linux / bash
-./scripts/deploy.sh                       # or: ./scripts/deploy.sh 1.2.0
+./scripts/deploy.sh                      # auto-increment
+./scripts/deploy.sh 1.2.0                # explicit version
+DEPLOY_NO_AUTO=1 ./scripts/deploy.sh     # use version from pubspec.yaml
 ```
 
 ### How it works
 
 - The script sends a `repository_dispatch` event (`event_type: "deploy"`) to GitHub.
-- `.github/workflows/deploy.yml` listens for it, builds the release APK + AAB, and publishes a release tagged `v<version>` (e.g. `v1.1.0`).
+- **By default it auto-increments the patch version** from the latest GitHub release tag (e.g. `v1.1.0` → `v1.1.1`). Pass `-Version` (PowerShell) / a positional arg (bash) to pin a specific version, or `-NoAutoIncrement` / `DEPLOY_NO_AUTO=1` to fall back to `pubspec.yaml`.
+- The version and an auto-derived build number are passed to the build via `--build-name`/`--build-number`, so the APK/AAB carry the deployed version.
+- `.github/workflows/deploy.yml` listens for the event, builds the release APK + AAB, and publishes a release tagged `v<version>` (e.g. `v1.1.1`).
 - Re-running with the same version updates the existing release instead of failing.
 
 ### One-time setup
