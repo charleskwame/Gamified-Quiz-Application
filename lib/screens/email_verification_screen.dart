@@ -91,7 +91,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
         } else {
           setState(() {
             _errorMessage =
-                'Email not verified yet. Please check your inbox and click the verification link.';
+                'Email not verified yet. Please check your inbox or spam and click the verification link.';
           });
         }
       }
@@ -363,7 +363,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                   children: [
                                     _buildInstructionRow(
                                       Icons.mark_email_read_rounded,
-                                      'Open the verification email we sent you',
+                                      'Open the verification email we sent you. Check your inbox and spam folder.',
                                       0,
                                     ),
                                     const SizedBox(height: 16),
@@ -515,7 +515,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                           ? 'Checking...'
                                           : _isVerified
                                           ? 'Verified!'
-                                          : 'I\'ve Verified - Continue',
+                                          : 'I\'ve Verified',
                                       style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w800,
