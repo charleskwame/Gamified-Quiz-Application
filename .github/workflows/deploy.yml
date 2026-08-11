@@ -7,9 +7,14 @@ on:
   repository_dispatch:
     types: [deploy]
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (e.g. 1.2.1). Leave empty to auto-increment the patch version."
+        required: false
+        type: string
 
 permissions:
-  contents: write # allow this workflow to create GitHub Releases
+  contents: write # allow this workflow to create GitHub Releases and sync the version
 
 # Only one deployment at a time; don't cancel an in-progress one.
 concurrency:
@@ -56,23 +61,67 @@ jobs:
           keyPassword=$KEY_PASSWORD
           EOF
 
-      # Version comes from the client_payload (set by scripts/deploy.ps1),
-      # falling back to the version in pubspec.yaml for manual UI runs.
+      # Version resolution (fully automatic):
+      #   1) scripts/deploy.ps1 / deploy.sh  -> client_payload.version/buildNumber
+      #   2) Actions UI with a version       -> inputs.version
+      #   3) Actions UI without a version    -> auto-increment patch from latest release
+      #   4) last resort                     -> version in pubspec.yaml
       - name: Determine release version
         id: version
         run: |
           VERSION="${{ github.event.client_payload.version }}"
           BUILD_NUMBER="${{ github.event.client_payload.buildNumber }}"
+
+          if [ -z "$VERSION" ]; then
+            VERSION="${{ inputs.version }}"
+          fi
+
+          if [ -z "$VERSION" ]; then
+            LATEST="$(curl -fsS -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/latest" | jq -r '.tag_name // empty' 2>/dev/null || true)"
+            if [ -n "$LATEST" ]; then
+              BASE="$(sed -E 's/^v//' <<< "$LATEST")"
+              IFS='.' read -r MAJ MIN PAT <<< "$BASE"
+              if [ -n "$MAJ" ] && [ -n "$MIN" ] && [ -n "$PAT" ]; then
+                VERSION="${MAJ}.${MIN}.$((PAT+1))"
+                echo "Auto-incrementing: ${LATEST} -> v${VERSION}"
+              fi
+            fi
+          fi
+
           if [ -z "$VERSION" ]; then
             VERSION=$(grep -m1 '^version:' pubspec.yaml | awk '{print $2}' | cut -d'+' -f1)
           fi
+
+          VERSION="$(sed -E 's/^v//' <<< "$VERSION")"
           if [ -z "$BUILD_NUMBER" ]; then
-            BUILD_NUMBER=$(grep -m1 '^version:' pubspec.yaml | awk '{print $2}' | awk -F'+' '{print $2}')
-            [ -z "$BUILD_NUMBER" ] && BUILD_NUMBER=1
+            BUILD_NUMBER=$(awk -F. '{print ($1*10000)+($2*100)+$3}' <<< "$VERSION")
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "buildNumber=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
           echo "tag=v${VERSION}" >> "$GITHUB_OUTPUT"
+
+      # Keep pubspec.yaml in sync with the released version so the repo never
+      # drifts from what was actually published. Idempotent (skips if unchanged).
+      - name: Sync version in pubspec.yaml
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          BUILD_NUMBER: ${{ steps.version.outputs.buildNumber }}
+        run: |
+          NEW_LINE="version: ${VERSION}+${BUILD_NUMBER}"
+          CURRENT="$(grep -m1 '^version:' pubspec.yaml || true)"
+          if [ "$CURRENT" != "$NEW_LINE" ]; then
+            sed -i "s/^version:.*/$NEW_LINE/" pubspec.yaml
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add pubspec.yaml
+            git commit -m "chore: bump version to ${VERSION}+${BUILD_NUMBER}"
+            BRANCH="${GITHUB_REF_NAME:-main}"
+            git push origin "HEAD:${BRANCH}"
+            echo "Updated ${CURRENT} -> ${NEW_LINE}"
+          else
+            echo "pubspec.yaml already at ${NEW_LINE}; nothing to commit"
+          fi
 
       # --build-name/--build-number set versionName/versionCode on the APK/AAB
       - name: Build release APK
