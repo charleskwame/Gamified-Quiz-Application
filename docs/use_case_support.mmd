@@ -1,0 +1,26 @@
+flowchart TB
+    classDef actor fill:#003F91,stroke:#111C4A,color:#ffffff,font-weight:700;
+    classDef system fill:#ECF8F8,stroke:#003F91,color:#111C4A,font-weight:600;
+    classDef uc fill:#ffffff,stroke:#003F91,color:#111C4A;
+
+    GU["👤 Guest User"]:::actor
+    RU["👤 Registered User"]:::actor
+    GH["GitHub Releases<br/>(Update Server)"]:::system
+    BR["Bug Report Service<br/>(Google Apps Script → Sheet)"]:::system
+
+    subgraph Support[System & Support]
+        CHECK(("Check for<br/>App Update"))
+        UPDATE_DL(("Download &<br/>Install Update"))
+        BUG(("Submit<br/>Bug Report"))
+    end
+
+    GU --> CHECK
+    RU --> CHECK
+    GU --> BUG
+    RU --> BUG
+
+    CHECK -- includes --> UPDATE_DL
+
+    GH -.-> CHECK
+    GH -.-> UPDATE_DL
+    BR -.-> BUG

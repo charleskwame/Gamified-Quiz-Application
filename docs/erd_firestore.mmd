@@ -1,0 +1,112 @@
+%% ============================================================
+%% Gamified Quiz App — Physical Firestore Collections
+%% Mirrors firestore.rules + database_service.dart
+%% Save as: docs/erd_firestore.mmd
+%% Render: VS Code (Mermaid extension) or https://mermaid.live
+%% ============================================================
+erDiagram
+    USERS ||--o{ RANK_HISTORY : "subcollection"
+    USERS ||--o| PUBLIC_PROFILES : "same doc id = uid"
+    USERS }o--o{ CA_INCORRECT : "contributes to"
+    USERS }o--o{ CN_INCORRECT : "contributes to"
+    USERS }o--o{ SE_INCORRECT : "contributes to"
+    CA_QUESTIONS ||--o{ CA_INCORRECT : ""
+    CN_QUESTIONS ||--o{ CN_INCORRECT : ""
+    SE_QUESTIONS ||--o{ SE_INCORRECT : ""
+
+    USERS {
+        string id PK "users/{uid}"
+        string displayName
+        string email
+        bool emailVerified
+        int score
+        int quizCoins
+        int shieldCount
+        int skipCount
+        int pauseTimerCount
+        int computerArchitecturePoints
+        int caAnswered
+        int caCorrect
+        int computerNetworkingPoints
+        int cnAnswered
+        int cnCorrect
+        int softwareEngineeringPoints
+        int seAnswered
+        int seCorrect
+        int questionsCorrect
+        int questionsAnswered
+        int streakNumber
+        array badges
+        array selectedBadges
+        string avatarUrl
+        map avatarDetails
+        timestamp createdAt
+    }
+
+    RANK_HISTORY {
+        string id PK "users/{uid}/rankHistory/{id}"
+        string rank
+        string category
+        number percentage
+        timestamp timestamp
+    }
+
+    PUBLIC_PROFILES {
+        string id PK "publicProfiles/{uid}"
+        string displayName
+        int score
+        int computerArchitecturePoints
+        int computerNetworkingPoints
+        int softwareEngineeringPoints
+        int streakNumber
+        array badges
+        array selectedBadges
+        string avatarUrl
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    CA_QUESTIONS {
+        string id PK "computer_architecture_questions/{qid}"
+        string questionText
+        array options
+        string correctAnswer
+        string explanation
+        string category
+    }
+
+    CN_QUESTIONS {
+        string id PK "computer_networking_questions/{qid}"
+        string questionText
+        array options
+        string correctAnswer
+        string explanation
+        string category
+    }
+
+    SE_QUESTIONS {
+        string id PK "software_engineering_questions/{qid}"
+        string questionText
+        array options
+        string correctAnswer
+        string explanation
+        string category
+    }
+
+    CA_INCORRECT {
+        string id PK "computer_architecture_questions_gotten_incorrectly/{qid}"
+        string questionId
+        int number_of_wrong
+    }
+
+    CN_INCORRECT {
+        string id PK "computer_networking_questions_gotten_incorrectly/{qid}"
+        string questionId
+        int number_of_wrong
+    }
+
+    SE_INCORRECT {
+        string id PK "software_engineering_questions_gotten_incorrectly/{qid}"
+        string questionId
+        int number_of_wrong
+    }

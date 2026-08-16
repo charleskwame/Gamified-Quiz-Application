@@ -1,0 +1,45 @@
+flowchart TB
+    classDef actor fill:#003F91,stroke:#111C4A,color:#ffffff,font-weight:700;
+    classDef system fill:#ECF8F8,stroke:#003F91,color:#111C4A,font-weight:600;
+    classDef uc fill:#ffffff,stroke:#003F91,color:#111C4A;
+    classDef inc fill:#fff7e6,stroke:#F59E0B,color:#111C4A;
+
+    GU["👤 Guest User"]:::actor
+    RU["👤 Registered User"]:::actor
+    FS["Cloud Firestore"]:::system
+
+    subgraph Gamification[Gamification & Social]
+        PROFILE(("View Profile"))
+        BADGES(("View Badges<br/>Earned / All"))
+        SELECTB(("Select Badges<br/>to Display"))
+        ANALYTICS(("View Analytics"))
+        RANKS(("View Leaderboard<br/>Rankings"))
+        FILTER(("Filter by Category<br/>& Sort"))
+        LEVELS(("View Levels /<br/>XP Vault"))
+        STREAK(("View Streak Card"))
+        SHOP(("Visit Shop"))
+        PURCHASE(("Purchase Power-Up<br/>with Coins"))
+    end
+
+    GU --> PROFILE
+    RU --> PROFILE
+    RU --> BADGES
+    RU --> SELECTB
+    GU --> ANALYTICS
+    RU --> ANALYTICS
+    GU --> RANKS
+    RU --> RANKS
+    GU --> LEVELS
+    RU --> LEVELS
+    GU --> STREAK
+    RU --> STREAK
+    RU --> SHOP
+
+    PROFILE -- includes --> BADGES
+    PROFILE -- includes --> SELECTB
+    RANKS -- includes --> FILTER
+    SHOP -- includes --> PURCHASE
+
+    FS -.-> PROFILE
+    FS -.-> RANKS
+    FS -.-> SHOP

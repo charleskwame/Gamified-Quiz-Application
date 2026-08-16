@@ -1,0 +1,38 @@
+flowchart LR
+    classDef actor fill:#003F91,stroke:#111C4A,color:#ffffff,font-weight:700;
+    classDef system fill:#ECF8F8,stroke:#003F91,color:#111C4A,font-weight:600;
+    classDef uc fill:#ffffff,stroke:#003F91,color:#111C4A;
+
+    GU["👤 Guest User"]:::actor
+    RU["👤 Registered User"]:::actor
+    RU --|> GU
+
+    subgraph APP[Gamified Quiz Application]
+        direction LR
+        UC_AUTH(("Auth &<br/>Account"))
+        UC_QUIZ(("Quiz<br/>Gameplay"))
+        UC_GAM(("Gamification<br/>& Social"))
+        UC_SUP(("System &<br/>Support"))
+    end
+
+    GU --> UC_QUIZ
+    GU --> UC_GAM
+    GU --> UC_SUP
+    RU --> UC_AUTH
+    RU --> UC_QUIZ
+    RU --> UC_GAM
+    RU --> UC_SUP
+
+    FA["Firebase Authentication"]:::system
+    FS["Cloud Firestore"]:::system
+    AI["DeepSeek AI<br/>Study Assistant"]:::system
+    BR["Bug Report Service<br/>(Google Sheets)"]:::system
+    GH["GitHub Releases<br/>(Update Server)"]:::system
+
+    FA -.-> UC_AUTH
+    FS -.-> UC_AUTH
+    FS -.-> UC_QUIZ
+    AI -.-> UC_QUIZ
+    FS -.-> UC_GAM
+    BR -.-> UC_SUP
+    GH -.-> UC_SUP

@@ -1,0 +1,86 @@
+%% ============================================================
+%% Gamified Quiz App — Logical ERD  (v2 - valid syntax)
+%% Entities & relationships from lib/models + lib/services
+%% Attribute rule: <type> <name> [PK] "comment"
+%% Save as: docs/erd_logical.mmd
+%% Render: VS Code (Mermaid extension) or https://mermaid.live
+%% ============================================================
+erDiagram
+    USER ||--o{ RANK_HISTORY : "has subcollection"
+    USER ||--o| PUBLIC_PROFILE : "mirrored same uid"
+    USER }o--o{ BADGE : "unlocks badge ids"
+    USER }o--o{ INCORRECT_QUESTION : "contributes to"
+    QUESTION ||--o{ INCORRECT_QUESTION : "tracked in"
+
+    USER {
+        string id PK
+        string displayName
+        string email
+        bool emailVerified
+        int score
+        int quizCoins
+        int shieldCount
+        int skipCount
+        int pauseTimerCount
+        int computerArchitecturePoints
+        int caAnswered
+        int caCorrect
+        int computerNetworkingPoints
+        int cnAnswered
+        int cnCorrect
+        int softwareEngineeringPoints
+        int seAnswered
+        int seCorrect
+        int questionsCorrect
+        int questionsAnswered
+        int streakNumber
+        array badges
+        array selectedBadges
+        string avatarUrl
+        map avatarDetails
+        timestamp createdAt
+    }
+
+    PUBLIC_PROFILE {
+        string userId PK
+        string displayName
+        int score
+        int computerArchitecturePoints
+        int computerNetworkingPoints
+        int softwareEngineeringPoints
+        int streakNumber
+        array badges
+        array selectedBadges
+        string avatarUrl
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    RANK_HISTORY {
+        string id PK
+        string rank
+        string category
+        float percentage
+        timestamp timestamp
+    }
+
+    BADGE {
+        string id PK
+        string name
+        string description
+        string unlockRule
+    }
+
+    QUESTION {
+        string id PK
+        string questionText
+        array options
+        string correctAnswer
+        string explanation
+        string category
+    }
+
+    INCORRECT_QUESTION {
+        string questionId PK
+        int number_of_wrong
+    }
