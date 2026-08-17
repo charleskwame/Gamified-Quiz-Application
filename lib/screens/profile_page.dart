@@ -47,7 +47,7 @@ class _ProfilePageState extends State<ProfilePage> {
           }
           final guest = snapshot.data?[0] as GuestUser?;
           final stats = snapshot.data?[1] as GuestStats?;
-          
+
           final guestName = guest?.username ?? 'Guest User';
           final streakNumber = stats?.streakNumber ?? 0;
           final totalScore = stats?.score ?? 0;
@@ -253,8 +253,8 @@ class _ProfilePageState extends State<ProfilePage> {
                             );
                             setState(() {});
                           },
-                          icon: const Icon(Icons.login_rounded),
-                          label: const Text('Log In / Sign Up'),
+                          icon: const Icon(Icons.g_mobiledata),
+                          label: const Text('Continue with Google'),
                           style: FilledButton.styleFrom(
                             backgroundColor: const Color(0xFF003F91),
                             foregroundColor: Colors.white,

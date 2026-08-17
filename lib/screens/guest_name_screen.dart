@@ -77,7 +77,10 @@ class _GuestNameScreenState extends State<GuestNameScreen> {
                     side: const BorderSide(color: Color(0xFF003F91), width: 2),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 32,
+                    ),
                     child: Form(
                       key: _formKey,
                       child: Column(
@@ -91,17 +94,20 @@ class _GuestNameScreenState extends State<GuestNameScreen> {
                           const SizedBox(height: 16),
                           Text(
                             'Create Guest Username',
-                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                              color: const Color(0xFF003F91),
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: Theme.of(context).textTheme.headlineMedium
+                                ?.copyWith(
+                                  color: const Color(0xFF003F91),
+                                  fontWeight: FontWeight.bold,
+                                ),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             'Play challenges offline and track progress locally.',
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              color: const Color(0xFF003F91).withValues(alpha: 0.8),
+                              color: const Color(
+                                0xFF003F91,
+                              ).withValues(alpha: 0.8),
                               fontSize: 14,
                             ),
                           ),
@@ -111,22 +117,36 @@ class _GuestNameScreenState extends State<GuestNameScreen> {
                             style: const TextStyle(color: Color(0xFF003F91)),
                             decoration: InputDecoration(
                               labelText: 'Username',
-                              labelStyle: const TextStyle(color: Color(0xFF003F91)),
-                              prefixIcon: const Icon(Icons.person, color: Color(0xFF003F91)),
+                              labelStyle: const TextStyle(
+                                color: Color(0xFF003F91),
+                              ),
+                              prefixIcon: const Icon(
+                                Icons.person,
+                                color: Color(0xFF003F91),
+                              ),
                               enabledBorder: OutlineInputBorder(
-                                borderSide: const BorderSide(color: Color(0xFF003F91)),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFF003F91),
+                                ),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               focusedBorder: OutlineInputBorder(
-                                borderSide: const BorderSide(color: Color(0xFF003F91), width: 2),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFF003F91),
+                                  width: 2,
+                                ),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               errorBorder: OutlineInputBorder(
-                                borderSide: const BorderSide(color: Colors.redAccent),
+                                borderSide: const BorderSide(
+                                  color: Colors.redAccent,
+                                ),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               focusedErrorBorder: OutlineInputBorder(
-                                borderSide: const BorderSide(color: Colors.redAccent),
+                                borderSide: const BorderSide(
+                                  color: Colors.redAccent,
+                                ),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
@@ -148,7 +168,9 @@ class _GuestNameScreenState extends State<GuestNameScreen> {
                               style: FilledButton.styleFrom(
                                 backgroundColor: const Color(0xFF003F91),
                                 foregroundColor: const Color(0xFFFBFBFB),
-                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -159,7 +181,9 @@ class _GuestNameScreenState extends State<GuestNameScreen> {
                                       width: 20,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2,
-                                        valueColor: AlwaysStoppedAnimation(Color(0xFFFBFBFB)),
+                                        valueColor: AlwaysStoppedAnimation(
+                                          Color(0xFFFBFBFB),
+                                        ),
                                       ),
                                     )
                                   : const Text('Continue as Guest'),
@@ -180,13 +204,18 @@ class _GuestNameScreenState extends State<GuestNameScreen> {
                               style: OutlinedButton.styleFrom(
                                 backgroundColor: const Color(0xFFECF8F8),
                                 foregroundColor: const Color(0xFF003F91),
-                                side: const BorderSide(color: Color(0xFF003F91), width: 1.5),
-                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                side: const BorderSide(
+                                  color: Color(0xFF003F91),
+                                  width: 1.5,
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
-                              child: const Text('Create an Account'),
+                              child: const Text('Continue with Google'),
                             ),
                           ),
                         ],

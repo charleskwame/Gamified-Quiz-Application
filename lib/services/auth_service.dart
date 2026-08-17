@@ -1,26 +1,77 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'database_service.dart';
 import 'local_progress_service.dart';
 import 'sync_service.dart';
 
+/// Thrown when Google sign-in fails because an account with the same email
+/// already exists under a different sign-in method (e.g. email/password).
+/// Carries the pending Google credential + email so the UI can prompt the user
+/// to sign in once with their existing email/password and link their Google
+/// account (one-time migration path).
+class AccountLinkRequiredException implements Exception {
+  final AuthCredential pendingCredential;
+  final String email;
+
+  const AccountLinkRequiredException({
+    required this.pendingCredential,
+    required this.email,
+  });
+
+  @override
+  String toString() =>
+      'An account with this email already exists. Please sign in with your '
+      'email and password once to link your Google account.';
+}
+
+/// Thrown when a Google sign-in flow is cancelled by the user (e.g. they
+/// dismissed the Google account picker).
+class GoogleSignInAbortedException implements Exception {
+  const GoogleSignInAbortedException();
+
+  @override
+  String toString() => 'Google sign-in was cancelled.';
+}
+
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
   static const String _sessionKey = 'firebase_session_active';
-  static const String _secureEmailKey = 'cached_user_email';
-  static const String _securePasswordKey = 'cached_user_password';
 
-  Future<void> _saveCredentials(String email, String password) async {
-    await _secureStorage.write(key: _secureEmailKey, value: email);
-    await _secureStorage.write(key: _securePasswordKey, value: password);
+  static bool _googleSignInInitialized = false;
+
+  /// `GoogleSignIn` is a singleton in google_sign_in ^7 and must be initialized
+  /// exactly once before any other method is called.
+  Future<void> _ensureGoogleInitialized() async {
+    if (_googleSignInInitialized) return;
+    await GoogleSignIn.instance.initialize();
+    _googleSignInInitialized = true;
   }
 
-  Future<void> _clearCredentials() async {
-    await _secureStorage.delete(key: _secureEmailKey);
-    await _secureStorage.delete(key: _securePasswordKey);
+  /// Prompts the user to pick a Google account and returns it, or `null` if
+  /// the flow was cancelled/interrupted by the user.
+  Future<GoogleSignInAccount?> _promptGoogleAccount() async {
+    await _ensureGoogleInitialized();
+    try {
+      return await GoogleSignIn.instance.authenticate();
+    } on GoogleSignInException catch (e) {
+      if (e.code == GoogleSignInExceptionCode.canceled ||
+          e.code == GoogleSignInExceptionCode.interrupted ||
+          e.code == GoogleSignInExceptionCode.uiUnavailable) {
+        return null;
+      }
+      rethrow;
+    }
+  }
+
+  /// Builds a Firebase credential from the Google account's ID token.
+  AuthCredential _buildGoogleCredential(GoogleSignInAccount googleUser) {
+    final idToken = googleUser.authentication.idToken;
+    if (idToken == null) {
+      throw Exception('Unable to obtain a Google ID token. Please try again.');
+    }
+    return GoogleAuthProvider.credential(idToken: idToken);
   }
 
   // Stream to listen to auth state changes
@@ -29,9 +80,6 @@ class AuthService {
   // Get current user
   User? get currentUser => _auth.currentUser;
 
-  // Check if current user's email is verified
-  bool get isEmailVerified => currentUser?.emailVerified ?? false;
-
   /// Wait for Firebase Auth to finish restoring its persisted session from disk.
   ///
   /// On cold start, Firebase Auth loads the encrypted token from the Android
@@ -39,8 +87,8 @@ class AuthService {
   /// immediately may return null even though a valid token exists on disk.
   ///
   /// This method subscribes to [authStateChanges] and waits up to 5 seconds for
-  /// the first emission.  If a user is restored (either via built-in persistence
-  /// or the manual SharedPreferences flag) it returns that user; otherwise null.
+  /// the first emission. Google tokens are persisted natively by Firebase Auth,
+  /// so no manual credential fallback is needed.
   Future<User?> waitForSessionRestore() async {
     // Quick path – already resolved (e.g. after the first restore succeeds).
     if (_auth.currentUser != null) return _auth.currentUser;
@@ -59,34 +107,7 @@ class AuthService {
       user = null;
     }
 
-    if (user != null) return user;
-
-    // Fallback: If Firebase token persistence failed but we have cached credentials,
-    // perform an automatic silent sign-in.
-    try {
-      final email = await _secureStorage.read(key: _secureEmailKey);
-      final password = await _secureStorage.read(key: _securePasswordKey);
-      if (email != null && password != null) {
-        final credential = await _auth.signInWithEmailAndPassword(
-          email: email,
-          password: password,
-        );
-        return credential.user;
-      }
-    } on FirebaseAuthException catch (e) {
-      // If the credentials are invalid (e.g. password changed), clear them.
-      if (e.code == 'wrong-password' ||
-          e.code == 'user-not-found' ||
-          e.code == 'user-disabled' ||
-          e.code == 'invalid-credential' ||
-          e.code == 'invalid-email') {
-        await _clearCredentials();
-      }
-    } catch (_) {
-      // Ignore other errors (e.g. network timeout) to allow retrying later.
-    }
-
-    return null;
+    return user;
   }
 
   /// Persist the "session active" flag so we know a previous sign-in existed.
@@ -99,8 +120,6 @@ class AuthService {
   Future<void> _clearSession() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_sessionKey);
-    await _secureStorage.deleteAll();
-    await _clearCredentials();
     // Clear any locally cached guest profile/progress so a stale name card
     // doesn't reappear after sign-out or account deletion.
     await LocalProgressService.clearAll();
@@ -113,8 +132,7 @@ class AuthService {
   /// KeyStore-bound Firebase auth token. That leaves the app signed-out yet
   /// still displaying an old guest name card. If the flag says a session was
   /// active but no Firebase user was restored, clear the stale flag and guest
-  /// data so the next launch starts fresh. Secure-storage credentials are kept
-  /// so a silent re-login can still be retried later.
+  /// data so the next launch starts fresh.
   Future<void> repairRestoredSession() async {
     final prefs = await SharedPreferences.getInstance();
     final wasSessionActive = prefs.getBool(_sessionKey) ?? false;
@@ -124,137 +142,148 @@ class AuthService {
     }
   }
 
-  // Sign up with email and password
-  Future<UserCredential?> signUp({
-    required String email,
-    required String password,
-    required String displayName,
-  }) async {
+  /// Sign in with Google (native). Returns the credential, or `null` if the
+  /// user cancelled the Google account picker.
+  ///
+  /// - New user: initializes the Firestore user document and syncs any local
+  ///   guest progress into the account (guest upgrade).
+  /// - Returning user: backfills the public profile if missing.
+  ///
+  /// Throws [AccountLinkRequiredException] when an email/password account with
+  /// the same email already exists (the caller should prompt to link it).
+  Future<UserCredential?> signInWithGoogle() async {
     try {
-      UserCredential userCredential = await _auth
-          .createUserWithEmailAndPassword(email: email, password: password);
+      final googleUser = await _promptGoogleAccount();
+      if (googleUser == null) return null; // cancelled
 
-      final user = userCredential.user;
-      if (user != null) {
-        // Set display name
-        await user.updateDisplayName(displayName);
-        // Send email verification
-        await user.sendEmailVerification();
-        // Create Firestore user document with default stats & progress tracking
-        await DatabaseService().initializeUserStats(
-          user.uid,
-          displayName,
-          email,
-        );
-        // Sync local guest progress to remote Firestore
-        await SyncService.syncGuestProgressToRemote(user.uid);
+      final credential = _buildGoogleCredential(googleUser);
+
+      UserCredential userCredential;
+      try {
+        userCredential = await _auth.signInWithCredential(credential);
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'account-exists-with-different-credential') {
+          // An email/password account already exists with this Google email.
+          throw AccountLinkRequiredException(
+            pendingCredential: credential,
+            email: googleUser.email,
+          );
+        }
+        rethrow;
       }
 
-      await _saveCredentials(email, password);
-      await _markSessionActive();
+      final user = userCredential.user;
+      final isNewUser = userCredential.additionalUserInfo?.isNewUser ?? false;
 
+      if (user != null) {
+        if (isNewUser) {
+          // Create Firestore user document with default stats & progress tracking.
+          await DatabaseService().initializeUserStats(
+            user.uid,
+            user.displayName ?? googleUser.displayName ?? 'Scholar',
+            user.email ?? googleUser.email,
+            emailVerified: user.emailVerified,
+          );
+          // Sync local guest progress to remote Firestore (guest upgrade).
+          await SyncService.syncGuestProgressToRemote(user.uid);
+        } else {
+          // Returning user: backfill the public profile if missing.
+          await DatabaseService().ensurePublicProfileExists(
+            user.uid,
+            fallbackDisplayName: user.displayName,
+            fallbackAvatarUrl: null,
+          );
+        }
+      }
+
+      await _markSessionActive();
       return userCredential;
     } on FirebaseAuthException {
       rethrow;
     }
   }
 
-  // Log in with email and password
-  Future<UserCredential?> logIn({
+  /// One-time migration path (conflict-triggered): signs in with the existing
+  /// email/password account, then links the pending Google credential to it.
+  Future<UserCredential?> linkPendingGoogleAccount({
     required String email,
     required String password,
+    required AuthCredential pendingCredential,
   }) async {
     try {
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+      final userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
-
       final user = userCredential.user;
       if (user != null) {
-        await DatabaseService().ensurePublicProfileExists(
-          user.uid,
-          fallbackDisplayName: user.displayName,
-          fallbackAvatarUrl: null,
-        );
+        await user.linkWithCredential(pendingCredential);
       }
-
-      await _saveCredentials(email, password);
       await _markSessionActive();
-
       return userCredential;
     } on FirebaseAuthException {
       rethrow;
     }
   }
 
-  // Resend email verification
-  Future<void> resendVerificationEmail() async {
-    final user = _auth.currentUser;
+  /// Explicit "link an existing account" path: signs in with the existing
+  /// email/password account, then prompts for Google and links the Google
+  /// credential to it. If the user cancels the Google picker, the temporary
+  /// email/password session is cleared and [GoogleSignInAbortedException]
+  /// is thrown so the UI can restore the logged-out state.
+  Future<void> linkGoogleToExistingAccount({
+    required String email,
+    required String password,
+  }) async {
+    // 1. Validate the existing email/password account.
+    final userCredential = await _auth.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+    final user = userCredential.user;
     if (user == null) {
       throw Exception('No user is currently logged in.');
     }
-    await user.sendEmailVerification();
-  }
 
-  // Reload current user to refresh emailVerified status
-  Future<void> reloadUser() async {
-    final user = _auth.currentUser;
-    if (user != null) {
-      await user.reload();
+    // 2. Get a Google credential to link.
+    final googleUser = await _promptGoogleAccount();
+    if (googleUser == null) {
+      // User cancelled — restore the logged-out state.
+      await _auth.signOut();
+      throw const GoogleSignInAbortedException();
     }
-  }
 
-  // Check if email is verified by reloading user first
-  Future<bool> checkEmailVerification() async {
-    await reloadUser();
-    return _auth.currentUser?.emailVerified ?? false;
-  }
+    final credential = _buildGoogleCredential(googleUser);
 
-  // Update profile info
-  Future<void> updateProfile({
-    String? displayName,
-    String? email,
-    String? password,
-  }) async {
+    // 3. Link the Google credential to the signed-in user.
     try {
-      User? user = _auth.currentUser;
+      await user.linkWithCredential(credential);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'credential-already-in-use') {
+        // The chosen Google account is already linked to another user.
+        await _auth.signOut();
+      }
+      rethrow;
+    }
+
+    await _markSessionActive();
+  }
+
+  // Update profile info (display name only — Google accounts manage their own
+  // email/password, so those cannot be changed through the app).
+  Future<void> updateProfile({String? displayName}) async {
+    try {
+      final user = _auth.currentUser;
       if (user == null) {
         throw Exception('No user is currently logged in.');
       }
-
-      final currentEmail = user.email ?? '';
-      final oldPassword =
-          await _secureStorage.read(key: _securePasswordKey) ?? '';
 
       if (displayName != null && displayName.isNotEmpty) {
         await user.updateDisplayName(displayName);
       }
 
-      if (email != null && email.isNotEmpty && email != user.email) {
-        // ignore: deprecated_member_use
-        await user.updateEmail(email);
-        // If email changed, re-send verification
-        await user.sendEmailVerification();
-      }
-
-      if (password != null && password.isNotEmpty) {
-        await user.updatePassword(password);
-      }
-
-      // Update cached credentials if they changed
-      final updatedEmail = (email != null && email.isNotEmpty)
-          ? email
-          : currentEmail;
-      final updatedPassword = (password != null && password.isNotEmpty)
-          ? password
-          : oldPassword;
-      if (updatedEmail.isNotEmpty && updatedPassword.isNotEmpty) {
-        await _saveCredentials(updatedEmail, updatedPassword);
-      }
-
       // Sync changes to the Firestore database
-      await DatabaseService().updateUserInfo(user.uid, displayName, email);
+      await DatabaseService().updateUserInfo(user.uid, displayName, null);
 
       await user.reload();
     } on FirebaseAuthException {
@@ -262,46 +291,32 @@ class AuthService {
     }
   }
 
-  /// Reauthenticate the current user with their password.
-  ///
-  /// Throws a [FirebaseAuthException] if reauthentication fails (e.g.,
-  /// wrong password, user not found, etc.).
-  Future<void> reauthenticate(String password) async {
-    final user = _auth.currentUser;
-    if (user == null) {
-      throw Exception('No user is currently logged in.');
-    }
-    final email = user.email;
-    if (email == null || email.isEmpty) {
-      throw Exception('No email address associated with this account.');
-    }
-
-    final credential = EmailAuthProvider.credential(
-      email: email,
-      password: password,
-    );
-    await user.reauthenticateWithCredential(credential);
-  }
-
   /// Permanently delete the user account and ALL associated data.
   ///
-  /// [password] is required to reauthenticate before deletion for security.
+  /// Reauthenticates via a fresh Google sign-in before deletion for security.
+  /// Throws [GoogleSignInAbortedException] if the user cancels the prompt.
   ///
-  /// Deletion order (safe — Firestore data deleted FIRST so any failure leaves Auth intact):
-  ///   1. Reauthenticate (throws if wrong password)
+  /// Deletion order (safe — Firestore data deleted FIRST so any failure leaves
+  /// Auth intact):
+  ///   1. Reauthenticate with a fresh Google credential
   ///   2. Delete Firestore user document & subcollections
   ///   3. Delete Firebase Auth account
-  ///   4. Clear local session data (SharedPreferences + SecureStorage)
+  ///   4. Clear local session data
   ///
   /// If step 2 fails, the auth deletion is not attempted, preserving the account.
-  Future<void> deleteAccount({required String password}) async {
+  Future<void> deleteAccount() async {
     final user = _auth.currentUser;
     if (user == null) {
       throw Exception('No user is currently logged in.');
     }
 
-    // 1. Reauthenticate (will throw on wrong password / expired session)
-    await reauthenticate(password);
+    // 1. Reauthenticate with a fresh Google credential.
+    final googleUser = await _promptGoogleAccount();
+    if (googleUser == null) {
+      throw const GoogleSignInAbortedException();
+    }
+    final credential = _buildGoogleCredential(googleUser);
+    await user.reauthenticateWithCredential(credential);
 
     final uid = user.uid;
 
@@ -318,6 +333,10 @@ class AuthService {
   // Log out
   Future<void> logOut() async {
     await _clearSession();
+    // Sign out of Google too so the picker isn't auto-selected next time.
+    if (_googleSignInInitialized) {
+      await GoogleSignIn.instance.signOut();
+    }
     await _auth.signOut();
   }
 }

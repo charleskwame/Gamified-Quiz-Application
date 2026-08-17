@@ -90,8 +90,9 @@ class DatabaseService {
   Future<void> initializeUserStats(
     String uid,
     String displayName,
-    String email,
-  ) async {
+    String email, {
+    bool emailVerified = true,
+  }) async {
     final values = AvatarOptions.randomize();
     final avatarUrl = AvatarOptions.buildUrl(values);
     final avatarDetails = <String, dynamic>{
@@ -108,7 +109,7 @@ class DatabaseService {
       'shieldCount': 0,
       'skipCount': 0,
       'pauseTimerCount': 0,
-      'emailVerified': false,
+      'emailVerified': emailVerified,
       'computerArchitecturePoints': 0,
       'caAnswered': 0,
       'caCorrect': 0,
@@ -181,11 +182,6 @@ class DatabaseService {
       'avatarUrl': avatarUrl,
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
-  }
-
-  // Update email verification status in Firestore
-  Future<void> updateEmailVerificationStatus(String uid, bool verified) async {
-    await _userDoc(uid).update({'emailVerified': verified});
   }
 
   // Update user stats after a quiz challenge

@@ -50,8 +50,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       await _authService.updateProfile(
         displayName: _displayNameController.text.trim(),
-        email: null,
-        password: null,
       );
       setState(() {
         _successMessage = 'Account information updated successfully!';
@@ -141,105 +139,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     if (!mounted) return;
 
-    // Step 2: Password reauthentication dialog
-    final password = await showDialog<String>(
-      context: context,
-      builder: (context) {
-        final controller = TextEditingController();
-        String? errorText;
-
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              title: const Text(
-                'Confirm Password',
-                style: TextStyle(
-                  color: Color(0xFF003F91),
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    'For security, please enter your password to confirm account deletion.',
-                    style: TextStyle(color: Color(0xFF003F91), fontSize: 14),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: controller,
-                    obscureText: true,
-                    autofocus: true,
-                    style: const TextStyle(
-                      color: Color(0xFF003F91),
-                      fontSize: 15,
-                    ),
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      labelStyle: const TextStyle(
-                        color: Color(0xFF003F91),
-                        fontSize: 14,
-                      ),
-                      errorText: errorText,
-                      filled: true,
-                      fillColor: const Color(0xFFECF8F8),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(14),
-                        borderSide: const BorderSide(color: Color(0xFFB0C4DE)),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(14),
-                        borderSide: const BorderSide(color: Color(0xFFB0C4DE)),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(14),
-                        borderSide: const BorderSide(
-                          color: Color(0xFFEF4444),
-                          width: 2,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, null),
-                  child: const Text(
-                    'Cancel',
-                    style: TextStyle(color: Color(0xFF003F91)),
-                  ),
-                ),
-                FilledButton(
-                  onPressed: () {
-                    final pw = controller.text.trim();
-                    if (pw.isEmpty) {
-                      setDialogState(() {
-                        errorText = 'Password is required';
-                      });
-                      return;
-                    }
-                    Navigator.pop(context, pw);
-                  },
-                  style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFFEF4444),
-                    foregroundColor: Colors.white,
-                  ),
-                  child: const Text('Delete Permanently'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-
-    if (password == null || password.isEmpty) return;
-
+    // Step 2: Reauthenticate with Google and delete the account. A fresh
+    // Google sign-in is prompted for security before deletion.
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -247,7 +148,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
 
     try {
-      await _authService.deleteAccount(password: password);
+      await _authService.deleteAccount();
       if (mounted) {
         // Rebuild entire navigation stack so ProfilePage recreates with null user
         Navigator.of(context).pushAndRemoveUntil(
@@ -255,12 +156,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
           (route) => false,
         );
       }
+    } on GoogleSignInAbortedException {
+      setState(() {
+        _errorMessage = 'Account deletion cancelled.';
+      });
     } on FirebaseAuthException catch (e) {
       String message;
       switch (e.code) {
-        case 'wrong-password':
-          message = 'Incorrect password. Please try again.';
-          break;
         case 'requires-recent-login':
           message =
               'This operation requires a recent login. Please log out, log back in, and try again.';
@@ -402,16 +304,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               child: OutlinedButton.icon(
                                 onPressed: () async {
                                   await OnboardingService.resetTour();
-                                  if (mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          'App Tour has been reset. It will show on next launch!',
-                                        ),
-                                        backgroundColor: Color(0xFF003F91),
+                                  if (!context.mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'App Tour has been reset. It will show on next launch!',
                                       ),
-                                    );
-                                  }
+                                      backgroundColor: Color(0xFF003F91),
+                                    ),
+                                  );
                                 },
                                 icon: const Icon(
                                   Icons.restart_alt_rounded,
