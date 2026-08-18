@@ -241,11 +241,11 @@ class _ProfilePageState extends State<ProfilePage> {
                                 ),
                               );
                             },
+                            label: const Text('View Analytics'),
                             icon: const Icon(
                               Icons.arrow_forward_rounded,
                               size: 16,
                             ),
-                            label: const Text('View Analytics'),
                             style: TextButton.styleFrom(
                               foregroundColor: const Color(0xFF003F91),
                             ),
@@ -769,8 +769,8 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                 );
               },
-              icon: const Icon(Icons.arrow_forward_rounded, size: 16),
               label: const Text('See all'),
+              icon: const Icon(Icons.arrow_forward_rounded, size: 16),
               style: TextButton.styleFrom(
                 foregroundColor: const Color(0xFF003F91),
               ),
