@@ -12,6 +12,7 @@ import '../services/database_service.dart';
 import '../widgets/home/badge_card.dart';
 import '../widgets/home/particle_background.dart';
 import '../widgets/main_navigation.dart';
+import 'analytics_screen.dart';
 import 'auth_screen.dart';
 import 'earned_badges_screen.dart';
 import 'settings_screen.dart';
@@ -220,13 +221,36 @@ class _ProfilePageState extends State<ProfilePage> {
                   if (user != null) ...[
                     _StaggeredFadeSlide(
                       index: 5,
-                      child: Text(
-                        'Ranking History',
-                        style: const TextStyle(
-                          color: Color(0xFF003F91),
-                          fontSize: 22,
-                          fontWeight: FontWeight.w900,
-                        ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Ranking History',
+                            style: TextStyle(
+                              color: Color(0xFF003F91),
+                              fontSize: 22,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          TextButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const AnalyticsScreen(),
+                                ),
+                              );
+                            },
+                            icon: const Icon(
+                              Icons.arrow_forward_rounded,
+                              size: 16,
+                            ),
+                            label: const Text('View Analytics'),
+                            style: TextButton.styleFrom(
+                              foregroundColor: const Color(0xFF003F91),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -439,8 +463,8 @@ class _ProfilePageState extends State<ProfilePage> {
           // Top row: avatar + info
           Row(
             children: [
-              // Avatar with glowing ring
-              _buildGlowingAvatar(avatarUrl),
+              // Avatar
+              _buildAvatar(avatarUrl),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
@@ -612,55 +636,34 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildGlowingAvatar(String? avatarUrl) {
+  Widget _buildAvatar(String? avatarUrl) {
     return Container(
       width: 80,
       height: 80,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: const SweepGradient(
-          colors: [
-            Color(0xFF003F91),
-            Color(0xFF003F91),
-            Color(0xFFFFD700),
-            Color(0xFF4ADE80),
-            Color(0xFF003F91),
-          ],
-          stops: [0.0, 0.25, 0.5, 0.75, 1.0],
+        color: const Color(0xFF003F91).withValues(alpha: 0.1),
+        border: Border.all(
+          color: const Color(0xFF003F91).withValues(alpha: 0.2),
+          width: 2,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF003F91).withValues(alpha: 0.06),
-            blurRadius: 3,
-            spreadRadius: 0,
-          ),
-        ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(3),
-        child: Container(
-          decoration: const BoxDecoration(
-            color: Color(0xFF0A0E21),
-            shape: BoxShape.circle,
-          ),
-          child: ClipOval(
-            child: avatarUrl != null && avatarUrl.isNotEmpty
-                ? SvgPicture.network(
-                    avatarUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => const Icon(
-                      Icons.person_rounded,
-                      color: Colors.white70,
-                      size: 40,
-                    ),
-                  )
-                : const Icon(
-                    Icons.person_rounded,
-                    color: Colors.white70,
-                    size: 40,
-                  ),
-          ),
-        ),
+      child: ClipOval(
+        child: avatarUrl != null && avatarUrl.isNotEmpty
+            ? SvgPicture.network(
+                avatarUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => const Icon(
+                  Icons.person_rounded,
+                  color: Color(0xFF003F91),
+                  size: 40,
+                ),
+              )
+            : const Icon(
+                Icons.person_rounded,
+                color: Color(0xFF003F91),
+                size: 40,
+              ),
       ),
     );
   }

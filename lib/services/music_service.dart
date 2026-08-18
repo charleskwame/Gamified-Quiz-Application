@@ -16,7 +16,9 @@ class MusicService with WidgetsBindingObserver {
     // (The default `assets/` prefix would resolve to a non-existent key.)
     _player.audioCache = AudioCache(prefix: '');
     _player.setReleaseMode(ReleaseMode.loop);
-    // Pause the loop when the app leaves the foreground; resume on return.
+    // Any transition away from the foreground stops the music; returning to
+    // the foreground restarts it. This guarantees no audio continues once the
+    // app is left (e.g. Home, app switcher, swipe-away, or closing).
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -29,7 +31,6 @@ class MusicService with WidgetsBindingObserver {
   final AudioPlayer _player = AudioPlayer();
 
   bool _started = false;
-  bool _pausedForBackground = false;
 
   /// Starts the background music loop if the user has it enabled.
   ///
@@ -42,6 +43,7 @@ class MusicService with WidgetsBindingObserver {
       _started = true;
       await _player.setVolume(await SettingsService.getMusicVolume());
       await _player.play(AssetSource(_musicAsset));
+      debugPrint('MusicService: background music started');
     } catch (e) {
       debugPrint('MusicService: failed to start background music: $e');
     }
@@ -51,8 +53,8 @@ class MusicService with WidgetsBindingObserver {
   Future<void> stop() async {
     try {
       _started = false;
-      _pausedForBackground = false;
       await _player.stop();
+      debugPrint('MusicService: background music stopped');
     } catch (e) {
       debugPrint('MusicService: failed to stop background music: $e');
     }
@@ -78,57 +80,30 @@ class MusicService with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    debugPrint('MusicService: app lifecycle -> $state');
     switch (state) {
       case AppLifecycleState.resumed:
+        // Idempotent: only restarts if the music had been stopped.
         _handleResume();
         break;
+      case AppLifecycleState.inactive:
       case AppLifecycleState.hidden:
       case AppLifecycleState.paused:
-        _handleBackground();
-        break;
       case AppLifecycleState.detached:
-        _handleDetached();
-        break;
-      case AppLifecycleState.inactive:
-        // Transient (dialogs, control center, incoming call) — leave as-is.
+        // Any transition away from the foreground halts the audio.
+        _handleStop();
         break;
     }
   }
 
-  /// Pauses the loop when the app is no longer visible.
-  Future<void> _handleBackground() async {
+  /// Forcefully stops playback when the app leaves the foreground.
+  Future<void> _handleStop() async {
     if (!_started) return;
-    try {
-      _pausedForBackground = true;
-      await _player.pause();
-    } catch (e) {
-      debugPrint('MusicService: failed to pause background music: $e');
-    }
+    await stop();
   }
 
-  /// Stops playback entirely when the app is being destroyed.
-  Future<void> _handleDetached() async {
-    try {
-      _pausedForBackground = false;
-      _started = false;
-      await _player.stop();
-    } catch (e) {
-      debugPrint('MusicService: failed to stop background music: $e');
-    }
-  }
-
-  /// Resumes the loop (or starts it) when the app returns to the foreground.
+  /// Restarts the loop when the app returns to the foreground.
   Future<void> _handleResume() async {
-    if (_pausedForBackground) {
-      _pausedForBackground = false;
-      try {
-        await _player.resume();
-      } catch (e) {
-        debugPrint('MusicService: failed to resume background music: $e');
-      }
-    } else {
-      // Not paused (e.g. cold start) — start if enabled.
-      await start();
-    }
+    await start();
   }
 }

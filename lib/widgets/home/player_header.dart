@@ -52,49 +52,28 @@ class PlayerHeader extends StatelessWidget {
       height: 68,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: const SweepGradient(
-          colors: [
-            Color(0xFF003F91),
-            Color(0xFF003F91),
-            Color(0xFFFFD700),
-            Color(0xFF4ADE80),
-            Color(0xFF003F91),
-          ],
-          stops: [0.0, 0.25, 0.5, 0.75, 1.0],
+        color: const Color(0xFF003F91).withValues(alpha: 0.1),
+        border: Border.all(
+          color: const Color(0xFF003F91).withValues(alpha: 0.2),
+          width: 2,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF003F91).withValues(alpha: 0.08),
-            blurRadius: 4,
-            spreadRadius: 0,
-          ),
-        ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(3),
-        child: Container(
-          decoration: const BoxDecoration(
-            color: Color(0xFF0A0E21),
-            shape: BoxShape.circle,
-          ),
-          child: ClipOval(
-            child: avatarUrl != null && avatarUrl!.isNotEmpty
-                ? SvgPicture.network(
-                    avatarUrl!,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => const Icon(
-                      Icons.person_rounded,
-                      color: Colors.white70,
-                      size: 32,
-                    ),
-                  )
-                : const Icon(
-                    Icons.person_rounded,
-                    color: Colors.white70,
-                    size: 32,
-                  ),
-          ),
-        ),
+      child: ClipOval(
+        child: avatarUrl != null && avatarUrl!.isNotEmpty
+            ? SvgPicture.network(
+                avatarUrl!,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => const Icon(
+                  Icons.person_rounded,
+                  color: Color(0xFF003F91),
+                  size: 32,
+                ),
+              )
+            : const Icon(
+                Icons.person_rounded,
+                color: Color(0xFF003F91),
+                size: 32,
+              ),
       ),
     );
   }
