@@ -413,7 +413,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         child: SwitchListTile(
                           value: _soundEnabled,
                           onChanged: _onSoundEnabledChanged,
-                          activeTrackColor: const Color(0xFF4ADE80),
+                          activeTrackColor: const Color(0xFF003F91),
                           activeThumbColor: Colors.white,
                           contentPadding: EdgeInsets.zero,
                           title: const Text(
@@ -466,7 +466,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             SwitchListTile(
                               value: _musicEnabled,
                               onChanged: _onMusicEnabledChanged,
-                              activeTrackColor: const Color(0xFF4ADE80),
+                              activeTrackColor: const Color(0xFF003F91),
                               activeThumbColor: Colors.white,
                               contentPadding: EdgeInsets.zero,
                               title: const Text(
@@ -708,7 +708,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ],
 
           if (_successMessage != null) ...[
-            _buildStatusBanner(_successMessage!, const Color(0xFF4ADE80)),
+            _buildStatusBanner(_successMessage!, const Color(0xFF003F91)),
             const SizedBox(height: 16),
           ],
 

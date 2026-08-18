@@ -7,6 +7,7 @@ import 'package:flutter/rendering.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../services/database_service.dart';
 
 class StreakCardModal extends StatefulWidget {
   final int streakNumber;
@@ -38,11 +39,15 @@ class _StreakCardModalState extends State<StreakCardModal> {
   final GlobalKey _repaintKey = GlobalKey();
   bool _isDownloading = false;
   late List<Color> _gradientColors;
+  late final Future<double> _streakPercentile;
 
   @override
   void initState() {
     super.initState();
     _generateRandomGradient();
+    _streakPercentile = DatabaseService().getStreakPercentage(
+      widget.streakNumber,
+    );
   }
 
   void _generateRandomGradient() {
@@ -103,7 +108,7 @@ class _StreakCardModalState extends State<StreakCardModal> {
       }
 
       final String path =
-          '${directory.path}/streak_${widget.streakNumber}_days.png';
+          '${directory.path}/streak_${widget.streakNumber}_sessions.png';
       final File imgFile = File(path);
 
       await imgFile.writeAsBytes(
@@ -177,7 +182,7 @@ class _StreakCardModalState extends State<StreakCardModal> {
             children: [
               const SizedBox(width: 40),
               const Text(
-                'Daily Streak',
+                'Sessions Completed',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
@@ -303,7 +308,7 @@ class _StreakCardModalState extends State<StreakCardModal> {
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      'Complete a session and answer at least half of the questions correctly to start your streak.',
+                      'Complete a quiz session to start counting your sessions.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.white70,
@@ -322,14 +327,29 @@ class _StreakCardModalState extends State<StreakCardModal> {
                       color: Colors.black.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: const Text(
-                      'Streak stats unavailable',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    child: FutureBuilder<double>(
+                      future: _streakPercentile,
+                      builder: (context, snapshot) {
+                        final percentile = snapshot.data;
+                        final String statsText;
+                        if (percentile == null) {
+                          statsText = 'Loading stats…';
+                        } else if (widget.streakNumber <= 0 ||
+                            percentile <= 0) {
+                          statsText = 'Complete a session to start counting.';
+                        } else {
+                          statsText = 'Top ${percentile.round()}% of players';
+                        }
+                        return Text(
+                          statsText,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ],

@@ -85,7 +85,9 @@ class LocalProgressService {
     final prefs = await SharedPreferences.getInstance();
     final current = await getAllProgress();
     current.add(progress);
-    final stringList = current.map((item) => jsonEncode(item.toJson())).toList();
+    final stringList = current
+        .map((item) => jsonEncode(item.toJson()))
+        .toList();
     await prefs.setStringList(_guestProgressKey, stringList);
   }
 
@@ -132,14 +134,6 @@ class LocalProgressService {
       questionsAnswered += p.totalQuestions;
       questionsCorrect += p.correctAnswers;
 
-      // Same streak check logic as DatabaseService:
-      // increment if user scored at least half correct; otherwise reset
-      if (p.totalQuestions > 0 && p.correctAnswers >= (p.totalQuestions / 2).ceil()) {
-        streakNumber += 1;
-      } else {
-        streakNumber = 0;
-      }
-
       if (p.category == 'Computer Architecture') {
         computerArchitecturePoints += p.score;
         caAnswered += p.totalQuestions;
@@ -154,6 +148,10 @@ class LocalProgressService {
         seCorrect += p.correctAnswers;
       }
     }
+
+    // Sessions completed = number of recorded guest sessions. Each guest
+    // session maps to one rank history entry on sync.
+    streakNumber = progressList.length;
 
     return GuestStats(
       score: score,

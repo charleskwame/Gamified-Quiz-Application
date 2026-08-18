@@ -44,7 +44,7 @@ class GameStatPanel extends StatelessWidget {
             child: _StatItem(
               icon: Icons.local_fire_department_rounded,
               value: '$streakNumber',
-              label: 'Streak',
+              label: 'Sessions',
               iconColor: const Color(0xFFFF5722),
             ),
           ),

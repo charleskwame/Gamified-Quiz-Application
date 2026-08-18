@@ -36,11 +36,11 @@ class BadgeDefinition {
       case 'speed_demon':
         return isTimed;
       case 'streak_starter':
-        return streakNumber >= 2;
-      case 'streak_master':
         return streakNumber >= 5;
+      case 'streak_master':
+        return streakNumber >= 25;
       case 'streak_legend':
-        return streakNumber >= 10;
+        return streakNumber >= 50;
       case 'consistent_player':
         return questionsAnswered >= 50;
       case 'quiz_champion':
@@ -75,13 +75,13 @@ class BadgeDefinition {
       // New 30 Badges
       // Streak Badges
       case 'streak_enthusiast':
-        return streakNumber >= 3;
+        return streakNumber >= 10;
       case 'streak_week':
-        return streakNumber >= 7;
+        return streakNumber >= 100;
       case 'streak_fortnight':
-        return streakNumber >= 15;
+        return streakNumber >= 150;
       case 'streak_month':
-        return streakNumber >= 30;
+        return streakNumber >= 300;
 
       // Score Milestones
       case 'score_100':
@@ -210,21 +210,21 @@ const List<BadgeDefinition> allBadges = [
   BadgeDefinition(
     id: 'streak_starter',
     name: 'Streak Starter',
-    description: 'Achieve a 2-day daily streak',
+    description: 'Complete 5 quiz sessions',
     icon: Icons.local_fire_department_rounded,
     color: Color(0xFFFF5722),
   ),
   BadgeDefinition(
     id: 'streak_master',
     name: 'Streak Master',
-    description: 'Achieve a 5-day daily streak',
+    description: 'Complete 25 quiz sessions',
     icon: Icons.wb_sunny_rounded,
     color: Color(0xFFE91E63),
   ),
   BadgeDefinition(
     id: 'streak_legend',
     name: 'Streak Legend',
-    description: 'Achieve a 10-day daily streak',
+    description: 'Complete 50 quiz sessions',
     icon: Icons.brightness_high_rounded,
     color: Color(0xFF9C27B0),
   ),
@@ -331,28 +331,28 @@ const List<BadgeDefinition> allBadges = [
   BadgeDefinition(
     id: 'streak_enthusiast',
     name: 'Streak Enthusiast',
-    description: 'Achieve a 3-day daily streak',
+    description: 'Complete 10 quiz sessions',
     icon: Icons.local_fire_department_rounded,
     color: Color(0xFFFF9800),
   ),
   BadgeDefinition(
     id: 'streak_week',
     name: 'Week of Fire',
-    description: 'Achieve a 7-day daily streak',
+    description: 'Complete 100 quiz sessions',
     icon: Icons.whatshot_rounded,
     color: Color(0xFFFFC107),
   ),
   BadgeDefinition(
     id: 'streak_fortnight',
     name: 'Fortnight Flame',
-    description: 'Achieve a 15-day daily streak',
+    description: 'Complete 150 quiz sessions',
     icon: Icons.filter_hdr_rounded,
     color: Color(0xFFFF5722),
   ),
   BadgeDefinition(
     id: 'streak_month',
     name: 'Monthly Champion',
-    description: 'Achieve a 30-day daily streak',
+    description: 'Complete 300 quiz sessions',
     icon: Icons.military_tech_rounded,
     color: Color(0xFFE91E63),
   ),

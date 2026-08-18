@@ -309,12 +309,10 @@ class DatabaseService {
         seCorrect += correctIncrement;
       }
 
-      // Calculate streak: increment if user scored at least half correct; otherwise reset
-      if (answeredIncrement > 0 &&
-          correctIncrement >= (answeredIncrement / 2).ceil()) {
+      // Calculate streak: each completed session counts toward the total.
+      // Sessions completed matches the number of rank history entries.
+      if (answeredIncrement > 0) {
         streakNumber += 1;
-      } else {
-        streakNumber = 0;
       }
 
       // Evaluate badges
@@ -522,19 +520,81 @@ class DatabaseService {
     });
   }
 
-  // Stream the user's rank history ordered by timestamp descending
-  Stream<List<RankHistoryEntry>> getRankHistoryStream(String uid) {
-    return _db
+  // Fetch a single page of the user's rank history, newest first.
+  // Used by the profile page to paginate 5 entries at a time.
+  Future<RankHistoryPage> fetchRankHistoryPage(
+    String uid, {
+    DocumentSnapshot<Map<String, dynamic>>? startAfter,
+    int limit = 5,
+  }) async {
+    Query<Map<String, dynamic>> query = _db
         .collection('users')
         .doc(uid)
         .collection('rankHistory')
         .orderBy('timestamp', descending: true)
-        .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
-              .map((doc) => RankHistoryEntry.fromFirestore(doc))
-              .toList(),
-        );
+        .limit(limit + 1);
+
+    if (startAfter != null) {
+      query = query.startAfterDocument(startAfter);
+    }
+
+    final snapshot = await query.get();
+    final docs = snapshot.docs;
+
+    // If we got more than `limit` docs, there is another page available.
+    final hasMore = docs.length > limit;
+    final pageDocs = hasMore ? docs.sublist(0, limit) : docs;
+    final lastDoc = pageDocs.isNotEmpty ? pageDocs.last : null;
+
+    return RankHistoryPage(
+      entries: pageDocs.map(RankHistoryEntry.fromFirestore).toList(),
+      lastDoc: lastDoc,
+      hasMore: hasMore,
+    );
+  }
+
+  // Backfill the user's sessions-completed count (streakNumber) from their
+  // rank history so existing completed sessions are counted correctly.
+  // Idempotent: no-ops when the stored count already matches.
+  Future<void> syncStreakFromRankHistory(String uid) async {
+    try {
+      final countSnap = await _db
+          .collection('users')
+          .doc(uid)
+          .collection('rankHistory')
+          .count()
+          .get();
+      final int count = countSnap.count ?? 0;
+
+      final userSnap = await _userDoc(uid).get();
+      final current = userSnap.data()?['streakNumber'] as int? ?? 0;
+      if (count == current) return;
+
+      await _userDoc(uid).update({'streakNumber': count});
+
+      final data = userSnap.data() ?? <String, dynamic>{};
+      await _publicProfileDoc(uid).set(
+        _publicProfileData(
+          displayName: (data['displayName'] as String?) ?? 'Scholar',
+          score: data['score'] as int? ?? 0,
+          computerArchitecturePoints:
+              data['computerArchitecturePoints'] as int? ?? 0,
+          computerNetworkingPoints:
+              data['computerNetworkingPoints'] as int? ?? 0,
+          softwareEngineeringPoints:
+              data['softwareEngineeringPoints'] as int? ?? 0,
+          streakNumber: count,
+          badges: List<String>.from(data['badges'] ?? <String>[]),
+          selectedBadges: List<String>.from(
+            data['selectedBadges'] ?? <String>[],
+          ),
+          avatarUrl: (data['avatarUrl'] as String?) ?? '',
+        ),
+        SetOptions(merge: true),
+      );
+    } catch (_) {
+      // Best-effort backfill; failures are non-fatal.
+    }
   }
 
   // Delete all existing rank history entries for cleanup (used to remove bad data from buggy getCurrentRank)

@@ -785,154 +785,266 @@ class _ProfilePageState extends State<ProfilePage> {
   // ──────────────────────────────────────────────
 
   Widget _buildRankingHistory(String uid) {
-    return StreamBuilder<List<RankHistoryEntry>>(
-      stream: DatabaseService().getRankHistoryStream(uid),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20),
-            child: Center(
-              child: SizedBox(
-                width: 24,
-                height: 24,
+    return _RankingHistoryList(uid: uid);
+  }
+}
+
+/// Paginated list of the user's rank history, newest first, 5 per page.
+class _RankingHistoryList extends StatefulWidget {
+  const _RankingHistoryList({required this.uid});
+
+  final String uid;
+
+  @override
+  State<_RankingHistoryList> createState() => _RankingHistoryListState();
+}
+
+class _RankingHistoryListState extends State<_RankingHistoryList> {
+  static const int _pageSize = 5;
+
+  final DatabaseService _dbService = DatabaseService();
+  final List<RankHistoryEntry> _entries = [];
+  DocumentSnapshot<Map<String, dynamic>>? _lastDoc;
+  bool _hasMore = true;
+  bool _loadingFirst = true;
+  bool _loadingMore = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFirstPage();
+  }
+
+  Future<void> _loadFirstPage() async {
+    setState(() {
+      _loadingFirst = true;
+      _error = null;
+    });
+    try {
+      final page = await _dbService.fetchRankHistoryPage(
+        widget.uid,
+        limit: _pageSize,
+      );
+      if (!mounted) return;
+      setState(() {
+        _entries
+          ..clear()
+          ..addAll(page.entries);
+        _lastDoc = page.lastDoc;
+        _hasMore = page.hasMore;
+        _loadingFirst = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _loadingFirst = false;
+        _error = 'Could not load your rank history.';
+      });
+    }
+  }
+
+  Future<void> _loadMore() async {
+    if (_loadingMore || !_hasMore) return;
+    setState(() => _loadingMore = true);
+    try {
+      final page = await _dbService.fetchRankHistoryPage(
+        widget.uid,
+        startAfter: _lastDoc,
+        limit: _pageSize,
+      );
+      if (!mounted) return;
+      setState(() {
+        _entries.addAll(page.entries);
+        _lastDoc = page.lastDoc;
+        _hasMore = page.hasMore;
+        _loadingMore = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _loadingMore = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loadingFirst) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Center(
+          child: SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: const Color(0xFF003F91).withValues(alpha: 0.3),
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (_error != null && _entries.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Center(
+          child: Text(
+            _error!,
+            style: TextStyle(
+              fontSize: 13,
+              color: const Color(0xFF003F91).withValues(alpha: 0.5),
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (_entries.isEmpty) {
+      return _buildEmptyRankHistory();
+    }
+
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: _entries.length + (_hasMore ? 1 : 0),
+      separatorBuilder: (context, index) => const SizedBox(height: 8),
+      itemBuilder: (context, index) {
+        if (index == _entries.length) {
+          return _buildLoadMoreButton();
+        }
+        return _buildRow(_entries[index]);
+      },
+    );
+  }
+
+  Widget _buildLoadMoreButton() {
+    return Center(
+      child: TextButton.icon(
+        onPressed: _loadingMore ? null : _loadMore,
+        icon: _loadingMore
+            ? const SizedBox(
+                width: 14,
+                height: 14,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: const Color(0xFF003F91).withValues(alpha: 0.3),
+                  color: Color(0xFF003F91),
                 ),
+              )
+            : const Icon(Icons.expand_more_rounded, size: 18),
+        label: Text(_loadingMore ? 'Loading…' : 'Load More'),
+        style: TextButton.styleFrom(foregroundColor: const Color(0xFF003F91)),
+      ),
+    );
+  }
+
+  Widget _buildRow(RankHistoryEntry entry) {
+    // Determine rank color based on the letter
+    late final Color rankColor;
+    late final Color rankBgColor;
+
+    switch (entry.rank) {
+      case 'S':
+        rankColor = const Color(0xFFFFD700);
+        rankBgColor = const Color(0xFFFFD700).withValues(alpha: 0.15);
+        break;
+      case 'A':
+        rankColor = const Color(0xFF4ADE80);
+        rankBgColor = const Color(0xFF4ADE80).withValues(alpha: 0.15);
+        break;
+      case 'B':
+        rankColor = const Color(0xFF003F91);
+        rankBgColor = const Color(0xFF003F91).withValues(alpha: 0.15);
+        break;
+      case 'C':
+        rankColor = const Color(0xFFF59E0B);
+        rankBgColor = const Color(0xFFF59E0B).withValues(alpha: 0.15);
+        break;
+      case 'D':
+        rankColor = const Color(0xFF94A3B8);
+        rankBgColor = const Color(0xFF94A3B8).withValues(alpha: 0.15);
+        break;
+      default: // E
+        rankColor = const Color(0xFF9CA3AF);
+        rankBgColor = const Color(0xFF9CA3AF).withValues(alpha: 0.15);
+        break;
+    }
+
+    final dateStr = DateFormat('MMM d, yyyy, h:mm a').format(entry.timestamp);
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFECF8F8),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: const Color(0xFF003F91).withValues(alpha: 0.08),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: rankBgColor,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(6),
+              child: SvgPicture.asset(
+                'lib/assets/rank_icons/${entry.rank.toLowerCase()}-rank-medal.svg',
+                fit: BoxFit.contain,
               ),
             ),
-          );
-        }
-
-        final entries = snapshot.data ?? [];
-
-        if (entries.isEmpty) {
-          return _buildEmptyRankHistory();
-        }
-
-        return ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: entries.length,
-          separatorBuilder: (context, index) => const SizedBox(height: 8),
-          itemBuilder: (context, index) {
-            final entry = entries[index];
-
-            // Determine rank color based on the letter
-            late final Color rankColor;
-            late final Color rankBgColor;
-
-            switch (entry.rank) {
-              case 'S':
-                rankColor = const Color(0xFFFFD700);
-                rankBgColor = const Color(0xFFFFD700).withValues(alpha: 0.15);
-                break;
-              case 'A':
-                rankColor = const Color(0xFF4ADE80);
-                rankBgColor = const Color(0xFF4ADE80).withValues(alpha: 0.15);
-                break;
-              case 'B':
-                rankColor = const Color(0xFF003F91);
-                rankBgColor = const Color(0xFF003F91).withValues(alpha: 0.15);
-                break;
-              case 'C':
-                rankColor = const Color(0xFFF59E0B);
-                rankBgColor = const Color(0xFFF59E0B).withValues(alpha: 0.15);
-                break;
-              case 'D':
-                rankColor = const Color(0xFF94A3B8);
-                rankBgColor = const Color(0xFF94A3B8).withValues(alpha: 0.15);
-                break;
-              default: // E
-                rankColor = const Color(0xFF9CA3AF);
-                rankBgColor = const Color(0xFF9CA3AF).withValues(alpha: 0.15);
-                break;
-            }
-
-            final dateStr = DateFormat(
-              'MMM d, yyyy, h:mm a',
-            ).format(entry.timestamp);
-
-            return Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: const Color(0xFFECF8F8),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: const Color(0xFF003F91).withValues(alpha: 0.08),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  entry.category,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF003F91),
                   ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: rankBgColor,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(6),
-                      child: SvgPicture.asset(
-                        'lib/assets/rank_icons/${entry.rank.toLowerCase()}-rank-medal.svg',
-                        fit: BoxFit.contain,
+                ),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    Text(
+                      '${entry.percentage.round()}%',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: rankColor,
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          entry.category,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF003F91),
-                          ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        dateStr,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: const Color(0xFF003F91).withValues(alpha: 0.4),
                         ),
-                        const SizedBox(height: 2),
-                        Row(
-                          children: [
-                            Text(
-                              '${entry.percentage.round()}%',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                color: rankColor,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                dateStr,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: const Color(
-                                    0xFF003F91,
-                                  ).withValues(alpha: 0.4),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 

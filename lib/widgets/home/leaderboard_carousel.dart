@@ -51,7 +51,7 @@ class _LeaderboardCarouselState extends State<LeaderboardCarousel> {
         LeaderboardCard(
           titleLabel: 'TOP STREAK',
           userName: topStreak.name,
-          statValue: '${topStreak.streakNumber}-Day Streak',
+          statValue: '${topStreak.streakNumber} Completions',
           avatarUrl: topStreak.avatarUrl,
           icon: Icons.local_fire_department_rounded,
         ),

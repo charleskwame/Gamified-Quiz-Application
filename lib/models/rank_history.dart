@@ -35,3 +35,16 @@ class RankHistoryEntry {
     };
   }
 }
+
+/// A single page of the user's rank history, ordered newest first.
+class RankHistoryPage {
+  final List<RankHistoryEntry> entries;
+  final DocumentSnapshot<Map<String, dynamic>>? lastDoc;
+  final bool hasMore;
+
+  RankHistoryPage({
+    required this.entries,
+    required this.lastDoc,
+    required this.hasMore,
+  });
+}

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../services/database_service.dart';
 import '../services/local_progress_service.dart';
 import '../services/onboarding_service.dart';
 import '../screens/guest_name_screen.dart';
@@ -15,6 +16,10 @@ class AuthGate extends StatefulWidget {
 }
 
 class _AuthGateState extends State<AuthGate> {
+  // Ensures the streak (sessions completed) is backfilled from rank history
+  // only once per app launch, avoiding repeated count queries.
+  static bool _streakSyncedThisLaunch = false;
+
   bool _initialized = false;
   bool _needsGuestSetup = false;
   bool _showOnboarding = false;
@@ -42,6 +47,13 @@ class _AuthGateState extends State<AuthGate> {
     }
 
     final user = FirebaseAuth.instance.currentUser;
+
+    // One-time backfill: make streakNumber (sessions completed) match the
+    // user's rank history count so existing history is counted.
+    if (user != null && !_streakSyncedThisLaunch) {
+      _streakSyncedThisLaunch = true;
+      unawaited(DatabaseService().syncStreakFromRankHistory(user.uid));
+    }
 
     if (user == null) {
       final guest = await LocalProgressService.loadGuestUser();
