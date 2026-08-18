@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../services/auth_service.dart';
 import '../services/database_service.dart';
 import '../services/onboarding_service.dart';
+import '../services/settings_service.dart';
 import '../widgets/avatar_customizer_dialog.dart';
 import '../widgets/main_navigation.dart';
 
@@ -25,6 +26,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String? _errorMessage;
   String? _successMessage;
 
+  bool _soundEnabled = true;
+
   @override
   void initState() {
     super.initState();
@@ -32,6 +35,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (user != null) {
       _displayNameController.text = user.displayName ?? '';
     }
+    _loadSoundSetting();
+  }
+
+  Future<void> _loadSoundSetting() async {
+    final enabled = await SettingsService.isSoundEnabled();
+    if (mounted) {
+      setState(() => _soundEnabled = enabled);
+    }
+  }
+
+  Future<void> _onSoundEnabledChanged(bool value) async {
+    setState(() => _soundEnabled = value);
+    await SettingsService.setSoundEnabled(value);
   }
 
   @override
@@ -340,6 +356,57 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               ),
                             ),
                           ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 32),
+
+                    // ── Sound Effects ──
+                    _StaggeredFadeSlide(
+                      index: 4,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(
+                                0xFF003F91,
+                              ).withValues(alpha: 0.08),
+                              blurRadius: 24,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: SwitchListTile(
+                          value: _soundEnabled,
+                          onChanged: _onSoundEnabledChanged,
+                          activeTrackColor: const Color(0xFF4ADE80),
+                          activeThumbColor: Colors.white,
+                          contentPadding: EdgeInsets.zero,
+                          title: const Text(
+                            'Sound Effects',
+                            style: TextStyle(
+                              color: Color(0xFF003F91),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          subtitle: Text(
+                            'Play sounds for correct answers, wrong answers, '
+                            'and level-ups.',
+                            style: TextStyle(
+                              color: const Color(
+                                0xFF003F91,
+                              ).withValues(alpha: 0.7),
+                              fontSize: 13,
+                            ),
+                          ),
                         ),
                       ),
                     ),

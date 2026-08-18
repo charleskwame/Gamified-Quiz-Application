@@ -8,6 +8,7 @@ import 'package:share_plus/share_plus.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import '../../models/level_system.dart';
+import '../../services/sound_service.dart';
 
 /// Data model for level-up information
 class LevelUpData {
@@ -127,6 +128,9 @@ class _QuizLevelUpScreenState extends State<QuizLevelUpScreen>
 
     _mainController.addListener(_onMainAnimationTick);
     _mainController.forward();
+
+    // Play the level-up fanfare as the celebration starts.
+    SoundService.instance.playLevelUp();
 
     _mainController.addStatusListener((status) {
       if (status == AnimationStatus.completed) {

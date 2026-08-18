@@ -9,6 +9,7 @@ import '../models/level_system.dart';
 import '../services/database_service.dart';
 import '../services/quiz_engine.dart';
 import '../services/coin_service.dart';
+import '../services/sound_service.dart';
 import '../services/quote_service.dart';
 import '../widgets/home/particle_background.dart';
 import '../widgets/quiz/quiz_loading_view.dart';
@@ -456,6 +457,9 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
       });
     }
 
+    // Play the "wrong answer" sound for a timed-out question.
+    SoundService.instance.playWrong();
+
     // Track this timed-out question as incorrect for lecturer insights
     if (!widget.isOffline) {
       final user = FirebaseAuth.instance.currentUser;
@@ -564,6 +568,13 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
         }
       }
     });
+
+    // Play the correct/wrong feedback sound effect.
+    if (isCorrect) {
+      SoundService.instance.playCorrect();
+    } else {
+      SoundService.instance.playWrong();
+    }
 
     // Hide score popup after a delay
     if (isCorrect) {
@@ -809,8 +820,9 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
   Future<void> _applyQuitPenalty() async {
     // Only apply penalty for online modes
     if (widget.isOffline) return;
-    if (_userStartingLevel < 2)
+    if (_userStartingLevel < 2) {
       return; // Penalty only affects Amateur and above
+    }
 
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
