@@ -29,6 +29,9 @@ class SoundService {
   static const String _correctAsset = 'lib/assets/sound_effects/correct.mp3';
   static const String _wrongAsset = 'lib/assets/sound_effects/wrong.mp3';
   static const String _levelUpAsset = 'lib/assets/sound_effects/level-up.mp3';
+  static const String _nextAsset = 'lib/assets/sound_effects/next.mp3';
+  static const String _sessionCompleteAsset =
+      'lib/assets/sound_effects/session-complete.mp3';
 
   // Assets live under `lib/assets/`, so the AudioCache prefix must be empty
   // (the default `assets/` prefix would resolve to a non-existent key).
@@ -44,7 +47,13 @@ class SoundService {
       _sfxPlayer.setPlayerMode(PlayerMode.lowLatency);
       _levelUpPlayer.setReleaseMode(ReleaseMode.stop);
       _levelUpPlayer.setPlayerMode(PlayerMode.lowLatency);
-      await _cache.loadAll([_correctAsset, _wrongAsset, _levelUpAsset]);
+      await _cache.loadAll([
+        _correctAsset,
+        _wrongAsset,
+        _levelUpAsset,
+        _nextAsset,
+        _sessionCompleteAsset,
+      ]);
     } catch (e) {
       // Audio is best-effort: never let a missing asset crash the quiz.
       debugPrint('SoundService: failed to preload sound assets: $e');
@@ -67,6 +76,12 @@ class SoundService {
       debugPrint('SoundService: failed to play level-up sound: $e');
     }
   }
+
+  /// Plays the "next" tap sound (e.g. Enter Quest / Next Question).
+  Future<void> playNext() => _playSfx(_nextAsset);
+
+  /// Plays the "session complete" sound when a quiz session finishes.
+  Future<void> playSessionComplete() => _playSfx(_sessionCompleteAsset);
 
   Future<void> _playSfx(String asset) async {
     if (!await SettingsService.isSoundEnabled()) return;

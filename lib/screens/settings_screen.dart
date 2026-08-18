@@ -6,6 +6,7 @@ import '../services/auth_service.dart';
 import '../services/database_service.dart';
 import '../services/onboarding_service.dart';
 import '../services/settings_service.dart';
+import '../services/music_service.dart';
 import '../widgets/avatar_customizer_dialog.dart';
 import '../widgets/main_navigation.dart';
 
@@ -27,6 +28,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String? _successMessage;
 
   bool _soundEnabled = true;
+  bool _musicEnabled = true;
+  double _musicVolume = 0.5;
 
   @override
   void initState() {
@@ -36,6 +39,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _displayNameController.text = user.displayName ?? '';
     }
     _loadSoundSetting();
+    _loadMusicSettings();
   }
 
   Future<void> _loadSoundSetting() async {
@@ -48,6 +52,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _onSoundEnabledChanged(bool value) async {
     setState(() => _soundEnabled = value);
     await SettingsService.setSoundEnabled(value);
+  }
+
+  Future<void> _loadMusicSettings() async {
+    final enabled = await SettingsService.isMusicEnabled();
+    final volume = await SettingsService.getMusicVolume();
+    if (mounted) {
+      setState(() {
+        _musicEnabled = enabled;
+        _musicVolume = volume;
+      });
+    }
+  }
+
+  Future<void> _onMusicEnabledChanged(bool value) async {
+    setState(() => _musicEnabled = value);
+    await SettingsService.setMusicEnabled(value);
+    await MusicService.instance.setEnabled(value);
+  }
+
+  Future<void> _onMusicVolumeChanged(double value) async {
+    setState(() => _musicVolume = value);
+    await SettingsService.setMusicVolume(value);
+    await MusicService.instance.setVolume(value);
   }
 
   @override
@@ -413,9 +440,92 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                     const SizedBox(height: 32),
 
-                    // ── Divider ──
+                    // ── Background Music ──
                     _StaggeredFadeSlide(
                       index: 5,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(
+                                0xFF003F91,
+                              ).withValues(alpha: 0.08),
+                              blurRadius: 24,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            SwitchListTile(
+                              value: _musicEnabled,
+                              onChanged: _onMusicEnabledChanged,
+                              activeTrackColor: const Color(0xFF4ADE80),
+                              activeThumbColor: Colors.white,
+                              contentPadding: EdgeInsets.zero,
+                              title: const Text(
+                                'Background Music',
+                                style: TextStyle(
+                                  color: Color(0xFF003F91),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                              subtitle: Text(
+                                'Play a looping soundtrack while you study.',
+                                style: TextStyle(
+                                  color: const Color(
+                                    0xFF003F91,
+                                  ).withValues(alpha: 0.7),
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.volume_down_rounded,
+                                    size: 20,
+                                    color: const Color(
+                                      0xFF003F91,
+                                    ).withValues(alpha: 0.6),
+                                  ),
+                                  Expanded(
+                                    child: Slider(
+                                      value: _musicVolume,
+                                      onChanged: _musicEnabled
+                                          ? _onMusicVolumeChanged
+                                          : null,
+                                    ),
+                                  ),
+                                  Icon(
+                                    Icons.volume_up_rounded,
+                                    size: 20,
+                                    color: const Color(
+                                      0xFF003F91,
+                                    ).withValues(alpha: 0.6),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 32),
+
+                    // ── Divider ──
+                    _StaggeredFadeSlide(
+                      index: 6,
                       child: Container(
                         height: 1,
                         width: double.infinity,
@@ -426,7 +536,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const SizedBox(height: 24),
 
                     // ── Danger Zone ──
-                    _StaggeredFadeSlide(index: 6, child: _buildDangerZone()),
+                    _StaggeredFadeSlide(index: 7, child: _buildDangerZone()),
                   ],
                 ),
               ),

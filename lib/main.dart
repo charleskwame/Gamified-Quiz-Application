@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'firebase_options.dart';
 import 'app.dart';
 import 'services/auth_service.dart';
+import 'services/music_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,4 +37,7 @@ void main() async {
   await AuthService().repairRestoredSession();
 
   runApp(const MyApp());
+
+  // Start the global background music loop (respects saved settings).
+  MusicService.instance.start();
 }

@@ -591,6 +591,8 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
   void _nextQuestion() {
     _confettiController.stop();
     if (_currentIndex < _questions.length - 1) {
+      // Play the "next" tap sound when advancing to the next question.
+      SoundService.instance.playNext();
       _questionSlideController?.forward(from: 0.0);
       setState(() {
         _currentIndex++;

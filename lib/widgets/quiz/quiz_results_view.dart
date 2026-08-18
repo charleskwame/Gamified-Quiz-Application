@@ -4,6 +4,7 @@ import 'package:confetti/confetti.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../models/badge.dart';
 import '../../models/level_system.dart';
+import '../../services/sound_service.dart';
 
 /// Displays the quiz completion/results screen with game-like UI.
 /// Includes animated XP progress bar, total score counter, penalty info, and coins earned.
@@ -66,6 +67,8 @@ class _QuizResultsViewState extends State<QuizResultsView>
   @override
   void initState() {
     super.initState();
+    // Play the session-complete sound as the results screen appears.
+    SoundService.instance.playSessionComplete();
     _confettiController = ConfettiController(
       duration: const Duration(seconds: 3),
     );

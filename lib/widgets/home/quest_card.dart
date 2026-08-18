@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../services/sound_service.dart';
 
 /// An RPG-style quest/dungeon entrance card for a subject category.
 /// Shows a subtle pulsing glow.
@@ -39,7 +40,11 @@ class QuestCard extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: onPressed,
+          onTap: () {
+            // Play the "next" tap sound when entering a quest.
+            SoundService.instance.playNext();
+            onPressed();
+          },
           borderRadius: BorderRadius.circular(20),
           child: Padding(
             padding: const EdgeInsets.all(14),
