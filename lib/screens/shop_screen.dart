@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/database_service.dart';
+import '../services/sound_service.dart';
 import '../models/shop_item.dart';
 import '../widgets/home/particle_background.dart';
 
@@ -53,6 +54,9 @@ class _ShopScreenState extends State<ShopScreen> {
       if (!mounted) return;
 
       if (success) {
+        await SoundService.instance.playNext();
+        if (!mounted) return;
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
@@ -222,7 +226,10 @@ class _ShopScreenState extends State<ShopScreen> {
                           ownedCount: count,
                           canAfford: coins >= item.price,
                           isPurchasing: _purchasing.contains(item.id),
-                          onBuy: () => _buyItem(item, uid),
+                          onBuy: () {
+                            SoundService.instance.playNavClick();
+                            _buyItem(item, uid);
+                          },
                         ),
                       );
                     }),
