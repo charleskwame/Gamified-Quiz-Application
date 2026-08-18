@@ -31,6 +31,8 @@ class SoundService {
   static const String _levelUpAsset = 'lib/assets/sound_effects/level-up.mp3';
   static const String _navClickAsset = 'lib/assets/sound_effects/nav-click.mp3';
   static const String _nextAsset = 'lib/assets/sound_effects/next.mp3';
+  static const String _purchaseAsset =
+      'lib/assets/sound_effects/purchasing.mp3';
   static const String _sessionCompleteAsset =
       'lib/assets/sound_effects/session-complete.mp3';
 
@@ -55,6 +57,7 @@ class SoundService {
         _navClickAsset,
         _nextAsset,
         _sessionCompleteAsset,
+        _purchaseAsset,
       ]);
     } catch (e) {
       // Audio is best-effort: never let a missing asset crash the quiz.
@@ -84,6 +87,9 @@ class SoundService {
 
   /// Plays the "next" tap sound (e.g. Enter Quest / Next Question).
   Future<void> playNext() => _playSfx(_nextAsset);
+
+  /// Plays the shop purchase sound when an item is bought successfully.
+  Future<void> playPurchase() => _playSfx(_purchaseAsset);
 
   /// Plays the "session complete" sound when a quiz session finishes.
   Future<void> playSessionComplete() => _playSfx(_sessionCompleteAsset);

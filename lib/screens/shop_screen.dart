@@ -54,7 +54,7 @@ class _ShopScreenState extends State<ShopScreen> {
       if (!mounted) return;
 
       if (success) {
-        await SoundService.instance.playNext();
+        await SoundService.instance.playPurchase();
         if (!mounted) return;
 
         ScaffoldMessenger.of(context).showSnackBar(

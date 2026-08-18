@@ -17,6 +17,7 @@ void main() {
       'lib/assets/sound_effects/level-up.mp3',
       'lib/assets/sound_effects/nav-click.mp3',
       'lib/assets/sound_effects/next.mp3',
+      'lib/assets/sound_effects/purchasing.mp3',
       'lib/assets/sound_effects/session-complete.mp3',
       'lib/assets/sound_effects/background-music.mp3',
     ];
@@ -32,6 +33,10 @@ void main() {
   group('SoundService', () {
     test('exposes the navigation click sound effect', () async {
       expect(SoundService.instance.playNavClick, isA<Function>());
+    });
+
+    test('exposes the purchase sound effect', () async {
+      expect(SoundService.instance.playPurchase, isA<Function>());
     });
   });
 
