@@ -20,6 +20,34 @@ void main() {
     });
   });
 
+  group('isImplementationCommit', () {
+    test('keeps feature commits', () {
+      expect(isImplementationCommit('feat: add quiz sound effects'), isTrue);
+    });
+
+    test('keeps fix and refactor commits', () {
+      expect(isImplementationCommit('fix: crash on startup'), isTrue);
+      expect(isImplementationCommit('refactor: clean up auth flow'), isTrue);
+    });
+
+    test('filters out version bump commits', () {
+      expect(
+        isImplementationCommit('chore: bump version to 1.2.7+10207'),
+        isFalse,
+      );
+      expect(isImplementationCommit('Bump version to 1.2.7'), isFalse);
+      expect(isImplementationCommit('chore(release): 1.2.7'), isFalse);
+    });
+
+    test('filters out merge commits', () {
+      expect(isImplementationCommit('Merge branch main'), isFalse);
+      expect(
+        isImplementationCommit('Merge pull request #42 from feature/x'),
+        isFalse,
+      );
+    });
+  });
+
   group('compareVersions', () {
     test('equal versions compare to zero', () {
       expect(compareVersions('1.2.0', '1.2.0'), 0);

@@ -169,7 +169,7 @@ class _UpdateAppDialogState extends State<UpdateAppDialog> {
 
   Widget _buildWhatsNew(ThemeData theme) {
     final notes = widget.info.releaseNotes ?? '';
-    final showNotes = notes.trim().isNotEmpty;
+    final showNotes = _hasMeaningfulReleaseNotes(notes);
     final commits = widget.info.commitMessages;
 
     if (!showNotes && commits.isEmpty) return const SizedBox.shrink();
@@ -180,12 +180,7 @@ class _UpdateAppDialogState extends State<UpdateAppDialog> {
         const SizedBox(height: 12),
         Text("What's new", style: theme.textTheme.titleMedium),
         const SizedBox(height: 8),
-        if (showNotes)
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 160),
-            child: MarkdownBody(data: notes),
-          ),
-        if (showNotes && commits.isNotEmpty) const SizedBox(height: 8),
+        // Git commit messages are the primary "what was implemented" content.
         if (commits.isNotEmpty)
           ...commits
               .take(30)
@@ -211,8 +206,34 @@ class _UpdateAppDialogState extends State<UpdateAppDialog> {
                   ),
                 ),
               ),
+        if (showNotes) ...[
+          if (commits.isNotEmpty) const SizedBox(height: 8),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 160),
+            child: MarkdownBody(data: notes),
+          ),
+        ],
       ],
     );
+  }
+
+  /// GitHub's release automation appends an auto-generated
+  /// "**Full Changelog**" link to every release body. A body made up only of
+  /// that link adds no value, so it is hidden in favour of the commit messages.
+  bool _hasMeaningfulReleaseNotes(String notes) {
+    final trimmed = notes.trim();
+    if (trimmed.isEmpty) return false;
+    final lower = trimmed.toLowerCase();
+    final changelogIndex = lower.indexOf('full changelog');
+    if (changelogIndex < 0) return true;
+    // Keep only text that appears before the auto-generated changelog link.
+    // If that is just markdown markers or whitespace, the body has no real
+    // content, so hide it.
+    final before = trimmed.substring(0, changelogIndex);
+    final meaningful = before
+        .replaceAll(RegExp(r'[\s*_`#>\-:]'), '')
+        .isNotEmpty;
+    return meaningful;
   }
 
   Widget _buildPromptContent(ThemeData theme) {

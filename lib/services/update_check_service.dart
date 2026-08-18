@@ -143,13 +143,26 @@ class UpdateCheckService {
         final message = (commit['message'] as String? ?? '').trim();
         if (message.isEmpty) continue;
         final subject = message.split('\n').first.trim();
-        if (subject.isNotEmpty) messages.add(subject);
+        // Only keep commits that describe actual implemented changes.
+        if (isImplementationCommit(subject)) messages.add(subject);
       }
       return messages;
     } catch (_) {
       return const [];
     }
   }
+}
+
+/// Whether a commit subject describes actual implemented changes. Filters out
+/// merge commits and automatic version-bump commits (e.g. "chore: bump version
+/// to 1.2.7+10207") that don't describe anything user-facing.
+bool isImplementationCommit(String subject) {
+  final lower = subject.toLowerCase();
+  if (subject.startsWith('Merge ')) return false;
+  if (lower.contains('bump version')) return false;
+  if (lower.contains('version bump')) return false;
+  if (lower.startsWith('chore(release)')) return false;
+  return true;
 }
 
 /// Strips a leading "v", surrounding whitespace, and any "+build" suffix from
