@@ -27,6 +27,7 @@ import '../services/local_progress_service.dart';
 import '../widgets/quiz/quiz_shield_indicator.dart';
 import '../widgets/quiz/quiz_skip_indicator.dart';
 import '../widgets/quiz/quiz_pause_indicator.dart';
+import '../widgets/quiz/quiz_no_deductions_indicator.dart';
 
 class QuizPlayScreen extends StatefulWidget {
   final String category;
@@ -57,6 +58,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
   AnimationController? _shieldAnimationController;
   AnimationController? _skipAnimationController;
   AnimationController? _pauseAnimationController;
+  AnimationController? _noDeductionsAnimationController;
   AnimationController? _questionSlideController;
   final List<Question> _incorrectQuestions = [];
 
@@ -106,6 +108,11 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
   bool _timerPaused = false;
   int _pauseTimersConsumed = 0;
 
+  // No Deductions tracking
+  int _noDeductionsCount = 0;
+  bool _noDeductionsActive = false;
+  int _noDeductionsConsumed = 0;
+
   // Coin tracking
   int _coinsEarned = 0;
   int _currentStreakLength = 0;
@@ -147,6 +154,10 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
       vsync: this,
       duration: const Duration(milliseconds: 1000),
     )..repeat(reverse: true);
+    _noDeductionsAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    )..repeat(reverse: true);
     _questionSlideController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 350),
@@ -162,6 +173,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
     _shieldAnimationController?.dispose();
     _skipAnimationController?.dispose();
     _pauseAnimationController?.dispose();
+    _noDeductionsAnimationController?.dispose();
     _questionSlideController?.dispose();
     _confettiController.dispose();
     super.dispose();
@@ -220,6 +232,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
           _shieldsRemaining = data?['shieldCount'] as int? ?? 0;
           _skipCount = data?['skipCount'] as int? ?? 0;
           _pauseTimerCount = data?['pauseTimerCount'] as int? ?? 0;
+          _noDeductionsCount = data?['noDeductionsCount'] as int? ?? 0;
           _userStartingLevel = LevelSystem.getLevelNumber(score);
         });
       }
@@ -320,6 +333,33 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
     });
   }
 
+  void _activateNoDeductions() {
+    if (_isAnswered) return;
+    if (_noDeductionsCount <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('No no-deductions remaining!'),
+          backgroundColor: const Color(0xFFEF4444),
+          duration: const Duration(milliseconds: 1200),
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.only(bottom: 100, left: 20, right: 20),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+      return;
+    }
+    if (_noDeductionsActive) return; // Already active for this quiz
+
+    // Consume one and activate for the rest of the quiz
+    _noDeductionsCount--;
+    _noDeductionsConsumed++;
+    setState(() {
+      _noDeductionsActive = true;
+    });
+  }
+
   // ─── Timer ─────────────────────────────────────────────────────────────────
 
   void _startTimer() {
@@ -368,8 +408,18 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
     final currentQuestion = _questions[_currentIndex];
     _consecutiveIncorrect++; // Increment BEFORE computing penalty
 
-    // Check shield first
-    if (_shieldActive && _shieldsRemaining > 0) {
+    // No Deductions power-up negates all point deductions for this quiz
+    if (_noDeductionsActive) {
+      setState(() {
+        _isAnswered = true;
+        _selectedOption = '';
+        _consecutiveCorrect = 0;
+        _incorrectQuestions.add(currentQuestion);
+        _answerResults.add(false);
+        _showScorePopup = false;
+        _lastScoreIncrement = 0;
+      });
+    } else if (_shieldActive && _shieldsRemaining > 0) {
       setState(() {
         _isAnswered = true;
         _selectedOption = '';
@@ -472,8 +522,11 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
         _consecutiveIncorrect++;
         _incorrectQuestions.add(currentQuestion);
 
-        // Check if shield is active — absorb penalty
-        if (_shieldActive && _shieldsRemaining > 0) {
+        // No Deductions power-up negates all point deductions for this quiz
+        if (_noDeductionsActive) {
+          _lastScoreIncrement = 0;
+          _showScorePopup = false;
+        } else if (_shieldActive && _shieldsRemaining > 0) {
           _shieldsRemaining--;
           _shieldsConsumed++;
           _shieldActive = false;
@@ -576,11 +629,11 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
 
         // Apply session XP cap: the session score cannot exceed 30% of XP needed for next level
         final sessionXpCap = QuizEngine.sessionXpCap(oldTotalScore);
-        
+
         // Add small XP bonus of 15 XP for users below Amateur rank (Level 1)
         final isBelowAmateur = LevelSystem.getLevelNumber(oldTotalScore) < 2;
         final bonusXp = isBelowAmateur ? 15 : 0;
-        
+
         finalSessionScore = (_score + bonusXp).clamp(0, sessionXpCap);
 
         // Calculate coins earned for this session
@@ -605,6 +658,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
           shieldChange: -_shieldsConsumed,
           skipChange: -_skipsConsumed,
           pauseTimerChange: -_pauseTimersConsumed,
+          noDeductionsChange: -_noDeductionsConsumed,
         );
 
         // Compute updated total score locally: old total + session score (capped)
@@ -645,15 +699,16 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
         final guest = await LocalProgressService.loadGuestUser();
         final guestName = guest?.username ?? 'Guest';
         displayName = guestName;
-        
+
         final guestStats = await LocalProgressService.getAggregatedStats();
         final guestCurrentScore = guestStats.score;
-        oldTotalScore = guestCurrentScore; // set oldTotalScore so results screen starts from correct total
-        
+        oldTotalScore =
+            guestCurrentScore; // set oldTotalScore so results screen starts from correct total
+
         final sessionXpCap = QuizEngine.sessionXpCap(guestCurrentScore);
         finalSessionScore = _score.clamp(0, sessionXpCap);
         updatedTotalScore = guestCurrentScore + finalSessionScore;
-        
+
         if (_currentStreakLength > 0) {
           _streakSegments.add(_currentStreakLength);
         }
@@ -664,7 +719,8 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
         _coinsEarned = coinsEarned;
 
         final localProgress = GuestProgress(
-          challengeId: 'challenge_${widget.category.toLowerCase().replaceAll(' ', '_')}_${DateTime.now().millisecondsSinceEpoch}',
+          challengeId:
+              'challenge_${widget.category.toLowerCase().replaceAll(' ', '_')}_${DateTime.now().millisecondsSinceEpoch}',
           category: widget.category,
           score: finalSessionScore,
           correctAnswers: _correctAnswers,
@@ -753,7 +809,8 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
   Future<void> _applyQuitPenalty() async {
     // Only apply penalty for online modes
     if (widget.isOffline) return;
-    if (_userStartingLevel < 2) return; // Penalty only affects Amateur and above
+    if (_userStartingLevel < 2)
+      return; // Penalty only affects Amateur and above
 
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -815,8 +872,8 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
           _userStartingLevel < 2
               ? 'Are you sure you want to quit? You will not lose any points since you are in the Rookie rank.'
               : (widget.isTimed
-                  ? 'Are you sure you want to quit? You will lose 15 rank points as a quit penalty.'
-                  : 'Are you sure you want to quit? You will lose 10 rank points as a quit penalty.'),
+                    ? 'Are you sure you want to quit? You will lose 15 rank points as a quit penalty.'
+                    : 'Are you sure you want to quit? You will lose 10 rank points as a quit penalty.'),
           style: const TextStyle(color: Color(0xFF003F91)),
         ),
         actions: [
@@ -829,7 +886,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
           ),
           FilledButton(
             style: FilledButton.styleFrom(
-               backgroundColor: const Color(0xFFEF4444),
+              backgroundColor: const Color(0xFFEF4444),
             ),
             onPressed: () async {
               final navigator = Navigator.of(context);
@@ -892,6 +949,8 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
         widget.isTimed &&
         !widget.isOffline &&
         _pauseAnimationController != null;
+    final bool showNoDeductions =
+        !widget.isOffline && _noDeductionsAnimationController != null;
 
     return ParticleBackground(
       isActive: true,
@@ -1032,7 +1091,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
               ),
 
             // Shop items row (bottom-left, horizontal alignment)
-            if (showShield || showSkip || showPause)
+            if (showShield || showSkip || showPause || showNoDeductions)
               Positioned(
                 left: 8,
                 bottom: MediaQuery.of(context).padding.bottom + 8,
@@ -1047,6 +1106,17 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
                           isPaused: _timerPaused,
                           onTap: _usePauseTimer,
                           animationController: _pauseAnimationController!,
+                        ),
+                      if (showNoDeductions)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8),
+                          child: QuizNoDeductionsIndicator(
+                            noDeductionsCount: _noDeductionsCount,
+                            isActive: _noDeductionsActive,
+                            onTap: _activateNoDeductions,
+                            animationController:
+                                _noDeductionsAnimationController!,
+                          ),
                         ),
                       if (showSkip)
                         Padding(

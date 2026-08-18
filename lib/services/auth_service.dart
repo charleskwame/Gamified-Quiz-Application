@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'database_service.dart';
@@ -50,15 +51,19 @@ class AuthService {
   }
 
   /// Prompts the user to pick a Google account and returns it, or `null` if
-  /// the flow was cancelled/interrupted by the user.
+  /// the user explicitly dismissed the Google account picker. Any other
+  /// [GoogleSignInException] (interrupted, UI unavailable, configuration
+  /// errors, ...) is rethrown so the UI can surface a real message.
   Future<GoogleSignInAccount?> _promptGoogleAccount() async {
     await _ensureGoogleInitialized();
     try {
       return await GoogleSignIn.instance.authenticate();
     } on GoogleSignInException catch (e) {
-      if (e.code == GoogleSignInExceptionCode.canceled ||
-          e.code == GoogleSignInExceptionCode.interrupted ||
-          e.code == GoogleSignInExceptionCode.uiUnavailable) {
+      // Log so the real failure is visible in logcat even when the UI shows
+      // a friendlier message.
+      debugPrint('GoogleSignInException: ${e.code} - ${e.description}');
+      if (e.code == GoogleSignInExceptionCode.canceled) {
+        // User explicitly dismissed the picker.
         return null;
       }
       rethrow;
@@ -246,7 +251,15 @@ class AuthService {
     }
 
     // 2. Get a Google credential to link.
-    final googleUser = await _promptGoogleAccount();
+    GoogleSignInAccount? googleUser;
+    try {
+      googleUser = await _promptGoogleAccount();
+    } catch (_) {
+      // Any failure at this step restores the logged-out state so the
+      // temporary email/password session doesn't linger.
+      await _auth.signOut();
+      rethrow;
+    }
     if (googleUser == null) {
       // User cancelled — restore the logged-out state.
       await _auth.signOut();

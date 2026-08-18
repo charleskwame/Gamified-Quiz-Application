@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../services/auth_service.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -53,13 +54,16 @@ class _AuthScreenState extends State<AuthScreen>
     try {
       final result = await _authService.signInWithGoogle();
       if (result == null) {
-        // User dismissed the Google account picker — stay on the screen.
+        // User dismissed the Google account picker.
+        setState(() => _errorMessage = 'Google sign-in was cancelled.');
         return;
       }
       if (mounted) {
         // AuthGate reacts to the auth-state change and shows the app.
         Navigator.of(context).popUntil((route) => route.isFirst);
       }
+    } on GoogleSignInException catch (e) {
+      setState(() => _errorMessage = _friendlyGoogleSignInError(e));
     } on AccountLinkRequiredException catch (e) {
       // An email/password account already exists — offer one-time linking.
       final creds = await _promptForEmailPassword(prefillEmail: e.email);
@@ -132,6 +136,8 @@ class _AuthScreenState extends State<AuthScreen>
       if (mounted) {
         Navigator.of(context).popUntil((route) => route.isFirst);
       }
+    } on GoogleSignInException catch (e) {
+      setState(() => _errorMessage = _friendlyGoogleSignInError(e));
     } on GoogleSignInAbortedException {
       setState(() => _errorMessage = 'Google linking was cancelled.');
     } on FirebaseAuthException catch (e) {
@@ -341,6 +347,23 @@ class _AuthScreenState extends State<AuthScreen>
       r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
     );
     return emailRegex.hasMatch(email);
+  }
+
+  String _friendlyGoogleSignInError(GoogleSignInException e) {
+    switch (e.code) {
+      case GoogleSignInExceptionCode.canceled:
+        return 'Google sign-in was cancelled.';
+      case GoogleSignInExceptionCode.interrupted:
+        return 'Google sign-in was interrupted. Please try again.';
+      case GoogleSignInExceptionCode.uiUnavailable:
+        return 'Google sign-in is not available right now. Please try again.';
+      case GoogleSignInExceptionCode.clientConfigurationError:
+        return 'Google sign-in is not configured for this build. Please update the app.';
+      case GoogleSignInExceptionCode.providerConfigurationError:
+        return 'Google sign-in could not start. Check that Google Play services is installed and that this app\'s signing key is registered in Firebase.';
+      default:
+        return 'Google sign-in failed (${e.code}). ${e.description ?? 'Please try again.'}';
+    }
   }
 
   String _friendlyGoogleError(FirebaseAuthException e) {

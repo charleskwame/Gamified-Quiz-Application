@@ -239,6 +239,18 @@ Goal: Verify functional limits, visual animations, and state persistence of life
         desired to select an answer. Once selected, normal timing resumes for 
         subsequent questions.
 
+[ ] No Deductions Power-up
+    - Setup: Ensure you own at least 1 "No Deductions" item (buy in the shop).
+    - Flow: Start any quiz (normal or timed). Tap the No Deductions button 
+      (circle-slash icon) before selecting an option.
+    - Expected:
+      * The indicator pulses, shows "ON", and 1 item is consumed on activation.
+      * Wrong answers AND timeouts NO LONGER deduct score for the rest of the 
+        quiz (answers still count as incorrect for stats/rankings).
+      * The consumed item is persisted: inventory decrements after the quiz 
+        finishes (e.g. the count in the Shop matches).
+      * Tapping again while ON does nothing (stays active for the whole quiz).
+
 ================================================================================
 6. AI ASSISTANT INTEGRATION (DEEPSEEK CHAT SHEET)
 ================================================================================
@@ -345,25 +357,22 @@ Goal: Verify transaction safety, inventories, cap capacities, and edge cases.
       max capacity (3)!"
 
 --------------------------------------------------------------------------------
-CRITICAL KNOWN SHOP BUGS (TO BE VERIFIED BY TESTERS):
+SHOP BUGS — FIXED (verify the fixes are deployed):
 --------------------------------------------------------------------------------
-1. Pause Timer Purchase Bug:
-   - Location: `lib/services/database_service.dart:672`
-   - Symptom: Tapping "BUY" on the "Pause Timer" (80 coins) in the shop returns 
-     no success and does not deduct coins. 
-   - Cause: The switch-case in `database_service.dart` does not handle the item 
-     ID `'pause_timer'`. It hits `default: return;`.
-   - Action: Attempt to purchase "Pause Timer" with sufficient coins. Confirm 
-     it fails or does not increment the count. Mark this test failed until the fix is deployed.
+1. Pause Timer Purchase Bug — FIXED:
+   - Location: `lib/services/database_service.dart` (`purchaseItem`)
+   - Fix: Added a `'pause_timer'` case mapping to `pauseTimerCount`. Purchasing
+     "Pause Timer" now deducts coins and increments the pause timer count.
+   - Action: Purchase "Pause Timer" with sufficient coins and confirm the count
+     increments and coins are deducted.
 
-2. Identical Inventory Counter Variable Mapping Bug:
-   - Location: `lib/screens/shop_screen.dart:144`
-   - Symptom: Purchasing the "No Deductions" power-up mistakenly increments the 
-     "Pause Timer" owned counter, and vice versa.
-   - Cause: Both `no_deductions` and `pause_timer` are hardcoded to map to 
-     `pauseCount` (representing `pauseTimerCount` in Firestore) in `shop_screen.dart`.
-   - Action: Purchase "No Deductions" and verify if "Pause Timer" count increases. 
-     Mark this test failed until the logic separation fix is verified.
+2. Identical Inventory Counter Variable Mapping Bug — FIXED:
+   - Location: `lib/screens/shop_screen.dart`, `lib/services/database_service.dart`
+   - Fix: "No Deductions" now has its own Firestore field `noDeductionsCount`
+     (initialized to 0). `no_deductions` maps to `noDeductionsCount` and
+     `pause_timer` maps to `pauseTimerCount` — no shared counter.
+   - Action: Purchase "No Deductions" and verify ONLY its own count increases,
+     while the "Pause Timer" count stays unchanged (and vice versa).
 --------------------------------------------------------------------------------
 
 ================================================================================

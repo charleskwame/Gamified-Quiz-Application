@@ -15,6 +15,22 @@
       },
       "oauth_client": [
         {
+          "client_id": "936507886677-409kt76ukaa256hc6e28ismrmre3m0qi.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.gamified_quiz_app",
+            "certificate_hash": "c0e1494d8c351f91c4abf902d3ce0c60e4d6fec6"
+          }
+        },
+        {
+          "client_id": "936507886677-8kl4s5h9cus033lasp3agpmo3och14mi.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.gamified_quiz_app",
+            "certificate_hash": "97fd2631f3ea806afdd5b81d57969165e125e56f"
+          }
+        },
+        {
           "client_id": "936507886677-d1km7pa76pnfustunncbbdc5qvp3j3d7.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

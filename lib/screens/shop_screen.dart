@@ -134,6 +134,7 @@ class _ShopScreenState extends State<ShopScreen> {
             final shieldCount = data?['shieldCount'] as int? ?? 0;
             final skipCount = data?['skipCount'] as int? ?? 0;
             final pauseCount = data?['pauseTimerCount'] as int? ?? 0;
+            final noDeductionsCount = data?['noDeductionsCount'] as int? ?? 0;
 
             // Map item IDs to their current count
             int getCount(String itemId) {
@@ -143,7 +144,7 @@ class _ShopScreenState extends State<ShopScreen> {
                 case 'skip_question':
                   return skipCount;
                 case 'no_deductions':
-                  return pauseCount;
+                  return noDeductionsCount;
                 case 'pause_timer':
                   return pauseCount;
                 default:
@@ -333,10 +334,7 @@ class _ShopScreenState extends State<ShopScreen> {
                 backgroundColor: const Color(0xFFECF8F8),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
-                  side: const BorderSide(
-                    color: Color(0xFF003F91),
-                    width: 2,
-                  ),
+                  side: const BorderSide(color: Color(0xFF003F91), width: 2),
                 ),
                 content: const Text(
                   'You can earn more coins by competing in quiz sessions',

@@ -109,6 +109,7 @@ class DatabaseService {
       'shieldCount': 0,
       'skipCount': 0,
       'pauseTimerCount': 0,
+      'noDeductionsCount': 0,
       'emailVerified': emailVerified,
       'computerArchitecturePoints': 0,
       'caAnswered': 0,
@@ -258,6 +259,7 @@ class DatabaseService {
     int shieldChange = 0,
     int skipChange = 0,
     int pauseTimerChange = 0,
+    int noDeductionsChange = 0,
   }) async {
     final userRef = _userDoc(uid);
     final publicRef = _publicProfileDoc(uid);
@@ -343,6 +345,7 @@ class DatabaseService {
         'shieldCount': FieldValue.increment(shieldChange),
         'skipCount': FieldValue.increment(skipChange),
         'pauseTimerCount': FieldValue.increment(pauseTimerChange),
+        'noDeductionsCount': FieldValue.increment(noDeductionsChange),
         'computerArchitecturePoints': computerArchitecturePoints,
         'computerNetworkingPoints': computerNetworkingPoints,
         'softwareEngineeringPoints': softwareEngineeringPoints,
@@ -666,6 +669,9 @@ class DatabaseService {
             countField = 'skipCount';
             break;
           case 'no_deductions':
+            countField = 'noDeductionsCount';
+            break;
+          case 'pause_timer':
             countField = 'pauseTimerCount';
             break;
           default:
