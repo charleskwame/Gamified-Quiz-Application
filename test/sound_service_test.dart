@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:gamified_quiz_app/services/settings_service.dart';
+import 'package:gamified_quiz_app/services/sound_service.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -14,6 +15,7 @@ void main() {
       'lib/assets/sound_effects/correct.mp3',
       'lib/assets/sound_effects/wrong.mp3',
       'lib/assets/sound_effects/level-up.mp3',
+      'lib/assets/sound_effects/nav-click.mp3',
       'lib/assets/sound_effects/next.mp3',
       'lib/assets/sound_effects/session-complete.mp3',
       'lib/assets/sound_effects/background-music.mp3',
@@ -25,6 +27,12 @@ void main() {
         expect(data.lengthInBytes, greaterThan(0));
       });
     }
+  });
+
+  group('SoundService', () {
+    test('exposes the navigation click sound effect', () async {
+      expect(SoundService.instance.playNavClick, isA<Function>());
+    });
   });
 
   group('SettingsService', () {

@@ -29,6 +29,7 @@ class SoundService {
   static const String _correctAsset = 'lib/assets/sound_effects/correct.mp3';
   static const String _wrongAsset = 'lib/assets/sound_effects/wrong.mp3';
   static const String _levelUpAsset = 'lib/assets/sound_effects/level-up.mp3';
+  static const String _navClickAsset = 'lib/assets/sound_effects/nav-click.mp3';
   static const String _nextAsset = 'lib/assets/sound_effects/next.mp3';
   static const String _sessionCompleteAsset =
       'lib/assets/sound_effects/session-complete.mp3';
@@ -51,6 +52,7 @@ class SoundService {
         _correctAsset,
         _wrongAsset,
         _levelUpAsset,
+        _navClickAsset,
         _nextAsset,
         _sessionCompleteAsset,
       ]);
@@ -76,6 +78,9 @@ class SoundService {
       debugPrint('SoundService: failed to play level-up sound: $e');
     }
   }
+
+  /// Plays the navigation-item click sound.
+  Future<void> playNavClick() => _playSfx(_navClickAsset);
 
   /// Plays the "next" tap sound (e.g. Enter Quest / Next Question).
   Future<void> playNext() => _playSfx(_nextAsset);

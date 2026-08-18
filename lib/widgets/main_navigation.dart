@@ -7,6 +7,7 @@ import '../screens/rankings_page.dart';
 import '../screens/shop_screen.dart';
 import '../screens/profile_page.dart';
 import '../services/auth_service.dart';
+import '../services/sound_service.dart';
 import '../services/update_check_service.dart';
 import 'home/particle_background.dart';
 import 'update_app_dialog.dart';
@@ -99,6 +100,7 @@ class _MainNavigationState extends State<MainNavigation> {
             selectedIndex: _selectedIndex,
             onTabChange: (index) {
               setState(() => _selectedIndex = index);
+              SoundService.instance.playNavClick();
             },
             color: Colors.white.withValues(alpha: 0.55),
             activeColor: const Color(0xFF003F91),
