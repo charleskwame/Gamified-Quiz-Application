@@ -1,4 +1,5 @@
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/foundation.dart';
 import 'settings_service.dart';
 
 /// Plays short sound effects for quiz feedback: correct, wrong, and level-up.
@@ -15,6 +16,10 @@ import 'settings_service.dart';
 ///   [SettingsService].
 class SoundService {
   SoundService._() {
+    // Assets live under `lib/assets/`, so the AudioCache prefix must be empty.
+    // (The default `assets/` prefix would resolve to a non-existent key.)
+    _sfxPlayer.audioCache = _cache;
+    _levelUpPlayer.audioCache = _cache;
     _preload();
   }
 
@@ -24,6 +29,10 @@ class SoundService {
   static const String _correctAsset = 'lib/assets/sound_effects/correct.mp3';
   static const String _wrongAsset = 'lib/assets/sound_effects/wrong.mp3';
   static const String _levelUpAsset = 'lib/assets/sound_effects/level-up.mp3';
+
+  // Assets live under `lib/assets/`, so the AudioCache prefix must be empty
+  // (the default `assets/` prefix would resolve to a non-existent key).
+  final AudioCache _cache = AudioCache(prefix: '');
 
   final AudioPlayer _sfxPlayer = AudioPlayer();
   final AudioPlayer _levelUpPlayer = AudioPlayer();
@@ -35,13 +44,10 @@ class SoundService {
       _sfxPlayer.setPlayerMode(PlayerMode.lowLatency);
       _levelUpPlayer.setReleaseMode(ReleaseMode.stop);
       _levelUpPlayer.setPlayerMode(PlayerMode.lowLatency);
-      await AudioCache.instance.loadAll([
-        _correctAsset,
-        _wrongAsset,
-        _levelUpAsset,
-      ]);
-    } catch (_) {
+      await _cache.loadAll([_correctAsset, _wrongAsset, _levelUpAsset]);
+    } catch (e) {
       // Audio is best-effort: never let a missing asset crash the quiz.
+      debugPrint('SoundService: failed to preload sound assets: $e');
     }
   }
 
@@ -57,8 +63,8 @@ class SoundService {
     try {
       await _levelUpPlayer.stop();
       await _levelUpPlayer.play(AssetSource(_levelUpAsset));
-    } catch (_) {
-      // Best-effort playback.
+    } catch (e) {
+      debugPrint('SoundService: failed to play level-up sound: $e');
     }
   }
 
@@ -68,8 +74,8 @@ class SoundService {
       // Interrupt any in-flight SFX so rapid taps restart cleanly.
       await _sfxPlayer.stop();
       await _sfxPlayer.play(AssetSource(asset));
-    } catch (_) {
-      // Best-effort playback.
+    } catch (e) {
+      debugPrint('SoundService: failed to play sound: $e');
     }
   }
 }
