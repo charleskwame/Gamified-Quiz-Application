@@ -55,7 +55,26 @@ class _ShopScreenState extends State<ShopScreen> {
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('✅ Purchased ${item.name}!'),
+            content: Row(
+              children: [
+                SvgPicture.asset(
+                  'lib/assets/icon/check-circle.svg',
+                  width: 18,
+                  height: 18,
+                  colorFilter: const ColorFilter.mode(
+                    Color(0xFF166534),
+                    BlendMode.srcIn,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Purchased ${item.name}!',
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
             backgroundColor: const Color(0xFF4ADE80),
             duration: const Duration(seconds: 2),
             behavior: SnackBarBehavior.floating,
@@ -543,14 +562,24 @@ class _ShopItemCard extends StatelessWidget {
                             alpha: 0.5,
                           ),
                         ),
-                        child: Text(
-                          canAfford ? 'BUY' : '💸',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 1,
-                          ),
-                        ),
+                        child: canAfford
+                            ? const Text(
+                                'BUY',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 1,
+                                ),
+                              )
+                            : SvgPicture.asset(
+                                'lib/assets/icon/coin.svg',
+                                width: 16,
+                                height: 16,
+                                colorFilter: const ColorFilter.mode(
+                                  Color(0xFF9E9E9E),
+                                  BlendMode.srcIn,
+                                ),
+                              ),
                       ),
                     ),
                 ],

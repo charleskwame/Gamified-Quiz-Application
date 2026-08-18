@@ -309,10 +309,11 @@ class _QuizResultsViewState extends State<QuizResultsView>
                             const SizedBox(height: 12),
                             Text(
                               'Challenge Completed!',
-                              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                      fontWeight: FontWeight.w800,
-                                      color: const Color(0xFF003F91),
-                                    ),
+                              style: Theme.of(context).textTheme.headlineMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                    color: const Color(0xFF003F91),
+                                  ),
                             ),
                             const SizedBox(height: 8),
                             Text(
@@ -358,12 +359,12 @@ class _QuizResultsViewState extends State<QuizResultsView>
                             Container(
                               padding: const EdgeInsets.all(24),
                               decoration: BoxDecoration(
-                                 color: const Color(0xFFECF8F8),
-                                 borderRadius: BorderRadius.circular(24),
-                                 border: Border.all(
-                                   color: const Color(0xFF003F91),
-                                 ),
-                               ),
+                                color: const Color(0xFFECF8F8),
+                                borderRadius: BorderRadius.circular(24),
+                                border: Border.all(
+                                  color: const Color(0xFF003F91),
+                                ),
+                              ),
                               child: Column(
                                 children: [
                                   Row(
@@ -501,14 +502,39 @@ class _QuizResultsViewState extends State<QuizResultsView>
                             // ─── Badges Earned ──────────────────────────
                             if (widget.newlyUnlockedBadges.isNotEmpty) ...[
                               const SizedBox(height: 24),
-                              const Text(
-                                '🎉 BADGES EARNED! 🎉',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFFFFD700),
-                                  letterSpacing: 1.5,
-                                ),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SvgPicture.asset(
+                                    'lib/assets/icon/party.svg',
+                                    width: 14,
+                                    height: 14,
+                                    colorFilter: const ColorFilter.mode(
+                                      Color(0xFFFFD700),
+                                      BlendMode.srcIn,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  const Text(
+                                    'BADGES EARNED!',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFFFFD700),
+                                      letterSpacing: 1.5,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  SvgPicture.asset(
+                                    'lib/assets/icon/party.svg',
+                                    width: 14,
+                                    height: 14,
+                                    colorFilter: const ColorFilter.mode(
+                                      Color(0xFFFFD700),
+                                      BlendMode.srcIn,
+                                    ),
+                                  ),
+                                ],
                               ),
                               const SizedBox(height: 12),
                               Wrap(
@@ -530,7 +556,9 @@ class _QuizResultsViewState extends State<QuizResultsView>
                                     label: Text(badge.name),
                                     backgroundColor: const Color(0xFFECF8F8),
                                     shape: RoundedRectangleBorder(
-                                      side: const BorderSide(color: Color(0xFF003F91)),
+                                      side: const BorderSide(
+                                        color: Color(0xFF003F91),
+                                      ),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     labelStyle: const TextStyle(
@@ -571,12 +599,12 @@ class _QuizResultsViewState extends State<QuizResultsView>
                                 width: double.infinity,
                                 padding: const EdgeInsets.all(20),
                                 decoration: BoxDecoration(
-                                   color: const Color(0xFFECF8F8),
-                                   borderRadius: BorderRadius.circular(20),
-                                   border: Border.all(
-                                     color: const Color(0xFF003F91),
-                                   ),
-                                 ),
+                                  color: const Color(0xFFECF8F8),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: const Color(0xFF003F91),
+                                  ),
+                                ),
                                 child: Column(
                                   children: [
                                     const Icon(
@@ -683,14 +711,12 @@ class _QuizResultsViewState extends State<QuizResultsView>
     final newLevelColor = LevelSystem.getLevelColors(newLevel);
 
     return Container(
-       padding: const EdgeInsets.all(20),
-       decoration: BoxDecoration(
-         color: const Color(0xFFECF8F8),
-         borderRadius: BorderRadius.circular(24),
-         border: Border.all(
-           color: const Color(0xFF003F91),
-         ),
-       ),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFFECF8F8),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFF003F91)),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

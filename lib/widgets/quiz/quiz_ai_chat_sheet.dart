@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../models/question.dart';
 import '../../services/deepseek_service.dart';
 
@@ -45,7 +46,14 @@ class QuizAiChatSheet extends StatelessWidget {
 class _ChatMessage {
   String text;
   final bool isUser;
-  _ChatMessage({required this.text, required this.isUser});
+  final String? iconAsset;
+  final Color? iconColor;
+  _ChatMessage({
+    required this.text,
+    required this.isUser,
+    this.iconAsset,
+    this.iconColor,
+  });
 }
 
 class _AiChatContent extends StatefulWidget {
@@ -73,8 +81,10 @@ class _AiChatContentState extends State<_AiChatContent> {
     _messages.add(
       _ChatMessage(
         text:
-            "🤖 **Welcome to DeepSeek AI Study Assistant!**\n\nI am analyzing your quiz performance to prepare tailored study tips. Please wait for my response before asking any questions.",
+            "**Welcome to DeepSeek AI Study Assistant!**\n\nI am analyzing your quiz performance to prepare tailored study tips. Please wait for my response before asking any questions.",
         isUser: false,
+        iconAsset: 'lib/assets/icon/robot.svg',
+        iconColor: const Color(0xFF003F91),
       ),
     );
     _fetchInitialStudyGuide();
@@ -145,8 +155,10 @@ CRITICAL INSTRUCTION: Be extremely direct and straight to the point. Give 1-2 co
           _messages.add(
             _ChatMessage(
               text:
-                  "⚠️ **AI Assistant Error**\n\nCould not connect to the AI study tutor. Error details:\n\n`${e.toString()}`\n\nPlease check your network connection and that the DeepSeek API key is configured in your Supabase project dashboard.",
+                  "**AI Assistant Error**\n\nCould not connect to the AI study tutor. Error details:\n\n`${e.toString()}`\n\nPlease check your network connection and that the DeepSeek API key is configured in your Supabase project dashboard.",
               isUser: false,
+              iconAsset: 'lib/assets/icon/warning.svg',
+              iconColor: const Color(0xFFEF4444),
             ),
           );
         });
@@ -238,8 +250,10 @@ CRITICAL INSTRUCTION: Be extremely direct and straight to the point. Answer imme
           _messages.add(
             _ChatMessage(
               text:
-                  "⚠️ **AI Assistant Error**\n\nCould not connect to the AI study tutor. Error details:\n\n`${e.toString()}`\n\nPlease check your network connection and that the DeepSeek API key is configured in your Supabase project dashboard.",
+                  "**AI Assistant Error**\n\nCould not connect to the AI study tutor. Error details:\n\n`${e.toString()}`\n\nPlease check your network connection and that the DeepSeek API key is configured in your Supabase project dashboard.",
               isUser: false,
+              iconAsset: 'lib/assets/icon/warning.svg',
+              iconColor: const Color(0xFFEF4444),
             ),
           );
         });
@@ -405,27 +419,47 @@ CRITICAL INSTRUCTION: Be extremely direct and straight to the point. Answer imme
                               height: 1.4,
                             ),
                           )
-                        : MarkdownBody(
-                            data: message.text,
-                            selectable: true,
-                            styleSheet:
-                                MarkdownStyleSheet.fromTheme(
-                                  Theme.of(context),
-                                ).copyWith(
-                                  p: TextStyle(
-                                    color: const Color(0xFF003F91),
-                                    fontSize: 14,
-                                    height: 1.4,
-                                  ),
-                                  listBullet: TextStyle(
-                                    color: const Color(0xFF003F91),
-                                    fontSize: 14,
-                                  ),
-                                  strong: TextStyle(
-                                    color: const Color(0xFF003F91),
-                                    fontWeight: FontWeight.bold,
+                        : Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (message.iconAsset != null) ...[
+                                SvgPicture.asset(
+                                  message.iconAsset!,
+                                  width: 16,
+                                  height: 16,
+                                  colorFilter: ColorFilter.mode(
+                                    message.iconColor ??
+                                        const Color(0xFF003F91),
+                                    BlendMode.srcIn,
                                   ),
                                 ),
+                                const SizedBox(width: 8),
+                              ],
+                              Expanded(
+                                child: MarkdownBody(
+                                  data: message.text,
+                                  selectable: true,
+                                  styleSheet:
+                                      MarkdownStyleSheet.fromTheme(
+                                        Theme.of(context),
+                                      ).copyWith(
+                                        p: TextStyle(
+                                          color: const Color(0xFF003F91),
+                                          fontSize: 14,
+                                          height: 1.4,
+                                        ),
+                                        listBullet: TextStyle(
+                                          color: const Color(0xFF003F91),
+                                          fontSize: 14,
+                                        ),
+                                        strong: TextStyle(
+                                          color: const Color(0xFF003F91),
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                ),
+                              ),
+                            ],
                           ),
                   ),
                 );

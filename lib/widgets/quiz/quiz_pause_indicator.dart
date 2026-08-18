@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 /// A tappable floating pause indicator that appears in the bottom-left
 /// corner of the quiz screen during timed/challenge mode. The user taps
@@ -142,13 +143,13 @@ class _QuizPauseIndicatorState extends State<QuizPauseIndicator> {
                         color: const Color(0xFFF59E0B).withValues(alpha: 0.9),
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: const Text(
-                        '⏸',
-                        style: TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w900,
-                          color: Color(0xFF1E1B4B),
-                          height: 1.2,
+                      child: SvgPicture.asset(
+                        'lib/assets/icon/pause-bars.svg',
+                        width: 10,
+                        height: 10,
+                        colorFilter: const ColorFilter.mode(
+                          Color(0xFF1E1B4B),
+                          BlendMode.srcIn,
                         ),
                       ),
                     ),

@@ -195,7 +195,7 @@ class _QuizLevelUpScreenState extends State<QuizLevelUpScreen>
         ShareParams(
           files: [XFile(file.path)],
           text:
-              '🎉 I just reached Level ${widget.data.newLevel} in the Gamified Quiz App!',
+              'I just reached Level ${widget.data.newLevel} in the Gamified Quiz App!',
         ),
       );
     } catch (e) {
@@ -302,14 +302,23 @@ class _QuizLevelUpScreenState extends State<QuizLevelUpScreen>
                                 if (widget.data.newLevel == 2) ...[
                                   const SizedBox(height: 16),
                                   Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 32.0,
+                                    ),
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 10,
+                                      ),
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFFEF4444).withValues(alpha: 0.15),
+                                        color: const Color(
+                                          0xFFEF4444,
+                                        ).withValues(alpha: 0.15),
                                         borderRadius: BorderRadius.circular(12),
                                         border: Border.all(
-                                          color: const Color(0xFFEF4444).withValues(alpha: 0.3),
+                                          color: const Color(
+                                            0xFFEF4444,
+                                          ).withValues(alpha: 0.3),
                                         ),
                                       ),
                                       child: Row(
@@ -442,7 +451,15 @@ class _QuizLevelUpScreenState extends State<QuizLevelUpScreen>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('🎉', style: TextStyle(fontSize: 28)),
+          SvgPicture.asset(
+            'lib/assets/icon/party.svg',
+            width: 28,
+            height: 28,
+            colorFilter: const ColorFilter.mode(
+              Color(0xFF1E1B4B),
+              BlendMode.srcIn,
+            ),
+          ),
           const SizedBox(width: 12),
           Text(
             'LEVEL UP!',
@@ -461,7 +478,15 @@ class _QuizLevelUpScreenState extends State<QuizLevelUpScreen>
             ),
           ),
           const SizedBox(width: 12),
-          Text('🎉', style: TextStyle(fontSize: 28)),
+          SvgPicture.asset(
+            'lib/assets/icon/party.svg',
+            width: 28,
+            height: 28,
+            colorFilter: const ColorFilter.mode(
+              Color(0xFF1E1B4B),
+              BlendMode.srcIn,
+            ),
+          ),
         ],
       ),
     );

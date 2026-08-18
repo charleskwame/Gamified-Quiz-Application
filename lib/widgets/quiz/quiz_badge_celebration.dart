@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../models/badge.dart';
 
 /// Shows a dialog celebrating newly unlocked badges.
@@ -242,13 +243,28 @@ class _TopToastWidgetState extends State<_TopToastWidget>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
-                    '🏆 Badge Earned!',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
-                    ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SvgPicture.asset(
+                        'lib/assets/icon/trophy.svg',
+                        width: 18,
+                        height: 18,
+                        colorFilter: const ColorFilter.mode(
+                          Color(0xFFFFD700),
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      const Text(
+                        'Badge Earned!',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 2),
                   Text(

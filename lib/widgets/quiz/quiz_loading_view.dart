@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 /// Displays a game-like loading state for the quiz screen.
 class QuizLoadingView extends StatefulWidget {
@@ -55,9 +56,7 @@ class _QuizLoadingViewState extends State<QuizLoadingView>
                       width: 100,
                       height: 100,
                       decoration: BoxDecoration(
-                        color: const Color(
-                          0xFF003F91,
-                        ).withValues(alpha: 0.15),
+                        color: const Color(0xFF003F91).withValues(alpha: 0.15),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -108,7 +107,9 @@ class _QuizLoadingViewState extends State<QuizLoadingView>
                     return LinearProgressIndicator(
                       value: _pulseController.value,
                       minHeight: 4,
-                      backgroundColor: const Color(0xFF003F91).withValues(alpha: 0.15),
+                      backgroundColor: const Color(
+                        0xFF003F91,
+                      ).withValues(alpha: 0.15),
                       valueColor: const AlwaysStoppedAnimation<Color>(
                         Color(0xFF003F91),
                       ),
@@ -119,14 +120,32 @@ class _QuizLoadingViewState extends State<QuizLoadingView>
             ),
             const SizedBox(height: 16),
             // Fun loading tips that rotate
-            const Text(
-              '💡 Did you know? Answering faster earns bonus points!',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 12,
-                color: Color(0xB3011627),
-                fontStyle: FontStyle.italic,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SvgPicture.asset(
+                  'lib/assets/icon/lightbulb.svg',
+                  width: 14,
+                  height: 14,
+                  colorFilter: const ColorFilter.mode(
+                    Color(0xB3011627),
+                    BlendMode.srcIn,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: const Text(
+                    'Did you know? Answering faster earns bonus points!',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Color(0xB3011627),
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

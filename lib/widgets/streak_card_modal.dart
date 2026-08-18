@@ -8,7 +8,6 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-
 class StreakCardModal extends StatefulWidget {
   final int streakNumber;
   final String? avatarUrl;
@@ -118,12 +117,26 @@ class _StreakCardModalState extends State<StreakCardModal> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  '🔥 Streak Card Saved successfully!',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+                Row(
+                  children: [
+                    SvgPicture.asset(
+                      'lib/assets/icon/fire.svg',
+                      width: 16,
+                      height: 16,
+                      colorFilter: const ColorFilter.mode(
+                        Color(0xFFF97316),
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Streak Card Saved successfully!',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
                 Text(
                   'Saved to: $path',
