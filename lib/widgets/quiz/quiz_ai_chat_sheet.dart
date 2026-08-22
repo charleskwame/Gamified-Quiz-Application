@@ -379,7 +379,7 @@ CRITICAL INSTRUCTION: Be extremely direct and straight to the point. Answer imme
                           Text(
                             'DeepSeek is thinking...',
                             style: TextStyle(
-                              color: Color(0xFFE2F0F0),
+                              color: Color(0xFF003F91),
                               fontSize: 13,
                             ),
                           ),
