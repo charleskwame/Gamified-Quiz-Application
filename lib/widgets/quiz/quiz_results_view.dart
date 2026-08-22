@@ -6,6 +6,7 @@ import '../../models/badge.dart';
 import '../../models/level_system.dart';
 import '../../models/question.dart';
 import '../../services/sound_service.dart';
+import '../home/particle_background.dart'
 import 'quiz_ai_chat_sheet.dart';
 
 /// Displays the quiz completion/results screen with game-like UI.
@@ -264,7 +265,9 @@ class _QuizResultsViewState extends State<QuizResultsView>
     );
     final nextLevelDef = LevelSystem.getNextLevel(widget.updatedTotalScore);
 
-    return Scaffold(
+    return ParticleBackground(
+      isActive: true,
+      child: Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -272,20 +275,27 @@ class _QuizResultsViewState extends State<QuizResultsView>
         automaticallyImplyLeading: false,
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: IconButton(
-              icon: const Icon(
-                Icons.lightbulb,
-                color: Color.fromARGB(255, 255, 230, 0),
+            padding: const EdgeInsets.only(right: 16.0, top: 8.0),
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFFECF8F8),
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFF003F91), width: 1.5),
               ),
-              tooltip: 'Review Session with AI',
-              onPressed: () {
-                QuizAiChatSheet.show(
-                  context,
-                  category: widget.category,
-                  incorrectQuestions: widget.incorrectQuestions,
-                );
-              },
+              child: IconButton(
+                icon: const Icon(
+                  Icons.lightbulb,
+                  color: Color.fromARGB(255, 255, 230, 0),
+                ),
+                tooltip: 'Review Session with AI',
+                onPressed: () {
+                  QuizAiChatSheet.show(
+                    context,
+                    category: widget.category,
+                    incorrectQuestions: widget.incorrectQuestions,
+                  );
+                },
+              ),
             ),
           ),
         ],
@@ -727,6 +737,7 @@ class _QuizResultsViewState extends State<QuizResultsView>
             ),
           ],
         ),
+      ),
       ),
     );
   }
