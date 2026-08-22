@@ -6,7 +6,7 @@ import '../../models/badge.dart';
 import '../../models/level_system.dart';
 import '../../models/question.dart';
 import '../../services/sound_service.dart';
-import '../home/particle_background.dart'
+import '../home/particle_background.dart';
 import 'quiz_ai_chat_sheet.dart';
 
 /// Displays the quiz completion/results screen with game-like UI.
@@ -268,476 +268,489 @@ class _QuizResultsViewState extends State<QuizResultsView>
     return ParticleBackground(
       isActive: true,
       child: Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0, top: 8.0),
-            child: Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFFECF8F8),
-                shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFF003F91), width: 1.5),
-              ),
-              child: IconButton(
-                icon: const Icon(
-                  Icons.lightbulb,
-                  color: Color.fromARGB(255, 255, 230, 0),
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          automaticallyImplyLeading: false,
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 16.0, top: 8.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFFECF8F8),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: const Color(0xFF003F91),
+                    width: 1.5,
+                  ),
                 ),
-                tooltip: 'Review Session with AI',
-                onPressed: () {
-                  QuizAiChatSheet.show(
-                    context,
-                    category: widget.category,
-                    incorrectQuestions: widget.incorrectQuestions,
-                  );
-                },
+                child: IconButton(
+                  icon: const Icon(
+                    Icons.lightbulb,
+                    color: Color.fromARGB(255, 255, 230, 0),
+                  ),
+                  tooltip: 'Review Session with AI',
+                  onPressed: () {
+                    QuizAiChatSheet.show(
+                      context,
+                      category: widget.category,
+                      incorrectQuestions: widget.incorrectQuestions,
+                    );
+                  },
+                ),
               ),
             ),
-          ),
-        ],
-      ),
-      body: Container(
-        color: const Color(0xFFECF8F8),
-        child: Stack(
-          children: [
-            SafeArea(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: constraints.maxHeight,
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24.0,
-                          vertical: 40,
+          ],
+        ),
+        body: Container(
+          color: const Color(0xFFECF8F8),
+          child: Stack(
+            children: [
+              SafeArea(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight,
                         ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            // ─── Rank Medal ──────────────────────────
-                            _buildRankMedal(),
-                            const SizedBox(height: 16),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24.0,
+                            vertical: 40,
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              // ─── Rank Medal ──────────────────────────
+                              _buildRankMedal(),
+                              const SizedBox(height: 16),
 
-                            // ─── Grade Text ─────────────────────────────
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: _getGradeColor().withValues(alpha: 0.2),
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
+                              // ─── Grade Text ─────────────────────────────
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
                                   color: _getGradeColor().withValues(
-                                    alpha: 0.5,
+                                    alpha: 0.2,
+                                  ),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: _getGradeColor().withValues(
+                                      alpha: 0.5,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              child: Text(
-                                _getGradeText(),
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w900,
-                                  color: _getGradeColor(),
-                                  letterSpacing: 2,
+                                child: Text(
+                                  _getGradeText(),
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w900,
+                                    color: _getGradeColor(),
+                                    letterSpacing: 2,
+                                  ),
                                 ),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'Challenge Completed!',
-                              style: Theme.of(context).textTheme.headlineMedium
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.w800,
-                                    color: const Color(0xFF003F91),
-                                  ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              widget.isOffline
-                                  ? 'Offline session completed. Points are stored locally.'
-                                  : 'Great job! Your profile stats have been updated.',
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                color: Color(0xFF9CA3AF),
-                                fontSize: 14,
-                              ),
-                            ),
-                            const SizedBox(height: 32),
-
-                            // ─── Stars ──────────────────────────────────
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: List.generate(stars, (index) {
-                                final bool isFilled = index < _starCount;
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 4,
-                                  ),
-                                  child: AnimatedSwitcher(
-                                    duration: const Duration(milliseconds: 300),
-                                    child: Icon(
-                                      isFilled
-                                          ? Icons.star_rounded
-                                          : Icons.star_outline_rounded,
-                                      key: ValueKey(isFilled),
-                                      size: 40,
-                                      color: isFilled
-                                          ? const Color(0xFFFFD700)
-                                          : const Color(0xFF4B5565),
-                                    ),
-                                  ),
-                                );
-                              }),
-                            ),
-                            const SizedBox(height: 20),
-
-                            // ─── Results card ───────────────────────────
-                            Container(
-                              padding: const EdgeInsets.all(24),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFECF8F8),
-                                borderRadius: BorderRadius.circular(24),
-                                border: Border.all(
-                                  color: const Color(0xFF003F91),
-                                ),
-                              ),
-                              child: Column(
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceAround,
-                                    children: [
-                                      _buildStatItem(
-                                        'SCORE',
-                                        '+$_displayScore pts',
-                                        const Color(0xFF003F91),
-                                      ),
-                                      Container(
-                                        width: 1,
-                                        height: 40,
-                                        color: const Color(0xFF2D3361),
-                                      ),
-                                      _buildStatItem(
-                                        'CORRECT',
-                                        '${widget.correctAnswers}/${widget.totalQuestions}',
-                                        const Color(0xFF4ADE80),
-                                      ),
-                                      Container(
-                                        width: 1,
-                                        height: 40,
-                                        color: const Color(0xFF2D3361),
-                                      ),
-                                      _buildStatItem(
-                                        'ACCURACY',
-                                        '$accuracy%',
-                                        const Color(0xFFF59E0B),
-                                      ),
-                                    ],
-                                  ),
-                                  // ── Coins Earned ───────────────────
-                                  if (widget.coinsEarned > 0) ...[
-                                    const SizedBox(height: 12),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 6,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: const Color(
-                                          0xFFFFD700,
-                                        ).withValues(alpha: 0.15),
-                                        borderRadius: BorderRadius.circular(10),
-                                        border: Border.all(
-                                          color: const Color(
-                                            0xFFFFD700,
-                                          ).withValues(alpha: 0.3),
-                                        ),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          SvgPicture.asset(
-                                            'lib/assets/icon/coin.svg',
-                                            width: 16,
-                                            height: 16,
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            '+${widget.coinsEarned} coins earned',
-                                            style: const TextStyle(
-                                              color: Color(0xFFFFD700),
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-
-                                  // ── Penalty Deductions ──────────────
-                                  if (widget.penaltyDeductions > 0) ...[
-                                    const SizedBox(height: 12),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 6,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: const Color(
-                                          0xFFEF4444,
-                                        ).withValues(alpha: 0.15),
-                                        borderRadius: BorderRadius.circular(10),
-                                        border: Border.all(
-                                          color: const Color(
-                                            0xFFEF4444,
-                                          ).withValues(alpha: 0.3),
-                                        ),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          const Icon(
-                                            Icons.remove_rounded,
-                                            color: Color(0xFFEF4444),
-                                            size: 14,
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            '${widget.penaltyDeductions} pts deducted',
-                                            style: const TextStyle(
-                                              color: Color(0xFFEF4444),
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
-
-                            // ─── XP Progress Section ────────────────────
-                            if (!widget.isOffline) ...[
-                              const SizedBox(height: 24),
-                              _buildXpProgressSection(
-                                oldLevel: oldLevel,
-                                newLevel: newLevel,
-                                oldLevelName: oldLevelName,
-                                newLevelName: newLevelName,
-                                leveledUp: leveledUp,
-                                xpToNext: xpToNext,
-                                xpInCurrent: xpInCurrent,
-                                currentLevelName: currentLevelDef.name,
-                                nextLevelName: nextLevelDef?.name ?? 'MAX',
-                              ),
-                            ],
-
-                            // ─── Badges Earned ──────────────────────────
-                            if (widget.newlyUnlockedBadges.isNotEmpty) ...[
-                              const SizedBox(height: 24),
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  SvgPicture.asset(
-                                    'lib/assets/icon/party.svg',
-                                    width: 14,
-                                    height: 14,
-                                    colorFilter: const ColorFilter.mode(
-                                      Color(0xFFFFD700),
-                                      BlendMode.srcIn,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  const Text(
-                                    'BADGES EARNED!',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFFFFD700),
-                                      letterSpacing: 1.5,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  SvgPicture.asset(
-                                    'lib/assets/icon/party.svg',
-                                    width: 14,
-                                    height: 14,
-                                    colorFilter: const ColorFilter.mode(
-                                      Color(0xFFFFD700),
-                                      BlendMode.srcIn,
-                                    ),
-                                  ),
-                                ],
                               ),
                               const SizedBox(height: 12),
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                alignment: WrapAlignment.center,
-                                children: widget.newlyUnlockedBadges.map((
-                                  badgeId,
-                                ) {
-                                  final badge = allBadges.firstWhere(
-                                    (b) => b.id == badgeId,
-                                  );
-                                  return Chip(
-                                    avatar: Icon(
-                                      badge.icon,
+                              Text(
+                                'Challenge Completed!',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w800,
                                       color: const Color(0xFF003F91),
-                                      size: 16,
                                     ),
-                                    label: Text(badge.name),
-                                    backgroundColor: const Color(0xFFECF8F8),
-                                    shape: RoundedRectangleBorder(
-                                      side: const BorderSide(
-                                        color: Color(0xFF003F91),
-                                      ),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    labelStyle: const TextStyle(
-                                      color: Color(0xFF003F91),
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  );
-                                }).toList(),
                               ),
-                            ],
-
-                            const SizedBox(height: 32),
-
-                            // ─── Back to Menu Button ────────────────────
-                            SizedBox(
-                              width: double.infinity,
-                              child: FilledButton.icon(
-                                onPressed: widget.onBack,
-                                icon: const Icon(Icons.home_rounded),
-                                label: const Text('Back to Course Selection'),
-                                style: FilledButton.styleFrom(
-                                  backgroundColor: const Color(0xFF003F91),
-                                  foregroundColor: const Color(0xFFFBFBFB),
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 14,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
+                              const SizedBox(height: 8),
+                              Text(
+                                widget.isOffline
+                                    ? 'Offline session completed. Points are stored locally.'
+                                    : 'Great job! Your profile stats have been updated.',
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: Color(0xFF9CA3AF),
+                                  fontSize: 14,
                                 ),
                               ),
-                            ),
+                              const SizedBox(height: 32),
 
-                            // ─── Motivational Quote ─────────────────────
-                            if (widget.quoteText != null) ...[
-                              const SizedBox(height: 28),
+                              // ─── Stars ──────────────────────────────────
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: List.generate(stars, (index) {
+                                  final bool isFilled = index < _starCount;
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 4,
+                                    ),
+                                    child: AnimatedSwitcher(
+                                      duration: const Duration(
+                                        milliseconds: 300,
+                                      ),
+                                      child: Icon(
+                                        isFilled
+                                            ? Icons.star_rounded
+                                            : Icons.star_outline_rounded,
+                                        key: ValueKey(isFilled),
+                                        size: 40,
+                                        color: isFilled
+                                            ? const Color(0xFFFFD700)
+                                            : const Color(0xFF4B5565),
+                                      ),
+                                    ),
+                                  );
+                                }),
+                              ),
+                              const SizedBox(height: 20),
+
+                              // ─── Results card ───────────────────────────
                               Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(20),
+                                padding: const EdgeInsets.all(24),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFECF8F8),
-                                  borderRadius: BorderRadius.circular(20),
+                                  borderRadius: BorderRadius.circular(24),
                                   border: Border.all(
                                     color: const Color(0xFF003F91),
                                   ),
                                 ),
                                 child: Column(
                                   children: [
-                                    const Icon(
-                                      Icons.format_quote_rounded,
-                                      color: Color(0xFF003F91),
-                                      size: 28,
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceAround,
+                                      children: [
+                                        _buildStatItem(
+                                          'SCORE',
+                                          '+$_displayScore pts',
+                                          const Color(0xFF003F91),
+                                        ),
+                                        Container(
+                                          width: 1,
+                                          height: 40,
+                                          color: const Color(0xFF2D3361),
+                                        ),
+                                        _buildStatItem(
+                                          'CORRECT',
+                                          '${widget.correctAnswers}/${widget.totalQuestions}',
+                                          const Color(0xFF4ADE80),
+                                        ),
+                                        Container(
+                                          width: 1,
+                                          height: 40,
+                                          color: const Color(0xFF2D3361),
+                                        ),
+                                        _buildStatItem(
+                                          'ACCURACY',
+                                          '$accuracy%',
+                                          const Color(0xFFF59E0B),
+                                        ),
+                                      ],
                                     ),
-                                    const SizedBox(height: 12),
-                                    Text(
-                                      widget.quoteText!,
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                        fontSize: 15,
-                                        fontStyle: FontStyle.italic,
-                                        fontWeight: FontWeight.w500,
-                                        color: Color(0xFF003F91),
-                                        height: 1.5,
+                                    // ── Coins Earned ───────────────────
+                                    if (widget.coinsEarned > 0) ...[
+                                      const SizedBox(height: 12),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 6,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: const Color(
+                                            0xFFFFD700,
+                                          ).withValues(alpha: 0.15),
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
+                                          border: Border.all(
+                                            color: const Color(
+                                              0xFFFFD700,
+                                            ).withValues(alpha: 0.3),
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            SvgPicture.asset(
+                                              'lib/assets/icon/coin.svg',
+                                              width: 16,
+                                              height: 16,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              '+${widget.coinsEarned} coins earned',
+                                              style: const TextStyle(
+                                                color: Color(0xFFFFD700),
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+
+                                    // ── Penalty Deductions ──────────────
+                                    if (widget.penaltyDeductions > 0) ...[
+                                      const SizedBox(height: 12),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 6,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: const Color(
+                                            0xFFEF4444,
+                                          ).withValues(alpha: 0.15),
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
+                                          border: Border.all(
+                                            color: const Color(
+                                              0xFFEF4444,
+                                            ).withValues(alpha: 0.3),
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(
+                                              Icons.remove_rounded,
+                                              color: Color(0xFFEF4444),
+                                              size: 14,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              '${widget.penaltyDeductions} pts deducted',
+                                              style: const TextStyle(
+                                                color: Color(0xFFEF4444),
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+
+                              // ─── XP Progress Section ────────────────────
+                              if (!widget.isOffline) ...[
+                                const SizedBox(height: 24),
+                                _buildXpProgressSection(
+                                  oldLevel: oldLevel,
+                                  newLevel: newLevel,
+                                  oldLevelName: oldLevelName,
+                                  newLevelName: newLevelName,
+                                  leveledUp: leveledUp,
+                                  xpToNext: xpToNext,
+                                  xpInCurrent: xpInCurrent,
+                                  currentLevelName: currentLevelDef.name,
+                                  nextLevelName: nextLevelDef?.name ?? 'MAX',
+                                ),
+                              ],
+
+                              // ─── Badges Earned ──────────────────────────
+                              if (widget.newlyUnlockedBadges.isNotEmpty) ...[
+                                const SizedBox(height: 24),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    SvgPicture.asset(
+                                      'lib/assets/icon/party.svg',
+                                      width: 14,
+                                      height: 14,
+                                      colorFilter: const ColorFilter.mode(
+                                        Color(0xFFFFD700),
+                                        BlendMode.srcIn,
                                       ),
                                     ),
-                                    const SizedBox(height: 10),
-                                    Text(
-                                      '— ${widget.quoteAuthor}',
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w700,
-                                        color: Color(0xFF9CA3AF),
+                                    const SizedBox(width: 6),
+                                    const Text(
+                                      'BADGES EARNED!',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFFFFD700),
+                                        letterSpacing: 1.5,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    SvgPicture.asset(
+                                      'lib/assets/icon/party.svg',
+                                      width: 14,
+                                      height: 14,
+                                      colorFilter: const ColorFilter.mode(
+                                        Color(0xFFFFD700),
+                                        BlendMode.srcIn,
                                       ),
                                     ),
                                   ],
                                 ),
+                                const SizedBox(height: 12),
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  alignment: WrapAlignment.center,
+                                  children: widget.newlyUnlockedBadges.map((
+                                    badgeId,
+                                  ) {
+                                    final badge = allBadges.firstWhere(
+                                      (b) => b.id == badgeId,
+                                    );
+                                    return Chip(
+                                      avatar: Icon(
+                                        badge.icon,
+                                        color: const Color(0xFF003F91),
+                                        size: 16,
+                                      ),
+                                      label: Text(badge.name),
+                                      backgroundColor: const Color(0xFFECF8F8),
+                                      shape: RoundedRectangleBorder(
+                                        side: const BorderSide(
+                                          color: Color(0xFF003F91),
+                                        ),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      labelStyle: const TextStyle(
+                                        color: Color(0xFF003F91),
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ],
+
+                              const SizedBox(height: 32),
+
+                              // ─── Back to Menu Button ────────────────────
+                              SizedBox(
+                                width: double.infinity,
+                                child: FilledButton.icon(
+                                  onPressed: widget.onBack,
+                                  icon: const Icon(Icons.home_rounded),
+                                  label: const Text('Back to Course Selection'),
+                                  style: FilledButton.styleFrom(
+                                    backgroundColor: const Color(0xFF003F91),
+                                    foregroundColor: const Color(0xFFFBFBFB),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 14,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                ),
                               ),
+
+                              // ─── Motivational Quote ─────────────────────
+                              if (widget.quoteText != null) ...[
+                                const SizedBox(height: 28),
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(20),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFECF8F8),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                      color: const Color(0xFF003F91),
+                                    ),
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      const Icon(
+                                        Icons.format_quote_rounded,
+                                        color: Color(0xFF003F91),
+                                        size: 28,
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Text(
+                                        widget.quoteText!,
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          fontSize: 15,
+                                          fontStyle: FontStyle.italic,
+                                          fontWeight: FontWeight.w500,
+                                          color: Color(0xFF003F91),
+                                          height: 1.5,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 10),
+                                      Text(
+                                        '— ${widget.quoteAuthor}',
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w700,
+                                          color: Color(0xFF9CA3AF),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              // Level-up flash overlay
+              if (_showLevelUpFlash)
+                IgnorePointer(
+                  child: AnimatedOpacity(
+                    opacity: _showLevelUpFlash ? 1.0 : 0.0,
+                    duration: const Duration(milliseconds: 300),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: RadialGradient(
+                          center: Alignment.center,
+                          radius: 1.0,
+                          colors: [
+                            const Color(0xFFFFD700).withValues(alpha: 0.15),
+                            Colors.transparent,
                           ],
                         ),
                       ),
                     ),
-                  );
-                },
-              ),
-            ),
-
-            // Level-up flash overlay
-            if (_showLevelUpFlash)
-              IgnorePointer(
-                child: AnimatedOpacity(
-                  opacity: _showLevelUpFlash ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 300),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: RadialGradient(
-                        center: Alignment.center,
-                        radius: 1.0,
-                        colors: [
-                          const Color(0xFFFFD700).withValues(alpha: 0.15),
-                          Colors.transparent,
-                        ],
-                      ),
-                    ),
                   ),
                 ),
-              ),
 
-            // Confetti overlay
-            Align(
-              alignment: Alignment.topCenter,
-              child: ConfettiWidget(
-                confettiController: _confettiController,
-                blastDirection: -pi / 2,
-                blastDirectionality: BlastDirectionality.explosive,
-                maxBlastForce: 30,
-                minBlastForce: 10,
-                emissionFrequency: 0.05,
-                numberOfParticles: 30,
-                gravity: 0.2,
-                colors: const [
-                  Color(0xFFFFD700),
-                  Color(0xFF4ADE80),
-                  Color(0xFF003F91),
-                  Color(0xFFF59E0B),
-                  Color(0xFFEF4444),
-                  Colors.white,
-                ],
-                shouldLoop: false,
+              // Confetti overlay
+              Align(
+                alignment: Alignment.topCenter,
+                child: ConfettiWidget(
+                  confettiController: _confettiController,
+                  blastDirection: -pi / 2,
+                  blastDirectionality: BlastDirectionality.explosive,
+                  maxBlastForce: 30,
+                  minBlastForce: 10,
+                  emissionFrequency: 0.05,
+                  numberOfParticles: 30,
+                  gravity: 0.2,
+                  colors: const [
+                    Color(0xFFFFD700),
+                    Color(0xFF4ADE80),
+                    Color(0xFF003F91),
+                    Color(0xFFF59E0B),
+                    Color(0xFFEF4444),
+                    Colors.white,
+                  ],
+                  shouldLoop: false,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
