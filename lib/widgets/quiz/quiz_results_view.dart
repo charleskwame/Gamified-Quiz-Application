@@ -4,11 +4,15 @@ import 'package:confetti/confetti.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../models/badge.dart';
 import '../../models/level_system.dart';
+import '../../models/question.dart';
 import '../../services/sound_service.dart';
+import 'quiz_ai_chat_sheet.dart';
 
 /// Displays the quiz completion/results screen with game-like UI.
 /// Includes animated XP progress bar, total score counter, penalty info, and coins earned.
 class QuizResultsView extends StatefulWidget {
+  final String category;
+  final List<Question> incorrectQuestions;
   final int score;
   final int correctAnswers;
   final int totalQuestions;
@@ -27,6 +31,8 @@ class QuizResultsView extends StatefulWidget {
 
   const QuizResultsView({
     super.key,
+    required this.category,
+    required this.incorrectQuestions,
     required this.score,
     required this.correctAnswers,
     required this.totalQuestions,
@@ -259,6 +265,31 @@ class _QuizResultsViewState extends State<QuizResultsView>
     final nextLevelDef = LevelSystem.getNextLevel(widget.updatedTotalScore);
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: IconButton(
+              icon: const Icon(
+                Icons.lightbulb,
+                color: Color.fromARGB(255, 255, 230, 0),
+              ),
+              tooltip: 'Review Session with AI',
+              onPressed: () {
+                QuizAiChatSheet.show(
+                  context,
+                  category: widget.category,
+                  incorrectQuestions: widget.incorrectQuestions,
+                );
+              },
+            ),
+          ),
+        ],
+      ),
       body: Container(
         color: const Color(0xFFECF8F8),
         child: Stack(
@@ -292,7 +323,7 @@ class _QuizResultsViewState extends State<QuizResultsView>
                               ),
                               decoration: BoxDecoration(
                                 color: _getGradeColor().withValues(alpha: 0.2),
-                                borderRadius: BorderRadius.circular(16),
+                                borderRadius: BorderRadius.circular(10),
                                 border: Border.all(
                                   color: _getGradeColor().withValues(
                                     alpha: 0.5,
@@ -302,7 +333,7 @@ class _QuizResultsViewState extends State<QuizResultsView>
                               child: Text(
                                 _getGradeText(),
                                 style: TextStyle(
-                                  fontSize: 22,
+                                  fontSize: 18,
                                   fontWeight: FontWeight.w900,
                                   color: _getGradeColor(),
                                   letterSpacing: 2,
@@ -356,7 +387,7 @@ class _QuizResultsViewState extends State<QuizResultsView>
                                 );
                               }),
                             ),
-                            const SizedBox(height: 32),
+                            const SizedBox(height: 20),
 
                             // ─── Results card ───────────────────────────
                             Container(

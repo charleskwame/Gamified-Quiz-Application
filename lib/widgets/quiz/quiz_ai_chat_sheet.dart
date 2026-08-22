@@ -81,7 +81,7 @@ class _AiChatContentState extends State<_AiChatContent> {
     _messages.add(
       _ChatMessage(
         text:
-            "**Welcome to DeepSeek AI Study Assistant!**\n\nI am analyzing your quiz performance to prepare tailored study tips. Please wait for my response before asking any questions.",
+            "**Welcome to DeepSeek AI Session Review!**\n\nI am analyzing your quiz performance to prepare tailored study tips based on your session. Please wait for my response before asking any questions.",
         isUser: false,
         iconAsset: 'lib/assets/icon/robot.svg',
         iconColor: const Color(0xFF003F91),
@@ -109,8 +109,8 @@ class _AiChatContentState extends State<_AiChatContent> {
     final prompt =
         """
 You are an expert AI study tutor inside a gamified quiz application.
-The user is currently taking a quiz on "$category".
-${widget.incorrectQuestions.isNotEmpty ? "Here are the questions they got wrong so far:\n$wrongQuestionsDetails\n" : ""}
+The user has just completed a quiz session on "$category".
+${widget.incorrectQuestions.isNotEmpty ? "Here are the questions they got wrong during this session:\n$wrongQuestionsDetails\n" : ""}
 CRITICAL INSTRUCTION: Be extremely direct and straight to the point. Give 1-2 concise bullet points or sentences with study tips. No intros, greetings, or fluff.
 """;
 
@@ -195,8 +195,8 @@ CRITICAL INSTRUCTION: Be extremely direct and straight to the point. Give 1-2 co
     final systemPrompt =
         """
 You are an expert AI study tutor inside a gamified quiz application.
-The user is currently taking a quiz on "$category".
-${widget.incorrectQuestions.isNotEmpty ? "Questions answered incorrectly so far:\n$wrongQuestionsDetails\n" : ""}
+The user has just completed a quiz session on "$category".
+${widget.incorrectQuestions.isNotEmpty ? "Questions answered incorrectly during the session:\n$wrongQuestionsDetails\n" : ""}
 CRITICAL INSTRUCTION: Be extremely direct and straight to the point. Answer immediately without conversational filler or intros like 'Hello!' or 'Sure!'. Use concise sentences or short bullet points.
 """;
 
@@ -319,13 +319,13 @@ CRITICAL INSTRUCTION: Be extremely direct and straight to the point. Answer imme
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Icon(
-                      Icons.auto_awesome,
-                      color: Color(0xFF141053),
+                      Icons.lightbulb,
+                      color: Color(0xFFFFD700),
                       size: 20,
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'DeepSeek AI Study Guide',
+                      'DeepSeek AI Session Review',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -355,7 +355,7 @@ CRITICAL INSTRUCTION: Be extremely direct and straight to the point. Answer imme
                         vertical: 12,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE8E9EB),
+                        color: const Color(0xFFECF8F8),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Row(
@@ -375,7 +375,7 @@ CRITICAL INSTRUCTION: Be extremely direct and straight to the point. Answer imme
                           Text(
                             'DeepSeek is thinking...',
                             style: TextStyle(
-                              color: Colors.grey.shade600,
+                              color: Color(0xFFE2F0F0),
                               fontSize: 13,
                             ),
                           ),
@@ -402,7 +402,7 @@ CRITICAL INSTRUCTION: Be extremely direct and straight to the point. Answer imme
                     decoration: BoxDecoration(
                       color: message.isUser
                           ? const Color(0xFF003F91)
-                          : const Color(0xFFE8E9EB),
+                          : const Color(0xFFECF8F8),
                       borderRadius: BorderRadius.only(
                         topLeft: const Radius.circular(16),
                         topRight: const Radius.circular(16),

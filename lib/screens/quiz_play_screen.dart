@@ -18,9 +18,7 @@ import '../widgets/quiz/quiz_error_view.dart';
 import '../widgets/quiz/quiz_results_view.dart';
 import '../widgets/quiz/quiz_level_up_screen.dart';
 import '../widgets/quiz/quiz_badge_celebration.dart';
-import '../widgets/quiz/quiz_ai_chat_sheet.dart';
 import '../widgets/quiz/quiz_streak_badge.dart';
-import '../widgets/quiz/quiz_ai_fab.dart';
 import '../widgets/quiz/quiz_game_option.dart';
 import '../widgets/quiz/quiz_score_popup.dart';
 import '../widgets/quiz/quiz_circular_timer.dart';
@@ -54,7 +52,6 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
   // ─── State ─────────────────────────────────────────────────────────────────
   int _consecutiveIncorrect = 0;
   int _consecutiveCorrect = 0;
-  AnimationController? _aiButtonAnimationController;
   AnimationController? _progressAnimationController;
   AnimationController? _flameAnimationController;
   AnimationController? _shieldAnimationController;
@@ -141,10 +138,6 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
     _confettiController = ConfettiController(
       duration: const Duration(seconds: 2),
     );
-    _aiButtonAnimationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    )..repeat(reverse: true);
     _flameAnimationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
@@ -176,7 +169,6 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
     _timer?.cancel();
     _autoSkipTimer?.cancel();
     _progressAnimationController?.dispose();
-    _aiButtonAnimationController?.dispose();
     _flameAnimationController?.dispose();
     _shieldAnimationController?.dispose();
     _skipAnimationController?.dispose();
@@ -847,16 +839,6 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
     }
   }
 
-  // ─── AI Chat ───────────────────────────────────────────────────────────────
-
-  void _showAiChatInterface() {
-    QuizAiChatSheet.show(
-      context,
-      category: widget.category,
-      incorrectQuestions: _incorrectQuestions,
-    );
-  }
-
   // ─── Quit Confirmation ─────────────────────────────────────────────────────
 
   Future<void> _applyQuitPenalty() async {
@@ -975,6 +957,8 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
     // Results screen
     if (_currentIndex >= _questions.length) {
       return QuizResultsView(
+        category: widget.category,
+        incorrectQuestions: _incorrectQuestions,
         score: _score,
         correctAnswers: _correctAnswers,
         totalQuestions: _questions.length,
@@ -1010,16 +994,6 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
       isActive: true,
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        floatingActionButton:
-            (!widget.isTimed &&
-                !widget.isOffline &&
-                _consecutiveIncorrect >= 2 &&
-                _currentIndex < _questions.length)
-            ? QuizAiFab(
-                animationController: _aiButtonAnimationController!,
-                onPressed: _showAiChatInterface,
-              )
-            : null,
         appBar: AppBar(
           title: Text(
             widget.category,

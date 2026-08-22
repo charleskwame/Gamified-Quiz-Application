@@ -231,40 +231,6 @@ class _QuizLevelUpScreenState extends State<QuizLevelUpScreen>
               },
             ),
 
-            // Close button (outside RepaintBoundary so it's not in screenshots)
-            Positioned(
-              top: 8,
-              right: 8,
-              child: SafeArea(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFECF8F8),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: const Color(0xFF003F91).withValues(alpha: 0.3),
-                      width: 1.5,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF003F91).withValues(alpha: 0.1),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(
-                      Icons.close_rounded,
-                      color: Color(0xFF003F91),
-                      size: 24,
-                    ),
-                    tooltip: 'Close',
-                  ),
-                ),
-              ),
-            ),
-
             // Main content wrapped in RepaintBoundary for screenshot
             RepaintBoundary(
               key: _repaintKey,
