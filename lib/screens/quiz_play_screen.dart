@@ -10,6 +10,7 @@ import '../services/database_service.dart';
 import '../services/quiz_engine.dart';
 import '../services/coin_service.dart';
 import '../services/sound_service.dart';
+import '../services/settings_service.dart';
 import '../services/quote_service.dart';
 import '../widgets/home/particle_background.dart';
 import '../widgets/quiz/quiz_loading_view.dart';
@@ -73,6 +74,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
   int _correctAnswers = 0;
   String? _selectedOption;
   bool _isAnswered = false;
+  bool _autoSkipCorrect = false;
 
   // Score popup
   int _lastScoreIncrement = 0;
@@ -87,6 +89,9 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
   // Timer fields
   Timer? _timer;
   int _timeLeft = 15;
+
+  Timer? _autoSkipTimer;
+  int _autoSkipCountdown = 0;
 
   // Random quote for completion screen
   String? _randomQuoteText;
@@ -132,6 +137,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
   void initState() {
     super.initState();
     _loadQuizQuestions();
+    _loadAutoSkipSetting();
     _confettiController = ConfettiController(
       duration: const Duration(seconds: 2),
     );
@@ -168,6 +174,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
   @override
   void dispose() {
     _timer?.cancel();
+    _autoSkipTimer?.cancel();
     _progressAnimationController?.dispose();
     _aiButtonAnimationController?.dispose();
     _flameAnimationController?.dispose();
@@ -181,6 +188,13 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
   }
 
   // ─── Data Loading ──────────────────────────────────────────────────────────
+
+  Future<void> _loadAutoSkipSetting() async {
+    final enabled = await SettingsService.isAutoSkipCorrectEnabled();
+    if (mounted) {
+      setState(() => _autoSkipCorrect = enabled);
+    }
+  }
 
   Future<void> _loadQuizQuestions() async {
     try {
@@ -282,6 +296,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
 
     // Consume a skip and advance immediately
     _timer?.cancel();
+    _autoSkipTimer?.cancel();
     _progressAnimationController?.stop();
     _confettiController.stop();
     _skipCount--;
@@ -583,12 +598,37 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
           setState(() => _showScorePopup = false);
         }
       });
+
+      // Auto-advance to next question after 5 seconds when setting is enabled
+      if (_autoSkipCorrect) {
+        setState(() {
+          _autoSkipCountdown = 5;
+        });
+        _autoSkipTimer?.cancel();
+        _autoSkipTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+          if (!mounted) {
+            timer.cancel();
+            return;
+          }
+          if (_autoSkipCountdown > 1) {
+            setState(() {
+              _autoSkipCountdown--;
+            });
+          } else {
+            timer.cancel();
+            if (_isAnswered) {
+              _nextQuestion();
+            }
+          }
+        });
+      }
     }
   }
 
   // ─── Navigation ────────────────────────────────────────────────────────────
 
   void _nextQuestion() {
+    _autoSkipTimer?.cancel();
     _confettiController.stop();
     if (_currentIndex < _questions.length - 1) {
       // Play the "next" tap sound when advancing to the next question.
@@ -1320,13 +1360,18 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
 
   Widget _buildNextButton() {
     final bool isLast = _currentIndex >= _questions.length - 1;
+    final String buttonText = isLast ? 'Finish Challenge' : 'Next Question';
+    final String labelText = (_autoSkipCorrect && _autoSkipCountdown > 0)
+        ? '$buttonText ($_autoSkipCountdown)'
+        : buttonText;
+
     return SizedBox(
       width: double.infinity,
       child: FilledButton.icon(
         onPressed: _nextQuestion,
         icon: Icon(isLast ? Icons.flag_rounded : Icons.arrow_forward_rounded),
         label: Text(
-          isLast ? 'Finish Challenge' : 'Next Question',
+          labelText,
           style: const TextStyle(fontWeight: FontWeight.w700),
         ),
         style: FilledButton.styleFrom(

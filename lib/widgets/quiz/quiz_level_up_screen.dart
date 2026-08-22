@@ -47,13 +47,14 @@ class QuizLevelUpScreen extends StatefulWidget {
 
 class _QuizLevelUpScreenState extends State<QuizLevelUpScreen>
     with TickerProviderStateMixin {
-  late AnimationController _mainController;
   late AnimationController _particleController;
 
-  // Phase animations
-  late Animation<double> _overlayFade;
-  late Animation<double> _badgeScale;
-  late Animation<double> _levelCounter;
+  // One controller per staggered section (fade+slide-from-bottom)
+  late final List<AnimationController> _sectionControllers;
+  late final List<Animation<double>> _sectionOpacity;
+  late final List<Animation<Offset>> _sectionSlide;
+
+  // XP bar fill animation (driven by section controller[3])
   late Animation<double> _xpBarWidth;
 
   // Level counter display
@@ -68,10 +69,6 @@ class _QuizLevelUpScreenState extends State<QuizLevelUpScreen>
   final GlobalKey _repaintKey = GlobalKey();
 
   // Phase tracking
-  bool _badgeVisible = false;
-  bool _levelCounterVisible = false;
-  bool _xpBarVisible = false;
-  bool _buttonsVisible = false;
   bool _isSaving = false;
 
   @override
@@ -79,85 +76,78 @@ class _QuizLevelUpScreenState extends State<QuizLevelUpScreen>
     super.initState();
     _initParticles();
 
-    _mainController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 4000),
-    );
-
     _particleController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 10),
     )..repeat();
 
-    // Phase 1: Overlay fade-in (0–0.8s)
-    _overlayFade = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(
-        parent: _mainController,
-        curve: const Interval(0.0, 0.2, curve: Curves.easeOut),
+    // Build one controller per section: avatar+name, badge, level counter,
+    // XP bar, buttons — each 600 ms, delayed by 120 ms * index.
+    const sectionCount = 5;
+    _sectionControllers = List.generate(
+      sectionCount,
+      (_) => AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 600),
       ),
     );
 
-    // Phase 2: Badge scale bounce (0.8–1.6s)
-    _badgeScale =
-        TweenSequence<double>([
-          TweenSequenceItem(tween: Tween(begin: 0, end: 1.15), weight: 40),
-          TweenSequenceItem(tween: Tween(begin: 1.15, end: 1.0), weight: 20),
-          TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.0), weight: 40),
-        ]).animate(
-          CurvedAnimation(
-            parent: _mainController,
-            curve: const Interval(0.2, 0.4, curve: Curves.easeOutBack),
+    _sectionOpacity = _sectionControllers
+        .map(
+          (c) => Tween<double>(begin: 0, end: 1).animate(
+            CurvedAnimation(
+              parent: c,
+              curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
+            ),
           ),
-        );
+        )
+        .toList();
 
-    // Phase 3: Level counter (1.6–2.8s)
-    _levelCounter = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(
-        parent: _mainController,
-        curve: const Interval(0.35, 0.65, curve: Curves.easeOutCubic),
-      ),
-    );
+    _sectionSlide = _sectionControllers
+        .map(
+          (c) =>
+              Tween<Offset>(
+                begin: const Offset(0, 0.15),
+                end: Offset.zero,
+              ).animate(
+                CurvedAnimation(
+                  parent: c,
+                  curve: const Interval(0.0, 0.7, curve: Curves.easeOutCubic),
+                ),
+              ),
+        )
+        .toList();
 
-    // Phase 4: XP bar (2.2–3.2s)
+    // XP bar fill follows the xp-bar section controller (index 3)
     _xpBarWidth = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
-        parent: _mainController,
-        curve: const Interval(0.55, 0.8, curve: Curves.easeOutCubic),
+        parent: _sectionControllers[3],
+        curve: const Interval(0.3, 1.0, curve: Curves.easeOutCubic),
       ),
     );
 
-    _mainController.addListener(_onMainAnimationTick);
-    _mainController.forward();
+    // Level counter count-up: driven by section controller index 2
+    _sectionControllers[2].addListener(_onLevelCounterTick);
+
+    // Kick off each section with a staggered delay
+    for (int i = 0; i < sectionCount; i++) {
+      Future.delayed(Duration(milliseconds: 120 * i), () {
+        if (mounted) _sectionControllers[i].forward();
+      });
+    }
 
     // Play the level-up fanfare as the celebration starts.
     SoundService.instance.playLevelUp();
-
-    _mainController.addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
-        setState(() => _buttonsVisible = true);
-      }
-    });
   }
 
-  void _onMainAnimationTick() {
+  void _onLevelCounterTick() {
     setState(() {
-      // Level counter animation: count up old → new
-      final levelPhase = (_levelCounter.value * 100).round() / 100;
-      if (levelPhase > 0) {
-        final levelDiff = widget.data.newLevel - widget.data.oldLevel;
-        _displayedOldLevel = widget.data.oldLevel;
-        _displayedNewLevel =
-            widget.data.oldLevel +
-            (levelDiff * levelPhase).round().clamp(1, widget.data.newLevel);
-        _levelCounterVisible = true;
-      }
-
-      // Visibility flags for build
-      if (_badgeScale.value > 0.01) _badgeVisible = true;
-      if (_xpBarWidth.value > 0.01) {
-        _xpBarVisible = true;
-        _levelCounterVisible = true;
-      }
+      final levelPhase = _sectionControllers[2].value.clamp(0.0, 1.0);
+      final levelDiff = widget.data.newLevel - widget.data.oldLevel;
+      _displayedOldLevel = widget.data.oldLevel;
+      _displayedNewLevel =
+          widget.data.oldLevel +
+          (levelDiff * levelPhase).round().clamp(1, widget.data.newLevel);
     });
   }
 
@@ -167,8 +157,10 @@ class _QuizLevelUpScreenState extends State<QuizLevelUpScreen>
 
   @override
   void dispose() {
-    _mainController.removeListener(_onMainAnimationTick);
-    _mainController.dispose();
+    _sectionControllers[2].removeListener(_onLevelCounterTick);
+    for (final c in _sectionControllers) {
+      c.dispose();
+    }
     _particleController.dispose();
     super.dispose();
   }
@@ -219,15 +211,9 @@ class _QuizLevelUpScreenState extends State<QuizLevelUpScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: const Color(0xFFECF8F8),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF0F172A), Color(0xFF1E1B4B), Color(0xFF111C4A)],
-          ),
-        ),
+        color: const Color(0xFFECF8F8),
         child: Stack(
           children: [
             // Organic particle layer (rendered underneath everything)
@@ -239,24 +225,50 @@ class _QuizLevelUpScreenState extends State<QuizLevelUpScreen>
                   size: Size.infinite,
                   painter: _LevelUpParticlesPainter(
                     particles: _particles,
-                    animationPhase: _mainController.value.clamp(0.0, 1.0),
+                    animationPhase: _particleController.value,
                   ),
                 );
               },
             ),
 
-            // Overlay darkener for initial fade-in
-            FadeTransition(
-              opacity: _overlayFade,
-              child: Container(color: Colors.black.withValues(alpha: 0.0)),
+            // Close button (outside RepaintBoundary so it's not in screenshots)
+            Positioned(
+              top: 8,
+              right: 8,
+              child: SafeArea(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFECF8F8),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: const Color(0xFF003F91).withValues(alpha: 0.3),
+                      width: 1.5,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF003F91).withValues(alpha: 0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(
+                      Icons.close_rounded,
+                      color: Color(0xFF003F91),
+                      size: 24,
+                    ),
+                    tooltip: 'Close',
+                  ),
+                ),
+              ),
             ),
 
             // Main content wrapped in RepaintBoundary for screenshot
             RepaintBoundary(
               key: _repaintKey,
-              child: AspectRatio(
-                aspectRatio: 1 / 1.4,
-                child: SafeArea(
+              child: SafeArea(
                   child: LayoutBuilder(
                     builder: (context, constraints) {
                       return SingleChildScrollView(
@@ -270,94 +282,108 @@ class _QuizLevelUpScreenState extends State<QuizLevelUpScreen>
                               children: [
                                 const SizedBox(height: 40),
 
-                                // Avatar
-                                _buildAvatar(),
-                                const SizedBox(height: 12),
+                                // Section 0: Avatar + player name
+                                _FadeSlideSection(
+                                  opacity: _sectionOpacity[0],
+                                  slide: _sectionSlide[0],
+                                  child: Column(
+                                    children: [
+                                      _buildAvatar(),
+                                      const SizedBox(height: 12),
+                                      Text(
+                                        widget.data.displayName,
+                                        style: const TextStyle(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.w800,
+                                          color: Color(0xFF003F91),
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
 
-                                // Player name
-                                Text(
-                                  widget.data.displayName,
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w700,
-                                    color: Color(0xFFD1D5DB),
-                                    letterSpacing: 0.5,
+                                // Section 1: "LEVEL UP!" badge
+                                _FadeSlideSection(
+                                  opacity: _sectionOpacity[1],
+                                  slide: _sectionSlide[1],
+                                  child: _buildLevelUpBadge(),
+                                ),
+                                const SizedBox(height: 10),
+
+                                // Section 2: Level counter (OLD → NEW) + penalty notice
+                                _FadeSlideSection(
+                                  opacity: _sectionOpacity[2],
+                                  slide: _sectionSlide[2],
+                                  child: Column(
+                                    children: [
+                                      _buildLevelCounter(),
+                                      if (widget.data.newLevel == 2) ...[
+                                        const SizedBox(height: 16),
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 32.0,
+                                          ),
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 16,
+                                              vertical: 10,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: const Color(
+                                                0xFFEF4444,
+                                              ).withValues(alpha: 0.15),
+                                              borderRadius: BorderRadius.circular(12),
+                                              border: Border.all(
+                                                color: const Color(
+                                                  0xFFEF4444,
+                                                ).withValues(alpha: 0.3),
+                                              ),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: const [
+                                                Icon(
+                                                  Icons.warning_amber_rounded,
+                                                  color: Color(0xFFEF4444),
+                                                  size: 18,
+                                                ),
+                                                SizedBox(width: 8),
+                                                Expanded(
+                                                  child: Text(
+                                                    'The penalty system is now in effect from this rank onwards.',
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      fontWeight: FontWeight.bold,
+                                                      color: Color(0xFFEF4444),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ],
                                   ),
                                 ),
                                 const SizedBox(height: 32),
 
-                                // Badge: "LEVEL UP!"
-                                if (_badgeVisible)
-                                  AnimatedBuilder(
-                                    animation: _badgeScale,
-                                    builder: (context, _) {
-                                      return Transform.scale(
-                                        scale: _badgeScale.value,
-                                        child: _buildLevelUpBadge(),
-                                      );
-                                    },
-                                  ),
-
-                                const SizedBox(height: 40),
-
-                                // Level counter: LV. OLD → NEW
-                                if (_levelCounterVisible) _buildLevelCounter(),
-
-                                if (widget.data.newLevel == 2) ...[
-                                  const SizedBox(height: 16),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 32.0,
-                                    ),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 10,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: const Color(
-                                          0xFFEF4444,
-                                        ).withValues(alpha: 0.15),
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                          color: const Color(
-                                            0xFFEF4444,
-                                          ).withValues(alpha: 0.3),
-                                        ),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: const [
-                                          Icon(
-                                            Icons.warning_amber_rounded,
-                                            color: Color(0xFFEF4444),
-                                            size: 18,
-                                          ),
-                                          SizedBox(width: 8),
-                                          Expanded(
-                                            child: Text(
-                                              'The penalty system is now in effect from this rank onwards.',
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.bold,
-                                                color: Color(0xFFEF4444),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
-
-                                const SizedBox(height: 32),
-
-                                // XP Progress bar
-                                if (_xpBarVisible) _buildXpBar(),
+                                // Section 3: XP bar
+                                _FadeSlideSection(
+                                  opacity: _sectionOpacity[3],
+                                  slide: _sectionSlide[3],
+                                  child: _buildXpBar(),
+                                ),
                                 const SizedBox(height: 48),
 
-                                // Buttons
-                                if (_buttonsVisible) _buildButtons(),
+                                // Section 4: Buttons
+                                _FadeSlideSection(
+                                  opacity: _sectionOpacity[4],
+                                  slide: _sectionSlide[4],
+                                  child: _buildButtons(),
+                                ),
 
                                 const SizedBox(height: 40),
                               ],
@@ -369,7 +395,6 @@ class _QuizLevelUpScreenState extends State<QuizLevelUpScreen>
                   ),
                 ),
               ),
-            ),
           ],
         ),
       ),
@@ -386,23 +411,13 @@ class _QuizLevelUpScreenState extends State<QuizLevelUpScreen>
           gradient: const SweepGradient(
             colors: [
               Color(0xFFFFD700),
-              Color(0xFF003F91),
-              Color(0xFFF59E0B),
-              Color(0xFFFFD700),
             ],
           ),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFFFFD700).withValues(alpha: 0.3),
-              blurRadius: 24,
-              spreadRadius: 2,
-            ),
-          ],
         ),
         padding: const EdgeInsets.all(4),
         child: CircleAvatar(
           radius: 56,
-          backgroundColor: const Color(0xFF1E2246),
+          backgroundColor: const Color(0xFFE2F0F0),
           child: ClipOval(
             child: SvgPicture.network(
               widget.data.avatarUrl!,
@@ -419,11 +434,11 @@ class _QuizLevelUpScreenState extends State<QuizLevelUpScreen>
       );
     }
     return CircleAvatar(
-      radius: 60,
-      backgroundColor: const Color(0xFF2A2F5A),
+      radius: 50,
+      backgroundColor: const Color(0xFFE2F0F0),
       child: const Icon(
         Icons.person_rounded,
-        size: 60,
+        size: 50,
         color: Color(0xFF003F91),
       ),
     );
@@ -431,63 +446,41 @@ class _QuizLevelUpScreenState extends State<QuizLevelUpScreen>
 
   Widget _buildLevelUpBadge() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFFFD700), Color(0xFFF59E0B)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFFFD700).withValues(alpha: 0.4),
-            blurRadius: 20,
-            spreadRadius: 2,
-          ),
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFF003F91), width: 1.5),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           SvgPicture.asset(
             'lib/assets/icon/party.svg',
-            width: 28,
-            height: 28,
+            width: 20,
+            height: 20,
             colorFilter: const ColorFilter.mode(
-              Color(0xFF1E1B4B),
+              Color(0xFF003F91),
               BlendMode.srcIn,
             ),
           ),
           const SizedBox(width: 12),
           Text(
             'LEVEL UP!',
-            style: TextStyle(
-              fontSize: 28,
+            style: const TextStyle(
+              fontSize: 18,
               fontWeight: FontWeight.w900,
-              color: const Color(0xFF1E1B4B),
+              color: Color(0xFF003F91),
               letterSpacing: 2,
-              shadows: [
-                Shadow(
-                  color: Colors.black.withValues(alpha: 0.2),
-                  offset: const Offset(1, 1),
-                  blurRadius: 2,
-                ),
-              ],
             ),
           ),
           const SizedBox(width: 12),
           SvgPicture.asset(
             'lib/assets/icon/party.svg',
-            width: 28,
-            height: 28,
+            width: 20,
+            height: 20,
             colorFilter: const ColorFilter.mode(
-              Color(0xFF1E1B4B),
+              Color(0xFF003F91),
               BlendMode.srcIn,
             ),
           ),
@@ -497,71 +490,106 @@ class _QuizLevelUpScreenState extends State<QuizLevelUpScreen>
   }
 
   Widget _buildLevelCounter() {
-    return Column(
-      children: [
-        // Old level
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'LV.',
-              style: TextStyle(
-                fontSize: 48,
-                fontWeight: FontWeight.w300,
-                color: Colors.white.withValues(alpha: 0.5),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              '$_displayedOldLevel',
-              style: const TextStyle(
-                fontSize: 64,
-                fontWeight: FontWeight.w900,
-                color: Color(0xFF9CA3AF),
-              ),
-            ),
-          ],
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 40),
+      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: const Color(0xFF003F91).withValues(alpha: 0.2),
+          width: 1.5,
         ),
-
-        // Arrow divider
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Icon(
-            Icons.arrow_downward_rounded,
-            size: 32,
-            color: const Color(0xFFFFD700).withValues(alpha: 0.7),
-          ),
-        ),
-
-        // New level (animated count)
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'LV.',
-              style: TextStyle(
-                fontSize: 48,
-                fontWeight: FontWeight.w300,
-                color: Colors.white.withValues(alpha: 0.7),
-              ),
-            ),
-            const SizedBox(width: 8),
-            ShaderMask(
-              shaderCallback: (bounds) => const LinearGradient(
-                colors: [Color(0xFFFFD700), Color(0xFFF59E0B)],
-              ).createShader(bounds),
-              child: Text(
-                '$_displayedNewLevel',
-                style: const TextStyle(
-                  fontSize: 80,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white, // color overridden by ShaderMask
+      ),
+      child: Column(
+        children: [
+          // Old level (smaller) with rank name beside the number
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'LV.',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF9CA3AF).withValues(alpha: 0.5),
                 ),
               ),
+              const SizedBox(width: 6),
+              Text(
+                '$_displayedOldLevel',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF9CA3AF),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                widget.data.oldLevelName,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF9CA3AF).withValues(alpha: 0.5),
+                  letterSpacing: 1,
+                ),
+              ),
+            ],
+          ),
+
+          // Arrow connector chip
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                color: const Color(0xFF003F91),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.arrow_downward_rounded,
+                size: 18,
+                color: Colors.white,
+              ),
             ),
-          ],
-        ),
-      ],
+          ),
+
+          // New level (larger) with rank name beside the number
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'LV.',
+                style: TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.w900,
+                  color: const Color(0xFF003F91),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '$_displayedNewLevel',
+                style: const TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF003F91),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                widget.data.newLevelName,
+                style: const TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF003F91),
+                  letterSpacing: 1.5,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -574,41 +602,37 @@ class _QuizLevelUpScreenState extends State<QuizLevelUpScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // XP label
           Text(
             '${widget.data.xpInCurrentLevel} / ${widget.data.xpToNextLevel} XP',
             style: const TextStyle(
-              fontSize: 14,
+              fontSize: 20,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF9CA3AF),
+              color: Color(0xFF003F91),
             ),
           ),
           const SizedBox(height: 10),
 
-          // XP bar
+          // XP progress bar: full-width track, filled up to the
+          // percentage of XP toward the next level.
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: Container(
-              height: 20,
+              height: 10,
+              width: double.infinity,
               decoration: BoxDecoration(
-                color: const Color(0xFF2A2F5A),
+                color: const Color(0xFFE2F0F0),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF3D4375)),
+                border: Border.all(
+                  color: const Color(0xFF003F91).withValues(alpha: 0.2),
+                ),
               ),
               child: FractionallySizedBox(
+                alignment: Alignment.centerLeft,
                 widthFactor: _xpBarWidth.value * progress,
                 child: Container(
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF003F91), Color(0xFF8B5CF6)],
-                    ),
+                    color: const Color(0xFF003F91),
                     borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF003F91).withValues(alpha: 0.4),
-                        blurRadius: 8,
-                      ),
-                    ],
                   ),
                 ),
               ),
@@ -620,9 +644,9 @@ class _QuizLevelUpScreenState extends State<QuizLevelUpScreen>
           Text(
             '${(xp / widget.data.xpToNextLevel * 100).round()}% to next level',
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: Colors.white.withValues(alpha: 0.5),
+              color: const Color(0xFF003F91).withValues(alpha: 0.6),
             ),
           ),
         ],
@@ -635,14 +659,14 @@ class _QuizLevelUpScreenState extends State<QuizLevelUpScreen>
       children: [
         // Continue button
         SizedBox(
-          width: 220,
+          width: 300,
           child: FilledButton.icon(
             onPressed: () => Navigator.of(context).pop(),
-            icon: const Icon(Icons.arrow_forward_rounded),
             label: const Text(
               'Continue',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
             ),
+            icon: const Icon(Icons.arrow_forward_rounded),
             style: FilledButton.styleFrom(
               backgroundColor: const Color(0xFF003F91),
               foregroundColor: Colors.white,
@@ -650,8 +674,8 @@ class _QuizLevelUpScreenState extends State<QuizLevelUpScreen>
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
-              elevation: 8,
-              shadowColor: const Color(0xFF003F91).withValues(alpha: 0.5),
+              // elevation: 8,
+              // shadowColor: const Color(0xFF003F91).withValues(alpha: 0.5),
             ),
           ),
         ),
@@ -659,7 +683,7 @@ class _QuizLevelUpScreenState extends State<QuizLevelUpScreen>
 
         // Save to gallery button
         SizedBox(
-          width: 220,
+          width: 300,
           child: OutlinedButton.icon(
             onPressed: _isSaving ? null : _saveToGallery,
             icon: _isSaving
@@ -674,8 +698,8 @@ class _QuizLevelUpScreenState extends State<QuizLevelUpScreen>
               style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
             ),
             style: OutlinedButton.styleFrom(
-              foregroundColor: const Color(0xFFD1D5DB),
-              side: const BorderSide(color: Color(0xFF3D4375)),
+              foregroundColor: const Color(0xFF003F91),
+              side: const BorderSide(color: Color(0xFF003F91)),
               padding: const EdgeInsets.symmetric(vertical: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
@@ -706,16 +730,9 @@ class _QuizLevelUpScreenState extends State<QuizLevelUpScreen>
       // Gentle rotation
       p.rotation += p.angularVel * dt;
 
-      // Fade out based on age and main animation phase
+      // Fade out based on age — ambient float with gentle pulsing
       p.age += dt;
-      final mainPhase = _mainController.value.clamp(0.0, 1.0);
-      if (mainPhase < 0.5) {
-        // During burst phase, particles are bright
-        p.opacity = (1 - p.age / 8).clamp(0.2, 1.0);
-      } else {
-        // After burst, ambient float with gentle pulsing
-        p.opacity = (0.3 + 0.2 * sin(p.age * 2)).clamp(0.1, 0.5);
-      }
+      p.opacity = (0.3 + 0.2 * sin(p.age * 2)).clamp(0.1, 0.5);
 
       // Wrap particles that go off-screen (for ambient float)
       if (p.x < -50 || p.x > 450) p.vx *= -0.5;
@@ -857,4 +874,28 @@ class _LevelUpParticlesPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_LevelUpParticlesPainter oldDelegate) => true;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  Fade + Slide-from-bottom — app-wide entrance animation
+// ═══════════════════════════════════════════════════════════════
+
+class _FadeSlideSection extends StatelessWidget {
+  final Animation<double> opacity;
+  final Animation<Offset> slide;
+  final Widget child;
+
+  const _FadeSlideSection({
+    required this.opacity,
+    required this.slide,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: opacity,
+      child: SlideTransition(position: slide, child: child),
+    );
+  }
 }

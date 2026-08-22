@@ -43,4 +43,21 @@ class SettingsService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble(_musicVolumeKey, volume.clamp(0.0, 1.0));
   }
+
+  // ── Auto-Skip on Correct Answer ─────────────────────────────────────────
+
+  static const String _autoSkipCorrectKey = 'auto_skip_correct';
+
+  /// Whether to automatically advance to the next question after a short delay
+  /// when the player answers correctly (defaults to false).
+  static Future<bool> isAutoSkipCorrectEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_autoSkipCorrectKey) ?? false;
+  }
+
+  /// Persists the auto-skip-on-correct setting.
+  static Future<void> setAutoSkipCorrectEnabled(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_autoSkipCorrectKey, enabled);
+  }
 }

@@ -30,6 +30,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _soundEnabled = true;
   bool _musicEnabled = true;
   double _musicVolume = 0.5;
+  bool _autoSkipCorrect = false;
 
   @override
   void initState() {
@@ -40,6 +41,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
     _loadSoundSetting();
     _loadMusicSettings();
+    _loadAutoSkipSetting();
   }
 
   Future<void> _loadSoundSetting() async {
@@ -52,6 +54,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _onSoundEnabledChanged(bool value) async {
     setState(() => _soundEnabled = value);
     await SettingsService.setSoundEnabled(value);
+  }
+
+  Future<void> _loadAutoSkipSetting() async {
+    final enabled = await SettingsService.isAutoSkipCorrectEnabled();
+    if (mounted) {
+      setState(() => _autoSkipCorrect = enabled);
+    }
+  }
+
+  Future<void> _onAutoSkipCorrectChanged(bool value) async {
+    setState(() => _autoSkipCorrect = value);
+    await SettingsService.setAutoSkipCorrectEnabled(value);
   }
 
   Future<void> _loadMusicSettings() async {
@@ -440,9 +454,60 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                     const SizedBox(height: 32),
 
-                    // ── Background Music ──
+                    // ── Auto-Skip on Correct Answer ──
                     _StaggeredFadeSlide(
                       index: 5,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(
+                                0xFF003F91,
+                              ).withValues(alpha: 0.08),
+                              blurRadius: 24,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: SwitchListTile(
+                          value: _autoSkipCorrect,
+                          onChanged: _onAutoSkipCorrectChanged,
+                          activeTrackColor: const Color(0xFF003F91),
+                          activeThumbColor: Colors.white,
+                          contentPadding: EdgeInsets.zero,
+                          title: const Text(
+                            'Auto-Skip on Correct Answer',
+                            style: TextStyle(
+                              color: Color(0xFF003F91),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          subtitle: Text(
+                            'Automatically advances to the next question '
+                            'after a short delay when your answer is correct.',
+                            style: TextStyle(
+                              color: const Color(
+                                0xFF003F91,
+                              ).withValues(alpha: 0.7),
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 32),
+
+                    // ── Background Music ──
+                    _StaggeredFadeSlide(
+                      index: 6,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 24,
@@ -525,7 +590,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                     // ── Divider ──
                     _StaggeredFadeSlide(
-                      index: 6,
+                      index: 7,
                       child: Container(
                         height: 1,
                         width: double.infinity,
@@ -536,7 +601,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const SizedBox(height: 24),
 
                     // ── Danger Zone ──
-                    _StaggeredFadeSlide(index: 7, child: _buildDangerZone()),
+                    _StaggeredFadeSlide(index: 8, child: _buildDangerZone()),
                   ],
                 ),
               ),

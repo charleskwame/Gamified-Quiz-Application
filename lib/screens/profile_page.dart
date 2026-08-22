@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/foundation.dart';
 import '../models/badge.dart';
 import '../models/rank_history.dart';
 import '../models/level_system.dart';
@@ -12,6 +13,7 @@ import '../services/database_service.dart';
 import '../widgets/home/badge_card.dart';
 import '../widgets/home/particle_background.dart';
 import '../widgets/main_navigation.dart';
+import '../widgets/quiz/quiz_level_up_screen.dart';
 import 'analytics_screen.dart';
 import 'auth_screen.dart';
 import 'earned_badges_screen.dart';
@@ -144,7 +146,14 @@ class _ProfilePageState extends State<ProfilePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // ── Header Row ──
-                  _StaggeredFadeSlide(index: 0, child: _buildHeaderRow(user)),
+                  _StaggeredFadeSlide(
+                    index: 0,
+                    child: _buildHeaderRow(
+                      user,
+                      displayName: displayName,
+                      avatarUrl: avatarUrl,
+                    ),
+                  ),
 
                   const SizedBox(height: 20),
 
@@ -303,7 +312,11 @@ class _ProfilePageState extends State<ProfilePage> {
   //  Header Row (title + action icons)
   // ──────────────────────────────────────────────
 
-  Widget _buildHeaderRow(User? user) {
+  Widget _buildHeaderRow(
+    User? user, {
+    required String displayName,
+    String? avatarUrl,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -319,6 +332,16 @@ class _ProfilePageState extends State<ProfilePage> {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            if (kDebugMode)
+              _buildIconButton(
+                icon: Icons.celebration_rounded,
+                color: const Color(0xFF003F91),
+                onPressed: () => _previewLevelUp(
+                  context,
+                  displayName: displayName,
+                  avatarUrl: avatarUrl,
+                ),
+              ),
             if (user != null) ...[
               _buildIconButton(
                 icon: Icons.bug_report_rounded,
@@ -404,6 +427,31 @@ class _ProfilePageState extends State<ProfilePage> {
           ],
         ),
       ],
+    );
+  }
+
+  // ──────────────────────────────────────────────
+  //  Debug: Preview the level-up celebration
+  // ──────────────────────────────────────────────
+
+  void _previewLevelUp(
+    BuildContext context, {
+    required String displayName,
+    String? avatarUrl,
+  }) {
+    // Sample data: level 12 (Immortal) → level 13 (Cosmic) at 1850 XP.
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => QuizLevelUpScreen(
+          data: LevelUpData(
+            oldLevel: 12,
+            newLevel: 13,
+            totalScore: 1850,
+            avatarUrl: avatarUrl,
+            displayName: displayName.isEmpty ? 'Debug User' : displayName,
+          ),
+        ),
+      ),
     );
   }
 
