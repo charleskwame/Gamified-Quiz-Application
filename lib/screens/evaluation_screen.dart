@@ -8,11 +8,11 @@ import '../services/auth_service.dart';
 
 /// Google Apps Script Web App URL for evaluation submissions.
 /// Deployed script appends rows to a Google Sheet with columns:
-/// Timestamp, Email, Q1..Q48, App Version
+/// Timestamp, Email, Q1..Q20, App Version
 ///
 /// TODO: Replace with the real Google Form / Apps Script endpoint when ready.
 /// When empty, submissions are only acknowledged locally (no network call).
-const String _evaluationUrl = '';
+const String _evaluationUrl = 'https://script.google.com/macros/s/AKfycbz6NGKpCkrPIFAwWHy4vQ22AbTSd-RsDYU83gUwL9sD8x8NWeR30NwrttOSlxexJ4fr/exec';
 
 class EvaluationScreen extends StatefulWidget {
   const EvaluationScreen({super.key});
