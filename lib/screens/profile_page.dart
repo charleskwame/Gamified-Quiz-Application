@@ -19,6 +19,7 @@ import 'auth_screen.dart';
 import 'earned_badges_screen.dart';
 import 'settings_screen.dart';
 import 'bug_report_screen.dart';
+import 'evaluation_screen.dart';
 import '../services/local_progress_service.dart';
 import '../models/guest_user.dart';
 
@@ -351,6 +352,19 @@ class _ProfilePageState extends State<ProfilePage> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => const BugReportScreen(),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(width: 4),
+              _buildIconButton(
+                icon: Icons.rate_review_rounded,
+                color: const Color(0xFF003F91),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const EvaluationScreen(),
                     ),
                   );
                 },

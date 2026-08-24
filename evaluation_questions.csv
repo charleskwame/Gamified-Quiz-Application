@@ -1,0 +1,49 @@
+Category,Number,Question,1 = Label,5 = Label
+General / Overall Experience,1,How satisfied are you with the overall quiz application experience?,Very dissatisfied,Very satisfied
+General / Overall Experience,2,How likely are you to recommend this app to a friend or colleague?,Very unlikely,Very likely
+General / Overall Experience,3,How would you rate the visual design and quality of the app?,Poor,Excellent
+General / Overall Experience,4,How likely are you to come back and use the app again?,Very unlikely,Very likely
+General / Overall Experience,5,How well does the app meet your expectations?,Not at all,Very well
+Usability,6,How easy is navigation around the app?,Very hard,Very easy
+Usability,7,How easy is it to understand the icons and labels?,Very confusing,Very clear
+Usability,8,How easy is it to start your first quiz?,Very hard,Very easy
+Usability,9,How easy is it to understand the question text and answer options?,Very hard,Very easy
+Usability,10,How easy is it to view past results and history?,Very hard,Very easy
+Usability,11,How accessible is the app for users with different abilities?,Very poor,Very good
+Usability,12,How helpful is the onboarding or tutorial when you first use the app?,Not helpful,Very helpful
+Usability,13,How consistent and clear is the layout across screens?,Very confusing,Very clear
+Usability,14,How obvious is it what to tap or do next on each screen?,Confusing,Always clear
+Performance,15,How fast does the app start up?,Very slow,Very fast
+Performance,16,How smooth do the screens and animations feel?,Very janky,Very smooth
+Performance,17,How quickly do questions load when a quiz starts?,Very slow,Very fast
+Performance,18,How stable is the app (crashes freezes or hangs)?,Very unstable,Very stable
+Performance,19,How responsive is the app to taps?,Very laggy,Very responsive
+Performance,20,How well does the app handle weak or unstable internet connections?,Very poorly,Very well
+Performance,21,How easy is it to tell the state of loading or saving?,Very confusing,Very clear
+Engagement,22,How motivating is the app to keep you playing?,Not motivating,Very motivating
+Engagement,23,How often do you feel like coming back for another quiz session?,Almost never,Very often
+Engagement,24,How much do you enjoy a typical quiz session?,Not at all,Very much
+Engagement,25,How often do you play several quizzes one after the other?,Rarely,Very often
+Engagement,26,How invested do you feel in your profile and progress?,Not at all,Very much
+Engagement,27,How satisfying is the feeling of finishing a quiz?,Not at all,Very much
+Features,28,How complete is the app's set of features?,Very incomplete,Very complete
+Features,29,How useful are the features you have tried?,Not useful,Very useful
+Features,30,How easy is it to discover the features?,Very hard,Very easy
+Features,31,How useful is the AI assistant or chat helper?,Not useful,Very useful
+Features,32,How useful is the feedback and explanation you get after answering?,Not useful,Very useful
+Features,33,How much control do you get over quiz options such as topic or difficulty?,Very little,Great deal
+Quiz Sessions,34,How would you rate the quality of the quiz questions?,Very poor,Excellent
+Quiz Sessions,35,How well balanced is the difficulty of the quiz questions?,Poorly,Very well
+Quiz Sessions,36,How varied are the topics and questions between sessions?,Very limited,Very varied
+Quiz Sessions,37,How fair is the quiz timer?,Very unfair,Very fair
+Quiz Sessions,38,How helpful is the message you see after each answer?,Not helpful,Very helpful
+Quiz Sessions,39,How clear and complete is the results screen at the end?,Confusing,Very clear
+Quiz Sessions,40,How well does the app show how far you are in a quiz?,Confusing,Very clear
+Gamified Elements,41,How motivating is the points or experience system?,Not at all,Very much
+Gamified Elements,42,How satisfying is it when you level up?,Not at all,Very much
+Gamified Elements,43,How fun are the badges / achievements that you can earn?,Not fun,Very fun
+Gamified Elements,44,How engaging are the competitions and leaderboard?,Not engaging,Very engaging
+Gamified Elements,45,How much do daily rewards or streaks encourage you to return?,Not at all,Very much
+Gamified Elements,46,How satisfying are the rewards you receive?,Not at all,Very much
+Gamified Elements,47,How much do sounds and animations make the game fun?,Not at all,Very much
+Gamified Elements,48,How good is the mix of fun and learning in the app?,Very bad,Very good
