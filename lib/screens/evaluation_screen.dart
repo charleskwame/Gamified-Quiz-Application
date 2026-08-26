@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_survey/flutter_survey.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../models/evaluation_question.dart';
@@ -9,10 +8,9 @@ import '../services/auth_service.dart';
 /// Google Apps Script Web App URL for evaluation submissions.
 /// Deployed script appends rows to a Google Sheet with columns:
 /// Timestamp, Email, Q1..Q20, App Version
-///
-/// TODO: Replace with the real Google Form / Apps Script endpoint when ready.
 /// When empty, submissions are only acknowledged locally (no network call).
-const String _evaluationUrl = 'https://script.google.com/macros/s/AKfycbz6NGKpCkrPIFAwWHy4vQ22AbTSd-RsDYU83gUwL9sD8x8NWeR30NwrttOSlxexJ4fr/exec';
+const String _evaluationUrl =
+    'https://script.google.com/macros/s/AKfycbz6NGKpCkrPIFAwWHy4vQ22AbTSd-RsDYU83gUwL9sD8x8NWeR30NwrttOSlxexJ4fr/exec';
 
 class EvaluationScreen extends StatefulWidget {
   const EvaluationScreen({super.key});
@@ -23,7 +21,9 @@ class EvaluationScreen extends StatefulWidget {
 
 class _EvaluationScreenState extends State<EvaluationScreen> {
   final AuthService _authService = AuthService();
-  final List<QuestionResult> _results = [];
+
+  /// Maps question number → selected rating (1–5).
+  final Map<int, int> _ratings = {};
   bool _isSubmitting = false;
   bool _isSubmitted = false;
 
@@ -31,25 +31,13 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
     return '1.2.11+10211';
   }
 
-  List<Question> _buildSurveyQuestions() {
-    return evaluationQuestions.map((q) {
-      return Question(
-        question: q.question,
-        isMandatory: true,
-        properties: {
-          'category': q.category,
-          'number': q.number,
-          'minLabel': q.minLabel,
-          'maxLabel': q.maxLabel,
-        },
-      );
-    }).toList();
-  }
-
   Future<void> _submitEvaluation() async {
-    if (_results.isEmpty) {
-      _showSnackBar('Please answer the questions before submitting.',
-          isError: true);
+    if (_ratings.length < evaluationQuestions.length) {
+      _showSnackBar(
+        'Please answer all questions before submitting. '
+        '(${_ratings.length}/${evaluationQuestions.length} answered)',
+        isError: true,
+      );
       return;
     }
 
@@ -69,19 +57,11 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
       final appVersion = _getAppVersion();
 
       final answers = <String, dynamic>{};
-      for (final result in _results) {
-        final question = evaluationQuestions.firstWhere(
-            (q) => q.question == result.question);
-        answers['Q${question.number}'] = result.answers.isNotEmpty
-            ? result.answers.first
-            : '';
+      for (final entry in _ratings.entries) {
+        answers['Q${entry.key}'] = entry.value;
       }
 
-      final payload = {
-        'email': email,
-        'appVersion': appVersion,
-        ...answers,
-      };
+      final payload = {'email': email, 'appVersion': appVersion, ...answers};
 
       // Using http.post directly. It automatically follows 302 redirects by
       // converting POST to GET on redirect. Since Google Apps Script processes
@@ -193,20 +173,18 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
 
                   const SizedBox(height: 24),
 
-                  // ── Survey ──
-                  Survey(
-                    initialData: _buildSurveyQuestions(),
-                    onNext: (questionResults) {
-                      _results.clear();
-                      _results.addAll(questionResults);
-                    },
-                    builder: (context, question, update) {
-                      return _RatingQuestionCard(
-                        question: question,
-                        update: update,
-                      );
-                    },
-                  ),
+                  // ── Questions ──
+                  ...evaluationQuestions.map((q) {
+                    return _RatingQuestionCard(
+                      evaluationQuestion: q,
+                      selectedRating: _ratings[q.number],
+                      onRatingSelected: (rating) {
+                        setState(() {
+                          _ratings[q.number] = rating;
+                        });
+                      },
+                    );
+                  }),
 
                   const SizedBox(height: 28),
 
@@ -228,9 +206,7 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
                         ],
                       ),
                       child: FilledButton(
-                        onPressed: _isSubmitting
-                            ? null
-                            : _submitEvaluation,
+                        onPressed: _isSubmitting ? null : _submitEvaluation,
                         style: FilledButton.styleFrom(
                           backgroundColor: Colors.transparent,
                           foregroundColor: Colors.white,
@@ -255,10 +231,7 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
                             : const Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(
-                                    Icons.rate_review_rounded,
-                                    size: 20,
-                                  ),
+                                  Icon(Icons.rate_review_rounded, size: 20),
                                   SizedBox(width: 10),
                                   Text(
                                     'Submit Evaluation',
@@ -394,21 +367,22 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
 
 /// A custom rating question card that renders a 1–5 rating scale.
 class _RatingQuestionCard extends StatelessWidget {
-  final Question question;
-  final void Function(List<String>) update;
+  final EvaluationQuestion evaluationQuestion;
+  final int? selectedRating;
+  final void Function(int rating) onRatingSelected;
 
   const _RatingQuestionCard({
-    required this.question,
-    required this.update,
+    required this.evaluationQuestion,
+    required this.selectedRating,
+    required this.onRatingSelected,
   });
 
   @override
   Widget build(BuildContext context) {
-    final properties = question.properties ?? {};
-    final category = properties['category'] as String? ?? '';
-    final number = properties['number'] as int? ?? 0;
-    final minLabel = properties['minLabel'] as String? ?? '1';
-    final maxLabel = properties['maxLabel'] as String? ?? '5';
+    final category = evaluationQuestion.category;
+    final number = evaluationQuestion.number;
+    final minLabel = evaluationQuestion.minLabel;
+    final maxLabel = evaluationQuestion.maxLabel;
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
@@ -456,7 +430,7 @@ class _RatingQuestionCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(top: 8, right: 20, left: 20),
               child: Text(
-                question.question,
+                evaluationQuestion.question,
                 style: const TextStyle(
                   color: Color(0xFF003F91),
                   fontSize: 15,
@@ -469,8 +443,8 @@ class _RatingQuestionCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(top: 12, right: 20, left: 20),
               child: _RatingScale(
-                question: question,
-                update: update,
+                selectedRating: selectedRating,
+                onRatingSelected: onRatingSelected,
               ),
             ),
             // Min/max labels
@@ -509,29 +483,14 @@ class _RatingQuestionCard extends StatelessWidget {
 }
 
 /// A 1–5 rating scale with selectable buttons.
-class _RatingScale extends StatefulWidget {
-  final Question question;
-  final void Function(List<String>) update;
+class _RatingScale extends StatelessWidget {
+  final int? selectedRating;
+  final void Function(int rating) onRatingSelected;
 
   const _RatingScale({
-    required this.question,
-    required this.update,
+    required this.selectedRating,
+    required this.onRatingSelected,
   });
-
-  @override
-  State<_RatingScale> createState() => _RatingScaleState();
-}
-
-class _RatingScaleState extends State<_RatingScale> {
-  int? _selected;
-
-  @override
-  void initState() {
-    if (widget.question.answers.isNotEmpty) {
-      _selected = int.parse(widget.question.answers.first);
-    }
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -539,14 +498,11 @@ class _RatingScaleState extends State<_RatingScale> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: List.generate(5, (index) {
         final value = index + 1;
-        final isSelected = _selected == value;
+        final isSelected = selectedRating == value;
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 2),
           child: InkWell(
-            onTap: () {
-              setState(() => _selected = value);
-              widget.update(['$value']);
-            },
+            onTap: () => onRatingSelected(value),
             child: Container(
               width: 44,
               height: 44,
@@ -564,9 +520,7 @@ class _RatingScaleState extends State<_RatingScale> {
                 boxShadow: isSelected
                     ? [
                         BoxShadow(
-                          color: const Color(
-                            0xFF003F91,
-                          ).withValues(alpha: 0.3),
+                          color: const Color(0xFF003F91).withValues(alpha: 0.3),
                           blurRadius: 6,
                           offset: const Offset(0, 2),
                         ),
