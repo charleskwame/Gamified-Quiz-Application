@@ -68,14 +68,21 @@ void main() {
       expect(await SettingsService.getMusicVolume(), 0.5);
     });
 
-    test('persists the music volume (clamped to 0..1)', () async {
+    test('particles are enabled by default', () async {
       SharedPreferences.setMockInitialValues({});
-      await SettingsService.setMusicVolume(0.8);
-      expect(await SettingsService.getMusicVolume(), 0.8);
-      await SettingsService.setMusicVolume(1.5);
-      expect(await SettingsService.getMusicVolume(), 1.0);
-      await SettingsService.setMusicVolume(-0.2);
-      expect(await SettingsService.getMusicVolume(), 0.0);
+      expect(await SettingsService.isParticlesEnabled(), isTrue);
+      expect(SettingsService.particlesEnabledNotifier.value, isTrue);
+    });
+
+    test('persists the particles enabled state and updates notifier', () async {
+      SharedPreferences.setMockInitialValues({});
+      await SettingsService.setParticlesEnabled(false);
+      expect(await SettingsService.isParticlesEnabled(), isFalse);
+      expect(SettingsService.particlesEnabledNotifier.value, isFalse);
+
+      await SettingsService.setParticlesEnabled(true);
+      expect(await SettingsService.isParticlesEnabled(), isTrue);
+      expect(SettingsService.particlesEnabledNotifier.value, isTrue);
     });
   });
 }

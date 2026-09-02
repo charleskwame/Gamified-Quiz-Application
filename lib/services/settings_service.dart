@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Stores lightweight user preferences using SharedPreferences.
@@ -7,6 +8,11 @@ class SettingsService {
   static const String _soundEnabledKey = 'sound_enabled';
   static const String _musicEnabledKey = 'music_enabled';
   static const String _musicVolumeKey = 'music_volume';
+  static const String _particlesEnabledKey = 'particles_enabled';
+
+  /// ValueNotifier that emits real-time changes to the particles enabled state.
+  static final ValueNotifier<bool> particlesEnabledNotifier =
+      ValueNotifier<bool>(true);
 
   /// Whether sound effects are enabled (defaults to true).
   static Future<bool> isSoundEnabled() async {
@@ -44,6 +50,25 @@ class SettingsService {
     await prefs.setDouble(_musicVolumeKey, volume.clamp(0.0, 1.0));
   }
 
+  // ── Particle Effects ──────────────────────────────────────────────────
+
+  /// Whether ambient background particle effects are enabled (defaults to true).
+  static Future<bool> isParticlesEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    final enabled = prefs.getBool(_particlesEnabledKey) ?? true;
+    if (particlesEnabledNotifier.value != enabled) {
+      particlesEnabledNotifier.value = enabled;
+    }
+    return enabled;
+  }
+
+  /// Persists the background particle effects setting and notifies listeners.
+  static Future<void> setParticlesEnabled(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_particlesEnabledKey, enabled);
+    particlesEnabledNotifier.value = enabled;
+  }
+
   // ── Auto-Skip on Correct Answer ─────────────────────────────────────────
 
   static const String _autoSkipCorrectKey = 'auto_skip_correct';
@@ -61,3 +86,4 @@ class SettingsService {
     await prefs.setBool(_autoSkipCorrectKey, enabled);
   }
 }
+

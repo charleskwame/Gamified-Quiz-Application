@@ -9,6 +9,7 @@ import '../services/settings_service.dart';
 import '../services/music_service.dart';
 import '../widgets/avatar_customizer_dialog.dart';
 import '../widgets/main_navigation.dart';
+import 'auth_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -31,6 +32,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _musicEnabled = true;
   double _musicVolume = 0.5;
   bool _autoSkipCorrect = false;
+  bool _particlesEnabled = true;
 
   @override
   void initState() {
@@ -42,6 +44,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _loadSoundSetting();
     _loadMusicSettings();
     _loadAutoSkipSetting();
+    _loadParticlesSetting();
   }
 
   Future<void> _loadSoundSetting() async {
@@ -66,6 +69,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _onAutoSkipCorrectChanged(bool value) async {
     setState(() => _autoSkipCorrect = value);
     await SettingsService.setAutoSkipCorrectEnabled(value);
+  }
+
+  Future<void> _loadParticlesSetting() async {
+    final enabled = await SettingsService.isParticlesEnabled();
+    if (mounted) {
+      setState(() => _particlesEnabled = enabled);
+    }
+  }
+
+  Future<void> _onParticlesEnabledChanged(bool value) async {
+    setState(() => _particlesEnabled = value);
+    await SettingsService.setParticlesEnabled(value);
   }
 
   Future<void> _loadMusicSettings() async {
@@ -155,7 +170,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final user = _authService.currentUser;
     if (user == null) return;
 
-    // Step 1: Confirmation dialog
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -193,23 +207,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
 
     if (confirmed != true) return;
-
     if (!mounted) return;
 
-    // Step 2: Reauthenticate with Google and delete the account. A fresh
-    // Google sign-in is prompted for security before deletion.
     setState(() {
       _isLoading = true;
       _errorMessage = null;
-      _successMessage = null;
     });
 
     try {
       await _authService.deleteAccount();
+
       if (mounted) {
-        // Rebuild entire navigation stack so ProfilePage recreates with null user
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const MainNavigation()),
+          MaterialPageRoute(builder: (context) => const MainNavigation()),
           (route) => false,
         );
       }
@@ -218,11 +228,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _errorMessage = 'Account deletion cancelled.';
       });
     } on FirebaseAuthException catch (e) {
-      String message;
+      String message = 'Failed to delete account.';
       switch (e.code) {
         case 'requires-recent-login':
-          message =
-              'This operation requires a recent login. Please log out, log back in, and try again.';
+          message = 'Please log out and log in again to delete your account.';
           break;
         case 'user-not-found':
           message = 'User account no longer exists.';
@@ -251,8 +260,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final user = _authService.currentUser;
     if (user == null) {
-      return const Scaffold(
-        body: Center(child: Text('Please log in to edit settings.')),
+      return _buildScaffold(
+        context,
+        user: null,
+        avatarUrl: null,
+        avatarDetails: null,
       );
     }
 
@@ -273,53 +285,73 @@ class _SettingsScreenState extends State<SettingsScreen> {
           }
         }
 
-        return Scaffold(
-          backgroundColor: const Color(0xFFECF8F8),
-          body: Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0xFFF0F8F8),
-                  Color(0xFFE8F4F4),
-                  Color(0xFFE0F0F0),
-                  Color(0xFFD8ECEC),
+        return _buildScaffold(
+          context,
+          user: user,
+          avatarUrl: avatarUrl,
+          avatarDetails: avatarDetails,
+        );
+      },
+    );
+  }
+
+  Widget _buildScaffold(
+    BuildContext context, {
+    required User? user,
+    required String? avatarUrl,
+    required Map<String, dynamic>? avatarDetails,
+  }) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFECF8F8),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFFF0F8F8),
+              Color(0xFFE8F4F4),
+              Color(0xFFE0F0F0),
+              Color(0xFFD8ECEC),
+            ],
+            stops: [0.0, 0.3, 0.7, 1.0],
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── Back Button + Title ──
+                _StaggeredFadeSlide(index: 0, child: _buildHeader()),
+
+                const SizedBox(height: 32),
+
+                // ── Avatar & Account Info OR Guest Banner ──
+                if (user != null) ...[
+                  _StaggeredFadeSlide(
+                    index: 1,
+                    child: _buildAvatarSection(avatarUrl, avatarDetails),
+                  ),
+                  const SizedBox(height: 32),
+                  _StaggeredFadeSlide(
+                    index: 2,
+                    child: _buildAccountInfoSection(),
+                  ),
+                  const SizedBox(height: 24),
+                ] else ...[
+                  _StaggeredFadeSlide(
+                    index: 1,
+                    child: _buildGuestBanner(),
+                  ),
+                  const SizedBox(height: 24),
                 ],
-                stops: [0.0, 0.3, 0.7, 1.0],
-              ),
-            ),
-            child: SafeArea(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // ── Back Button + Title ──
-                    _StaggeredFadeSlide(index: 0, child: _buildHeader()),
 
-                    const SizedBox(height: 32),
-
-                    // ── Avatar Section ──
-                    _StaggeredFadeSlide(
-                      index: 1,
-                      child: _buildAvatarSection(avatarUrl, avatarDetails),
-                    ),
-
-                    const SizedBox(height: 32),
-
-                    // ── Update Account Info ──
-                    _StaggeredFadeSlide(
-                      index: 2,
-                      child: _buildAccountInfoSection(),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // ── Tour Setting ──
-                    _StaggeredFadeSlide(
-                      index: 3,
-                      child: Container(
+                // ── Tour Setting ──
+                _StaggeredFadeSlide(
+                  index: 3,
+                  child: Container(
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
                           color: Colors.white,
@@ -588,27 +620,170 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                     const SizedBox(height: 32),
 
-                    // ── Divider ──
+                    // ── Particle Effects ──
                     _StaggeredFadeSlide(
                       index: 7,
                       child: Container(
-                        height: 1,
-                        width: double.infinity,
-                        color: const Color(0xFFB0C4DE).withValues(alpha: 0.3),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(
+                                0xFF003F91,
+                              ).withValues(alpha: 0.08),
+                              blurRadius: 24,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: SwitchListTile(
+                          value: _particlesEnabled,
+                          onChanged: _onParticlesEnabledChanged,
+                          activeTrackColor: const Color(0xFF003F91),
+                          activeThumbColor: Colors.white,
+                          contentPadding: EdgeInsets.zero,
+                          title: const Text(
+                            'Particle Effects',
+                            style: TextStyle(
+                              color: Color(0xFF003F91),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          subtitle: Text(
+                            'Show floating ambient particles across background screens.',
+                            style: TextStyle(
+                              color: const Color(
+                                0xFF003F91,
+                              ).withValues(alpha: 0.7),
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
 
-                    const SizedBox(height: 24),
+                if (user != null) ...[
+                  const SizedBox(height: 32),
 
-                    // ── Danger Zone ──
-                    _StaggeredFadeSlide(index: 8, child: _buildDangerZone()),
+                  // ── Divider ──
+                  _StaggeredFadeSlide(
+                    index: 8,
+                    child: Container(
+                      height: 1,
+                      width: double.infinity,
+                      color: const Color(0xFFB0C4DE).withValues(alpha: 0.3),
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // ── Danger Zone ──
+                  _StaggeredFadeSlide(index: 9, child: _buildDangerZone()),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ──────────────────────────────────────────────
+  //  Guest Banner
+  // ──────────────────────────────────────────────
+
+  Widget _buildGuestBanner() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF003F91).withValues(alpha: 0.08),
+            blurRadius: 24,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF003F91).withValues(alpha: 0.08),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.person_outline_rounded,
+                  color: Color(0xFF003F91),
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 14),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Guest Account',
+                      style: TextStyle(
+                        color: Color(0xFF003F91),
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    Text(
+                      'Sign in to customize avatar and sync progress across devices.',
+                      style: TextStyle(
+                        color: Color(0xFF6B7280),
+                        fontSize: 13,
+                      ),
+                    ),
                   ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AuthScreen(),
+                  ),
+                );
+                if (mounted) setState(() {});
+              },
+              icon: const Icon(Icons.g_mobiledata, size: 22),
+              label: const Text(
+                'Continue with Google',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF003F91),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
                 ),
               ),
             ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 

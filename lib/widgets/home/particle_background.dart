@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import '../../services/settings_service.dart';
 
 /// A subtle animated particle system that creates a floating star/dot effect
 /// in the background, giving a modern game-like atmosphere.
@@ -29,7 +30,7 @@ class _ParticleBackgroundState extends State<ParticleBackground>
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 12),
-    )..repeat();
+    );
 
     // Generate 28 particles with random initial positions
     for (int i = 0; i < 28; i++) {
@@ -43,37 +44,72 @@ class _ParticleBackgroundState extends State<ParticleBackground>
         ),
       );
     }
+
+    // Synchronize initial preference and listen for changes
+    SettingsService.particlesEnabledNotifier.addListener(_syncAnimationState);
+    SettingsService.isParticlesEnabled().then((_) {
+      if (mounted) _syncAnimationState();
+    });
+    _syncAnimationState();
+  }
+
+  void _syncAnimationState() {
+    final shouldAnimate =
+        widget.isActive && SettingsService.particlesEnabledNotifier.value;
+    if (shouldAnimate) {
+      if (!_controller.isAnimating) {
+        _controller.repeat();
+      }
+    } else {
+      if (_controller.isAnimating) {
+        _controller.stop();
+      }
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant ParticleBackground oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isActive != widget.isActive) {
+      _syncAnimationState();
+    }
   }
 
   @override
   void dispose() {
+    SettingsService.particlesEnabledNotifier.removeListener(_syncAnimationState);
     _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      child: widget.child,
-      builder: (context, child) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: SettingsService.particlesEnabledNotifier,
+      builder: (context, particlesEnabled, _) {
+        final showParticles = widget.isActive && particlesEnabled;
         return SizedBox.expand(
           child: Container(
             decoration: const BoxDecoration(color: Color(0xFFECF8F8)),
             child: Stack(
               children: [
-                // Particle layer
-                if (widget.isActive)
-                  Positioned.fill(
-                    child: CustomPaint(
-                      painter: _ParticlePainter(
-                        particles: _particles,
-                        progress: _controller,
-                      ),
-                    ),
+                // Particle layer (only animated & painted if active and enabled)
+                if (showParticles)
+                  AnimatedBuilder(
+                    animation: _controller,
+                    builder: (context, _) {
+                      return Positioned.fill(
+                        child: CustomPaint(
+                          painter: _ParticlePainter(
+                            particles: _particles,
+                            progress: _controller,
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 // Content layer
-                child!,
+                widget.child,
               ],
             ),
           ),
@@ -82,6 +118,7 @@ class _ParticleBackgroundState extends State<ParticleBackground>
     );
   }
 }
+
 
 class _Particle {
   final double x;

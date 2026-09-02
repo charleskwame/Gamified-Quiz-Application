@@ -343,45 +343,45 @@ class _ProfilePageState extends State<ProfilePage> {
                   avatarUrl: avatarUrl,
                 ),
               ),
+            _buildIconButton(
+              icon: Icons.bug_report_rounded,
+              color: const Color(0xFF003F91),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const BugReportScreen(),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(width: 4),
+            _buildIconButton(
+              icon: Icons.rate_review_rounded,
+              color: const Color(0xFF003F91),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const EvaluationScreen(),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(width: 4),
+            _buildIconButton(
+              icon: Icons.settings_rounded,
+              color: const Color(0xFF003F91),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SettingsScreen(),
+                  ),
+                );
+              },
+            ),
             if (user != null) ...[
-              _buildIconButton(
-                icon: Icons.bug_report_rounded,
-                color: const Color(0xFF003F91),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const BugReportScreen(),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(width: 4),
-              _buildIconButton(
-                icon: Icons.rate_review_rounded,
-                color: const Color(0xFF003F91),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const EvaluationScreen(),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(width: 4),
-              _buildIconButton(
-                icon: Icons.settings_rounded,
-                color: const Color(0xFF003F91),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const SettingsScreen(),
-                    ),
-                  );
-                },
-              ),
               const SizedBox(width: 4),
               _buildIconButton(
                 icon: Icons.logout_rounded,
