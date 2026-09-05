@@ -14,8 +14,12 @@ class RankingsPage extends StatefulWidget {
 }
 
 class _RankingsPageState extends State<RankingsPage> {
+  static const int _pageSize = 10;
+
   String _selectedCategory = 'All';
   bool _descending = true;
+  int _visibleCount = _pageSize;
+  final ScrollController _scrollController = ScrollController();
 
   int _getUserPoints(UserRank rank) {
     switch (_selectedCategory) {
@@ -72,9 +76,11 @@ class _RankingsPageState extends State<RankingsPage> {
                     ? ptsB.compareTo(ptsA)
                     : ptsA.compareTo(ptsB);
               });
+              final visibleRankings = sortedRankings.take(_visibleCount).toList();
 
               return SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+                controller: _scrollController,
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 120),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -95,20 +101,25 @@ class _RankingsPageState extends State<RankingsPage> {
                     if (sortedRankings.isEmpty)
                       _buildAnimatedSection(index: 2, child: _buildEmptyState())
                     else
-                      ...List.generate(sortedRankings.length, (index) {
+                      ...List.generate(visibleRankings.length, (index) {
                         return Padding(
                           padding: EdgeInsets.only(
-                            bottom: index < sortedRankings.length - 1 ? 12 : 0,
+                            bottom: index < visibleRankings.length - 1 ? 12 : 0,
                           ),
                           child: _buildAnimatedSection(
-                            index: index + 2,
+                            index: (index % _pageSize) + 2,
                             child: _buildRankingCard(
-                              rank: sortedRankings[index],
+                              rank: visibleRankings[index],
                               index: index,
                             ),
                           ),
                         );
                       }),
+
+                    if (_visibleCount < sortedRankings.length) ...[
+                      const SizedBox(height: 20),
+                      _buildLoadMoreButton(sortedRankings.length),
+                    ],
 
                     const SizedBox(height: 16),
                   ],
@@ -167,7 +178,9 @@ class _RankingsPageState extends State<RankingsPage> {
             onPressed: () {
               setState(() {
                 _descending = !_descending;
+                _visibleCount = _pageSize;
               });
+              _scrollToTop();
             },
           ),
         ),
@@ -187,7 +200,9 @@ class _RankingsPageState extends State<RankingsPage> {
               onTap: () {
                 setState(() {
                   _selectedCategory = cat;
+                  _visibleCount = _pageSize;
                 });
+                _scrollToTop();
               },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 250),
@@ -253,6 +268,45 @@ class _RankingsPageState extends State<RankingsPage> {
         ],
       ),
     );
+  }
+
+  Widget _buildLoadMoreButton(int totalCount) {
+    final remainingCount = totalCount - _visibleCount;
+    final loadCount = remainingCount > _pageSize ? _pageSize : remainingCount;
+
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: () {
+          setState(() {
+            _visibleCount = (_visibleCount + _pageSize).clamp(0, totalCount);
+          });
+        },
+        icon: const Icon(Icons.expand_more_rounded),
+        label: Text('Load $loadCount more'),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: const Color(0xFF003F91),
+          side: BorderSide(
+            color: const Color(0xFF003F91).withValues(alpha: 0.3),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          textStyle: const TextStyle(fontWeight: FontWeight.w800),
+        ),
+      ),
+    );
+  }
+
+  void _scrollToTop() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+      );
+    }
   }
 
   Widget _buildRankingCard({required UserRank rank, required int index}) {
@@ -474,6 +528,12 @@ class _RankingsPageState extends State<RankingsPage> {
   /// Wraps content in a staggered slide-up animation matching home screen
   Widget _buildAnimatedSection({required int index, required Widget child}) {
     return _StaggeredFadeSlide(index: index, child: child);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 }
 
