@@ -681,7 +681,7 @@ class DatabaseService {
 
     // 1. Ensure the private user doc exists. For a brand-new account, seed the
     //    guest display name and avatar. For an existing account, preserve the
-    //    remote profile (conflict policy: existing customization wins).
+    //    remote profile.
     final existing = await userRef.get();
     if (!existing.exists) {
       await initializeUserStats(
@@ -885,12 +885,14 @@ class DatabaseService {
     }
 
     await _db.runTransaction((tx) async {
-      tx.update(userRef, {'selectedBadges': selected});
+      tx.update(userRef, {
+        'displayName': account.displayName,
+        'selectedBadges': selected,
+      });
       tx.set(
         publicRef,
         _publicProfileData(
-          displayName:
-              (finalData['displayName'] as String?) ?? account.displayName,
+          displayName: account.displayName,
           score: finalData['score'] as int? ?? 0,
           computerArchitecturePoints:
               finalData['computerArchitecturePoints'] as int? ?? 0,

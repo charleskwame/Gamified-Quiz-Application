@@ -1,6 +1,7 @@
 import '../services/local_progress_service.dart';
 import '../services/database_service.dart';
 import '../services/guest_account_store.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class SyncService {
   static final DatabaseService _dbService = DatabaseService();
@@ -40,6 +41,13 @@ class SyncService {
       account: account,
       email: email,
     );
+
+    final authUser = FirebaseAuth.instance.currentUser;
+    if (account.displayName.isNotEmpty &&
+        authUser != null &&
+        authUser.displayName != account.displayName) {
+      await authUser.updateDisplayName(account.displayName);
+    }
 
     await GuestAccountStore.instance.clear();
   }
