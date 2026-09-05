@@ -572,32 +572,36 @@ class DatabaseService {
           .get();
       final int count = countSnap.count ?? 0;
 
-      final userSnap = await _userDoc(uid).get();
-      final current = userSnap.data()?['streakNumber'] as int? ?? 0;
-      if (count == current) return;
+      await _db.runTransaction((transaction) async {
+        final userRef = _userDoc(uid);
+        final publicRef = _publicProfileDoc(uid);
+        final userSnap = await transaction.get(userRef);
+        final data = userSnap.data() ?? <String, dynamic>{};
+        final current = data['streakNumber'] as int? ?? 0;
+        if (count == current) return;
 
-      await _userDoc(uid).update({'streakNumber': count});
-
-      final data = userSnap.data() ?? <String, dynamic>{};
-      await _publicProfileDoc(uid).set(
-        _publicProfileData(
-          displayName: (data['displayName'] as String?) ?? 'Scholar',
-          score: data['score'] as int? ?? 0,
-          computerArchitecturePoints:
-              data['computerArchitecturePoints'] as int? ?? 0,
-          computerNetworkingPoints:
-              data['computerNetworkingPoints'] as int? ?? 0,
-          softwareEngineeringPoints:
-              data['softwareEngineeringPoints'] as int? ?? 0,
-          streakNumber: count,
-          badges: List<String>.from(data['badges'] ?? <String>[]),
-          selectedBadges: List<String>.from(
-            data['selectedBadges'] ?? <String>[],
+        transaction.update(userRef, {'streakNumber': count});
+        transaction.set(
+          publicRef,
+          _publicProfileData(
+            displayName: (data['displayName'] as String?) ?? 'Scholar',
+            score: data['score'] as int? ?? 0,
+            computerArchitecturePoints:
+                data['computerArchitecturePoints'] as int? ?? 0,
+            computerNetworkingPoints:
+                data['computerNetworkingPoints'] as int? ?? 0,
+            softwareEngineeringPoints:
+                data['softwareEngineeringPoints'] as int? ?? 0,
+            streakNumber: count,
+            badges: List<String>.from(data['badges'] ?? <String>[]),
+            selectedBadges: List<String>.from(
+              data['selectedBadges'] ?? <String>[],
+            ),
+            avatarUrl: (data['avatarUrl'] as String?) ?? '',
           ),
-          avatarUrl: (data['avatarUrl'] as String?) ?? '',
-        ),
-        SetOptions(merge: true),
-      );
+          SetOptions(merge: true),
+        );
+      });
     } catch (_) {
       // Best-effort backfill; failures are non-fatal.
     }

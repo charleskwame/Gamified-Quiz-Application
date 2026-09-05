@@ -205,6 +205,8 @@ class _TopToastWidgetState extends State<_TopToastWidget>
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
@@ -216,14 +218,16 @@ class _TopToastWidgetState extends State<_TopToastWidget>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: const Color(0xFF09262A),
+          color: colorScheme.surface,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: const Color(0xFF0D3F45), width: 1.5),
+          border: Border.all(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.8),
+          ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF09262A).withValues(alpha: 0.04),
-              blurRadius: 3,
-              offset: const Offset(0, 2),
+              color: Colors.black.withValues(alpha: 0.12),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
             ),
           ],
         ),
@@ -232,10 +236,10 @@ class _TopToastWidgetState extends State<_TopToastWidget>
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.15),
+                color: widget.badge.color.withValues(alpha: 0.14),
                 shape: BoxShape.circle,
               ),
-              child: Icon(widget.badge.icon, color: Colors.white, size: 24),
+              child: Icon(widget.badge.icon, color: widget.badge.color, size: 24),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -261,7 +265,6 @@ class _TopToastWidgetState extends State<_TopToastWidget>
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w900,
-                          color: Colors.white,
                         ),
                       ),
                     ],
@@ -272,7 +275,6 @@ class _TopToastWidgetState extends State<_TopToastWidget>
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white70,
                     ),
                   ),
                 ],
@@ -282,7 +284,6 @@ class _TopToastWidgetState extends State<_TopToastWidget>
               icon: const Icon(
                 Icons.close_rounded,
                 size: 18,
-                color: Colors.white70,
               ),
               onPressed: () {
                 _controller.reverse().then((_) {
