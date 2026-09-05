@@ -22,8 +22,8 @@ import '../widgets/quiz/quiz_streak_badge.dart';
 import '../widgets/quiz/quiz_game_option.dart';
 import '../widgets/quiz/quiz_score_popup.dart';
 import '../widgets/quiz/quiz_circular_timer.dart';
-import '../models/guest_user.dart';
 import '../services/local_progress_service.dart';
+import '../services/guest_account_store.dart';
 import '../widgets/quiz/quiz_shield_indicator.dart';
 import '../widgets/quiz/quiz_skip_indicator.dart';
 import '../widgets/quiz/quiz_pause_indicator.dart';
@@ -228,7 +228,24 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
 
   void _fetchItemCounts() {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null || widget.isOffline) return;
+    if (widget.isOffline) return;
+
+    if (user == null) {
+      // Guest: load power-up counts and level from the local account.
+      GuestAccountStore.instance.load().then((account) {
+        if (!mounted || account == null) return;
+        final stats = GuestStats.fromAccount(account);
+        setState(() {
+          _shieldsRemaining = account.shieldCount;
+          _skipCount = account.skipCount;
+          _pauseTimerCount = account.pauseTimerCount;
+          _noDeductionsCount = account.noDeductionsCount;
+          _userStartingLevel = LevelSystem.getLevelNumber(stats.score);
+        });
+      });
+      return;
+    }
+
     FirebaseFirestore.instance.collection('users').doc(user.uid).get().then((
       snap,
     ) {
@@ -741,11 +758,13 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
     } else {
       // User is either a guest or explicitly offline. Save progress locally.
       try {
-        final guest = await LocalProgressService.loadGuestUser();
-        final guestName = guest?.username ?? 'Guest';
+        final account = await GuestAccountStore.instance.load();
+        final guestName = account?.displayName ?? account?.username ?? 'Guest';
         displayName = guestName;
 
-        final guestStats = await LocalProgressService.getAggregatedStats();
+        final guestStats = account != null
+            ? GuestStats.fromAccount(account)
+            : GuestStats.empty();
         final guestCurrentScore = guestStats.score;
         oldTotalScore =
             guestCurrentScore; // set oldTotalScore so results screen starts from correct total
@@ -753,6 +772,8 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
         final sessionXpCap = QuizEngine.sessionXpCap(guestCurrentScore);
         finalSessionScore = _score.clamp(0, sessionXpCap);
         updatedTotalScore = guestCurrentScore + finalSessionScore;
+
+        avatarUrl = account?.avatarUrl;
 
         if (_currentStreakLength > 0) {
           _streakSegments.add(_currentStreakLength);
@@ -763,18 +784,20 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
         );
         _coinsEarned = coinsEarned;
 
-        final localProgress = GuestProgress(
-          challengeId:
-              'challenge_${widget.category.toLowerCase().replaceAll(' ', '_')}_${DateTime.now().millisecondsSinceEpoch}',
-          category: widget.category,
-          score: finalSessionScore,
-          correctAnswers: _correctAnswers,
-          totalQuestions: _questions.length,
-          playedAt: DateTime.now(),
-          isTimed: widget.isTimed,
-        );
-
-        await LocalProgressService.addProgress(localProgress);
+        if (account != null) {
+          unlocked = await GuestAccountStore.instance.completeSession(
+            category: widget.category,
+            score: finalSessionScore,
+            correctAnswers: _correctAnswers,
+            totalQuestions: _questions.length,
+            isTimed: widget.isTimed,
+            coinsEarned: coinsEarned,
+            shieldChange: -_shieldsConsumed,
+            skipChange: -_skipsConsumed,
+            pauseTimerChange: -_pauseTimersConsumed,
+            noDeductionsChange: -_noDeductionsConsumed,
+          );
+        }
       } catch (e) {
         // Silently catch exceptions
       }

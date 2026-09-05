@@ -3,6 +3,8 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/local_progress_service.dart';
+import '../services/guest_account_store.dart';
+import '../models/guest_account.dart';
 
 class AnalyticsScreen extends StatelessWidget {
   const AnalyticsScreen({super.key});
@@ -11,15 +13,18 @@ class AnalyticsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      return FutureBuilder<GuestStats>(
-        future: LocalProgressService.getAggregatedStats(),
+      return FutureBuilder<GuestAccount?>(
+        future: GuestAccountStore.instance.load(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             );
           }
-          final stats = snapshot.data ?? GuestStats.empty();
+          final account = snapshot.data;
+          final stats = account != null
+              ? GuestStats.fromAccount(account)
+              : GuestStats.empty();
           if (stats.questionsAnswered == 0) {
             return Scaffold(
               appBar: AppBar(title: const Text('Analytics')),

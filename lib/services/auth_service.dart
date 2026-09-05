@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'database_service.dart';
-import 'local_progress_service.dart';
 import 'sync_service.dart';
 
 /// Thrown when Google sign-in fails because an account with the same email
@@ -122,12 +121,13 @@ class AuthService {
   }
 
   /// Clear the "session active" flag.
+  ///
+  /// Note: this does NOT delete the unlinked guest account. Guest data is only
+  /// removed after a confirmed remote merge (SyncService) or via the explicit
+  /// "Delete Guest Data" action in Settings.
   Future<void> _clearSession() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_sessionKey);
-    // Clear any locally cached guest profile/progress so a stale name card
-    // doesn't reappear after sign-out or account deletion.
-    await LocalProgressService.clearAll();
   }
 
   /// Repair a stale state left behind by a restored Android backup.
@@ -142,8 +142,9 @@ class AuthService {
     final prefs = await SharedPreferences.getInstance();
     final wasSessionActive = prefs.getBool(_sessionKey) ?? false;
     if (wasSessionActive && _auth.currentUser == null) {
+      // Only clear the stale session flag. A legitimate unlinked guest account
+      // (e.g. created after an explicit logout) must be preserved.
       await prefs.remove(_sessionKey);
-      await LocalProgressService.clearAll();
     }
   }
 
@@ -178,27 +179,15 @@ class AuthService {
       }
 
       final user = userCredential.user;
-      final isNewUser = userCredential.additionalUserInfo?.isNewUser ?? false;
 
       if (user != null) {
-        if (isNewUser) {
-          // Create Firestore user document with default stats & progress tracking.
-          await DatabaseService().initializeUserStats(
-            user.uid,
-            user.displayName ?? googleUser.displayName ?? 'Scholar',
-            user.email ?? googleUser.email,
-            emailVerified: user.emailVerified,
-          );
-          // Sync local guest progress to remote Firestore (guest upgrade).
-          await SyncService.syncGuestProgressToRemote(user.uid);
-        } else {
-          // Returning user: backfill the public profile if missing.
-          await DatabaseService().ensurePublicProfileExists(
-            user.uid,
-            fallbackDisplayName: user.displayName,
-            fallbackAvatarUrl: null,
-          );
-        }
+        // Guest upgrade (new or returning): ensure a remote profile exists and
+        // additively merge any local guest account exactly once.
+        await SyncService.mergeGuestAccountToRemote(
+          user.uid,
+          email: user.email ?? googleUser.email,
+          fallbackName: user.displayName ?? googleUser.displayName,
+        );
       }
 
       await _markSessionActive();
@@ -223,6 +212,11 @@ class AuthService {
       final user = userCredential.user;
       if (user != null) {
         await user.linkWithCredential(pendingCredential);
+        await SyncService.mergeGuestAccountToRemote(
+          user.uid,
+          email: user.email ?? email,
+          fallbackName: user.displayName,
+        );
       }
       await _markSessionActive();
       return userCredential;
@@ -278,6 +272,13 @@ class AuthService {
       }
       rethrow;
     }
+
+    // 4. Merge any local guest account into the linked account.
+    await SyncService.mergeGuestAccountToRemote(
+      user.uid,
+      email: user.email ?? email,
+      fallbackName: user.displayName,
+    );
 
     await _markSessionActive();
   }

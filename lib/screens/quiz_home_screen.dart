@@ -11,7 +11,8 @@ import '../widgets/levels_overview_modal.dart';
 import '../widgets/streak_card_modal.dart';
 import 'challenge_select_screen.dart';
 import '../services/local_progress_service.dart';
-import '../models/guest_user.dart';
+import '../services/guest_account_store.dart';
+import '../models/guest_account.dart';
 
 class QuizHomePage extends StatelessWidget {
   final VoidCallback onNavigateToRanks;
@@ -23,26 +24,25 @@ class QuizHomePage extends StatelessWidget {
     final user = FirebaseAuth.instance.currentUser;
 
     if (user == null) {
-      return FutureBuilder<List<dynamic>>(
-        future: Future.wait([
-          LocalProgressService.loadGuestUser(),
-          LocalProgressService.getAggregatedStats(),
-        ]),
+      return FutureBuilder<GuestAccount?>(
+        future: GuestAccountStore.instance.load(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             );
           }
-          final guest = snapshot.data?[0] as GuestUser?;
-          final stats = snapshot.data?[1] as GuestStats?;
-          
-          final displayName = guest?.username ?? 'Guest';
-          final questionsAnswered = stats?.questionsAnswered ?? 0;
-          final questionsCorrect = stats?.questionsCorrect ?? 0;
-          final streakNumber = stats?.streakNumber ?? 0;
-          final totalScore = stats?.score ?? 0;
-          
+          final account = snapshot.data;
+          final stats = account != null
+              ? GuestStats.fromAccount(account)
+              : GuestStats.empty();
+
+          final displayName = account?.displayName ?? account?.username ?? 'Guest';
+          final questionsAnswered = stats.questionsAnswered;
+          final questionsCorrect = stats.questionsCorrect;
+          final streakNumber = stats.streakNumber;
+          final totalScore = stats.score;
+
           final accuracyPercent = questionsAnswered > 0
               ? ((questionsCorrect / questionsAnswered) * 100).round()
               : 0;
@@ -54,6 +54,7 @@ class QuizHomePage extends StatelessWidget {
             accuracyPercent: accuracyPercent,
             streakNumber: streakNumber,
             totalScore: totalScore,
+            avatarUrl: account?.avatarUrl,
           );
         },
       );

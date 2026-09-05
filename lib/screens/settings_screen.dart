@@ -7,6 +7,8 @@ import '../services/database_service.dart';
 import '../services/onboarding_service.dart';
 import '../services/settings_service.dart';
 import '../services/music_service.dart';
+import '../services/guest_account_store.dart';
+import '../models/guest_account.dart';
 import '../widgets/avatar_customizer_dialog.dart';
 import '../widgets/main_navigation.dart';
 import 'auth_screen.dart';
@@ -120,9 +122,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
 
     try {
-      await _authService.updateProfile(
-        displayName: _displayNameController.text.trim(),
-      );
+      final user = _authService.currentUser;
+      if (user == null) {
+        await GuestAccountStore.instance.updateDisplayName(
+          _displayNameController.text.trim(),
+        );
+      } else {
+        await _authService.updateProfile(
+          displayName: _displayNameController.text.trim(),
+        );
+      }
       setState(() {
         _successMessage = 'Account information updated successfully!';
       });
@@ -148,18 +157,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
         initialUrl: currentUrl,
         initialDetails: currentDetails,
         onSave: (url, details) async {
+          final messenger = ScaffoldMessenger.of(context);
           final user = _authService.currentUser;
           if (user != null) {
-            final messenger = ScaffoldMessenger.of(context);
             await _dbService.updateAvatar(user.uid, url, details);
-            if (mounted) {
-              messenger.showSnackBar(
-                const SnackBar(
-                  content: Text('Avatar saved successfully!'),
-                  backgroundColor: Color(0xFF09262A),
-                ),
-              );
-            }
+          } else {
+            await GuestAccountStore.instance.saveAvatar(url, details);
+          }
+          if (mounted) {
+            messenger.showSnackBar(
+              const SnackBar(
+                content: Text('Avatar saved successfully!'),
+                backgroundColor: Color(0xFF09262A),
+              ),
+            );
           }
         },
       ),
@@ -260,11 +271,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final user = _authService.currentUser;
     if (user == null) {
-      return _buildScaffold(
-        context,
-        user: null,
-        avatarUrl: null,
-        avatarDetails: null,
+      return FutureBuilder<GuestAccount?>(
+        future: GuestAccountStore.instance.load(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Scaffold(
+              backgroundColor: const Color(0xFFECF8F8),
+              body: const Center(child: CircularProgressIndicator()),
+            );
+          }
+          final account = snapshot.data;
+          if (account != null && _displayNameController.text.isEmpty) {
+            _displayNameController.text = account.displayName;
+          }
+          return ListenableBuilder(
+            listenable: GuestAccountStore.instance,
+            builder: (context, _) {
+              final a = GuestAccountStore.instance.account ?? account;
+              return _buildScaffold(
+                context,
+                user: null,
+                avatarUrl: a?.avatarUrl,
+                avatarDetails: a?.avatarDetails,
+              );
+            },
+          );
+        },
       );
     }
 
@@ -328,21 +360,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                 const SizedBox(height: 32),
 
-                // ── Avatar & Account Info OR Guest Banner ──
-                if (user != null) ...[
+                // ── Avatar & Account Info ──
+                _StaggeredFadeSlide(
+                  index: 1,
+                  child: _buildAvatarSection(avatarUrl, avatarDetails),
+                ),
+                const SizedBox(height: 32),
+                _StaggeredFadeSlide(
+                  index: 2,
+                  child: _buildAccountInfoSection(),
+                ),
+                const SizedBox(height: 24),
+
+                // ── Guest banner (sign-in + delete local data) ──
+                if (user == null) ...[
                   _StaggeredFadeSlide(
-                    index: 1,
-                    child: _buildAvatarSection(avatarUrl, avatarDetails),
-                  ),
-                  const SizedBox(height: 32),
-                  _StaggeredFadeSlide(
-                    index: 2,
-                    child: _buildAccountInfoSection(),
-                  ),
-                  const SizedBox(height: 24),
-                ] else ...[
-                  _StaggeredFadeSlide(
-                    index: 1,
+                    index: 3,
                     child: _buildGuestBanner(),
                   ),
                   const SizedBox(height: 24),
@@ -743,7 +776,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     ),
                     Text(
-                      'Sign in to customize avatar and sync progress across devices.',
+                      'Sign in to sync progress across devices and publish your profile.',
                       style: TextStyle(
                         color: Color(0xFF6B7280),
                         fontSize: 13,
@@ -782,8 +815,86 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
           ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => _deleteGuestData(),
+              icon: const Icon(
+                Icons.delete_outline_rounded,
+                size: 18,
+                color: Color(0xFFEF4444),
+              ),
+              label: const Text(
+                'Delete Guest Data',
+                style: TextStyle(
+                  color: Color(0xFFEF4444),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Color(0xFFEF4444), width: 1.2),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
+    );
+  }
+
+  Future<void> _deleteGuestData() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          'Delete Guest Data?',
+          style: TextStyle(
+            color: Color(0xFFEF4444),
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        content: const Text(
+          'This permanently deletes your local guest profile, progress, coins, and power-ups from this device.',
+          style: TextStyle(color: Color(0xFF003F91)),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Color(0xFF003F91)),
+            ),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFFEF4444),
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Delete Permanently'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    await GuestAccountStore.instance.deleteGuest();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Guest data deleted.'),
+        backgroundColor: Color(0xFF09262A),
+      ),
+    );
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => const MainNavigation()),
+      (route) => false,
     );
   }
 

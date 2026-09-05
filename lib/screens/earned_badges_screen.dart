@@ -8,6 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../models/badge.dart';
 import '../services/database_service.dart';
+import '../services/guest_account_store.dart';
 import '../widgets/home/particle_background.dart';
 
 class EarnedBadgesScreen extends StatefulWidget {
@@ -38,7 +39,6 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
 
   Future<void> _toggleBadgeSelection(String badgeId) async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
 
     setState(() {
       if (_selectedBadges.contains(badgeId)) {
@@ -60,7 +60,11 @@ class _EarnedBadgesScreenState extends State<EarnedBadgesScreen> {
     });
 
     try {
-      await _db.updateSelectedBadges(user.uid, _selectedBadges);
+      if (user == null) {
+        await GuestAccountStore.instance.toggleBadgeSelection(badgeId);
+      } else {
+        await _db.updateSelectedBadges(user.uid, _selectedBadges);
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

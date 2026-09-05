@@ -6,6 +6,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/database_service.dart';
 import '../services/sound_service.dart';
+import '../services/guest_account_store.dart';
+import '../models/guest_account.dart';
 import '../models/shop_item.dart';
 import '../widgets/home/particle_background.dart';
 
@@ -38,18 +40,24 @@ class _ShopScreenState extends State<ShopScreen> {
     super.dispose();
   }
 
-  Future<void> _buyItem(ShopItem item, String uid) async {
+  Future<void> _buyItem(ShopItem item) async {
     if (_purchasing.contains(item.id)) return;
 
     setState(() => _purchasing.add(item.id));
 
     try {
-      final success = await _db.purchaseItem(
-        uid: uid,
-        itemId: item.id,
-        price: item.price,
-        maxItems: 3,
-      );
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      final bool success = uid != null
+          ? await _db.purchaseItem(
+              uid: uid,
+              itemId: item.id,
+              price: item.price,
+              maxItems: 3,
+            )
+          : await GuestAccountStore.instance.purchaseItem(
+              itemId: item.id,
+              price: item.price,
+            );
 
       if (!mounted) return;
 
@@ -125,18 +133,44 @@ class _ShopScreenState extends State<ShopScreen> {
     final user = FirebaseAuth.instance.currentUser;
     final uid = user?.uid;
 
-    // If not logged in, show a simple message
+    // Guest users browse and purchase using the local account store.
     if (uid == null) {
       return Scaffold(
         backgroundColor: Colors.transparent,
         body: ParticleBackground(
-          child: SafeArea(
-            child: Center(
-              child: Text(
-                'Sign in to access the shop',
-                style: TextStyle(color: Colors.grey.shade500, fontSize: 16),
-              ),
-            ),
+          child: FutureBuilder<GuestAccount?>(
+            future: GuestAccountStore.instance.load(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              final account = snapshot.data;
+              if (account == null) {
+                return Center(
+                  child: Text(
+                    'Create a guest profile to use the shop',
+                    style: TextStyle(
+                      color: Colors.grey.shade500,
+                      fontSize: 16,
+                    ),
+                  ),
+                );
+              }
+              return ListenableBuilder(
+                listenable: GuestAccountStore.instance,
+                builder: (context, _) {
+                  final a =
+                      GuestAccountStore.instance.account ?? account;
+                  return _buildShopContent(
+                    coins: a.quizCoins,
+                    shieldCount: a.shieldCount,
+                    skipCount: a.skipCount,
+                    pauseCount: a.pauseTimerCount,
+                    noDeductionsCount: a.noDeductionsCount,
+                  );
+                },
+              );
+            },
           ),
         ),
       );
@@ -153,154 +187,12 @@ class _ShopScreenState extends State<ShopScreen> {
               .snapshots(),
           builder: (context, snapshot) {
             final data = snapshot.data?.data() as Map<String, dynamic>?;
-            final coins = data?['quizCoins'] as int? ?? 0;
-            final shieldCount = data?['shieldCount'] as int? ?? 0;
-            final skipCount = data?['skipCount'] as int? ?? 0;
-            final pauseCount = data?['pauseTimerCount'] as int? ?? 0;
-            final noDeductionsCount = data?['noDeductionsCount'] as int? ?? 0;
-
-            // Map item IDs to their current count
-            int getCount(String itemId) {
-              switch (itemId) {
-                case 'shield':
-                  return shieldCount;
-                case 'skip_question':
-                  return skipCount;
-                case 'no_deductions':
-                  return noDeductionsCount;
-                case 'pause_timer':
-                  return pauseCount;
-                default:
-                  return 0;
-              }
-            }
-
-            return SafeArea(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 24, 20, 100),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // ─── Header ─────────────────────────────────
-                    Row(
-                      children: [
-                        SvgPicture.asset(
-                          'lib/assets/icon/store.svg',
-                          width: 32,
-                          height: 32,
-                        ),
-                        const SizedBox(width: 10),
-                        const Text(
-                          'Shop',
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w900,
-                            color: Color(0xFF003F91),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Power-ups and items to enhance your quiz experience',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.grey.shade500,
-                      ),
-                    ),
-                    const SizedBox(height: 28),
-
-                    // ─── Coin Balance (live from Firestore) ─────
-                    _buildCoinBalance(coins),
-                    const SizedBox(height: 28),
-
-                    // ─── Shop Items ─────────────────────────────
-                    ...List.generate(ShopItem.placeholderItems.length, (index) {
-                      final item = ShopItem.placeholderItems[index];
-                      final count = getCount(item.id);
-                      return _buildAnimatedSection(
-                        index: index,
-                        child: _ShopItemCard(
-                          item: item,
-                          ownedCount: count,
-                          canAfford: coins >= item.price,
-                          isPurchasing: _purchasing.contains(item.id),
-                          onBuy: () {
-                            SoundService.instance.playNavClick();
-                            _buyItem(item, uid);
-                          },
-                        ),
-                      );
-                    }),
-
-                    const SizedBox(height: 32),
-
-                    // ─── Footer note ────────────────────────────
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: const Color(0xFF003F91).withValues(alpha: 0.3),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.info_outline_rounded,
-                            color: const Color(0xFF003F91),
-                            size: 20,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              'You can hold a maximum of 3 of each item at a time.',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.grey.shade600,
-                                height: 1.4,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // ─── Debug: Seed coins for all users (debug mode only) ──
-                    if (kDebugMode) ...[
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton.icon(
-                          onPressed: () => _seedAllCoins(context),
-                          icon: const Icon(
-                            Icons.auto_fix_high_rounded,
-                            size: 16,
-                          ),
-                          label: const Text(
-                            'Give 100 coins to all existing users',
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: const Color(0xFFFFD700),
-                            side: const BorderSide(
-                              color: Color(0xFFFFD700),
-                              width: 1,
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
+            return _buildShopContent(
+              coins: data?['quizCoins'] as int? ?? 0,
+              shieldCount: data?['shieldCount'] as int? ?? 0,
+              skipCount: data?['skipCount'] as int? ?? 0,
+              pauseCount: data?['pauseTimerCount'] as int? ?? 0,
+              noDeductionsCount: data?['noDeductionsCount'] as int? ?? 0,
             );
           },
         ),
@@ -319,6 +211,157 @@ class _ShopScreenState extends State<ShopScreen> {
         backgroundColor: Color(0xFFEF4444),
         behavior: SnackBarBehavior.floating,
         margin: EdgeInsets.only(bottom: 100, left: 20, right: 20),
+      ),
+    );
+  }
+
+  Widget _buildShopContent({
+    required int coins,
+    required int shieldCount,
+    required int skipCount,
+    required int pauseCount,
+    required int noDeductionsCount,
+  }) {
+    int getCount(String itemId) {
+      switch (itemId) {
+        case 'shield':
+          return shieldCount;
+        case 'skip_question':
+          return skipCount;
+        case 'no_deductions':
+          return noDeductionsCount;
+        case 'pause_timer':
+          return pauseCount;
+        default:
+          return 0;
+      }
+    }
+
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 24, 20, 100),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ─── Header ─────────────────────────────────
+            Row(
+              children: [
+                SvgPicture.asset(
+                  'lib/assets/icon/store.svg',
+                  width: 32,
+                  height: 32,
+                ),
+                const SizedBox(width: 10),
+                const Text(
+                  'Shop',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF003F91),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Power-ups and items to enhance your quiz experience',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey.shade500,
+              ),
+            ),
+            const SizedBox(height: 28),
+
+            // ─── Coin Balance ─────────────────────────
+            _buildCoinBalance(coins),
+            const SizedBox(height: 28),
+
+            // ─── Shop Items ─────────────────────────────
+            ...List.generate(ShopItem.placeholderItems.length, (index) {
+              final item = ShopItem.placeholderItems[index];
+              final count = getCount(item.id);
+              return _buildAnimatedSection(
+                index: index,
+                child: _ShopItemCard(
+                  item: item,
+                  ownedCount: count,
+                  canAfford: coins >= item.price,
+                  isPurchasing: _purchasing.contains(item.id),
+                  onBuy: () {
+                    SoundService.instance.playNavClick();
+                    _buyItem(item);
+                  },
+                ),
+              );
+            }),
+
+            const SizedBox(height: 32),
+
+            // ─── Footer note ────────────────────────────
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: const Color(0xFF003F91).withValues(alpha: 0.3),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info_outline_rounded,
+                    color: const Color(0xFF003F91),
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'You can hold a maximum of 3 of each item at a time.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey.shade600,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // ─── Debug: Seed coins for all users (debug mode only) ──
+            if (kDebugMode) ...[
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () => _seedAllCoins(context),
+                  icon: const Icon(
+                    Icons.auto_fix_high_rounded,
+                    size: 16,
+                  ),
+                  label: const Text(
+                    'Give 100 coins to all existing users',
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFFFFD700),
+                    side: const BorderSide(
+                      color: Color(0xFFFFD700),
+                      width: 1,
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }

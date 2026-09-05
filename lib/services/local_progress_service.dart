@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../models/guest_account.dart';
 import '../models/guest_user.dart';
 
 class GuestStats {
@@ -50,11 +51,64 @@ class GuestStats {
       seCorrect: 0,
     );
   }
+
+  /// Derives aggregate guest stats from the current versioned [GuestAccount].
+  factory GuestStats.fromAccount(GuestAccount account) {
+    int score = 0;
+    int questionsAnswered = 0;
+    int questionsCorrect = 0;
+    int computerArchitecturePoints = 0;
+    int caAnswered = 0;
+    int caCorrect = 0;
+    int computerNetworkingPoints = 0;
+    int cnAnswered = 0;
+    int cnCorrect = 0;
+    int softwareEngineeringPoints = 0;
+    int seAnswered = 0;
+    int seCorrect = 0;
+
+    for (final s in account.sessions) {
+      score += s.score;
+      questionsAnswered += s.totalQuestions;
+      questionsCorrect += s.correctAnswers;
+
+      if (s.category == 'Computer Architecture') {
+        computerArchitecturePoints += s.score;
+        caAnswered += s.totalQuestions;
+        caCorrect += s.correctAnswers;
+      } else if (s.category == 'Computer Networking') {
+        computerNetworkingPoints += s.score;
+        cnAnswered += s.totalQuestions;
+        cnCorrect += s.correctAnswers;
+      } else if (s.category == 'Software Engineering') {
+        softwareEngineeringPoints += s.score;
+        seAnswered += s.totalQuestions;
+        seCorrect += s.correctAnswers;
+      }
+    }
+
+    return GuestStats(
+      score: score,
+      questionsAnswered: questionsAnswered,
+      questionsCorrect: questionsCorrect,
+      streakNumber: account.sessions.length,
+      computerArchitecturePoints: computerArchitecturePoints,
+      caAnswered: caAnswered,
+      caCorrect: caCorrect,
+      computerNetworkingPoints: computerNetworkingPoints,
+      cnAnswered: cnAnswered,
+      cnCorrect: cnCorrect,
+      softwareEngineeringPoints: softwareEngineeringPoints,
+      seAnswered: seAnswered,
+      seCorrect: seCorrect,
+    );
+  }
 }
 
 class LocalProgressService {
   static const String _guestUserKey = 'guest_user';
   static const String _guestProgressKey = 'guest_progress';
+  static const String _guestAccountKey = 'guest_account_v2';
 
   static Future<void> saveGuestUser(GuestUser user) async {
     final prefs = await SharedPreferences.getInstance();
@@ -100,6 +154,53 @@ class LocalProgressService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_guestUserKey);
     await prefs.remove(_guestProgressKey);
+    await prefs.remove(_guestAccountKey);
+  }
+
+  // ── Versioned account persistence ────────────────────────────────────────
+
+  /// Persists the versioned guest account snapshot atomically.
+  static Future<void> saveAccount(GuestAccount account) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_guestAccountKey, jsonEncode(account.toJson()));
+  }
+
+  /// Loads the versioned guest account. Falls back to importing the legacy
+  /// `guest_user` + `guest_progress` keys (schema version 1) and persists the
+  /// upgraded snapshot so the migration runs only once.
+  static Future<GuestAccount?> loadAccount() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonStr = prefs.getString(_guestAccountKey);
+    if (jsonStr != null) {
+      try {
+        return GuestAccount.fromJson(
+          jsonDecode(jsonStr) as Map<String, dynamic>,
+        );
+      } catch (_) {
+        // Corrupt v2 snapshot: fall through to legacy import below.
+      }
+    }
+
+    // Legacy import path.
+    final legacyUser = await loadGuestUser();
+    final legacyProgress = await getAllProgress();
+    if (legacyUser == null && legacyProgress.isEmpty) return null;
+
+    final account = GuestAccount.fromLegacy(
+      user: legacyUser,
+      progress: legacyProgress,
+    );
+    await saveAccount(account);
+    return account;
+  }
+
+  /// Deletes only the guest account data (leaving unrelated app settings and
+  /// offline question caches intact).
+  static Future<void> deleteGuestAccount() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_guestUserKey);
+    await prefs.remove(_guestProgressKey);
+    await prefs.remove(_guestAccountKey);
   }
 
   static Future<GuestStats> getAggregatedStats() async {

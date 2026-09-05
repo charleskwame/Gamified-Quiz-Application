@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/database_service.dart';
-import '../services/local_progress_service.dart';
+import '../services/guest_account_store.dart';
 import '../services/onboarding_service.dart';
 import '../screens/guest_name_screen.dart';
 import '../screens/onboarding_tour_screen.dart';
@@ -56,7 +56,7 @@ class _AuthGateState extends State<AuthGate> {
     }
 
     if (user == null) {
-      final guest = await LocalProgressService.loadGuestUser();
+      final guest = await GuestAccountStore.instance.load();
       if (guest == null) {
         if (mounted) {
           setState(() {

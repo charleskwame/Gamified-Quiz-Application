@@ -8,6 +8,7 @@ import '../models/question.dart';
 import '../models/rank_history.dart';
 import '../models/user_rank.dart';
 import '../models/badge.dart';
+import '../models/guest_account.dart';
 
 class DatabaseService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -72,6 +73,11 @@ class DatabaseService {
       ),
       SetOptions(merge: true),
     );
+  }
+
+  /// Whether a private `users/{uid}` document already exists.
+  Future<bool> userDocExists(String uid) async {
+    return (await _userDoc(uid).get()).exists;
   }
 
   // Stream of public user rankings sorted by score descending.
@@ -651,6 +657,262 @@ class DatabaseService {
     }, SetOptions(merge: true));
   }
 
+  /// Additively merges a device-bound guest account into an authenticated
+  /// user's Firestore documents, exactly once.
+  ///
+  /// Idempotency: each guest session is written to a deterministic
+  /// `users/{uid}/rankHistory/guest_<sessionId>` document and each purchase to
+  /// `users/{uid}/migrationEvents/purchase_<eventId>`. Re-running after an
+  /// interruption skips already-present documents, so stats, coins, badges,
+  /// and history are never double-counted.
+  ///
+  /// The guest's starting coin grant is intentionally NOT re-added to an
+  /// existing remote account; only session-earned coins and purchase/consumption
+  /// deltas are migrated.
+  Future<GuestMergeResult> mergeGuestAccount({
+    required String uid,
+    required GuestAccount account,
+    String? email,
+  }) async {
+    final userRef = _userDoc(uid);
+    final publicRef = _publicProfileDoc(uid);
+    final newlyUnlocked = <String>[];
+    int sessionsMigrated = 0;
+
+    // 1. Ensure the private user doc exists. For a brand-new account, seed the
+    //    guest display name and avatar. For an existing account, preserve the
+    //    remote profile (conflict policy: existing customization wins).
+    final existing = await userRef.get();
+    if (!existing.exists) {
+      await initializeUserStats(
+        uid,
+        account.displayName.isNotEmpty ? account.displayName : (email ?? 'Scholar'),
+        email ?? '',
+      );
+      if (account.avatarUrl.isNotEmpty) {
+        await userRef.update({
+          'avatarUrl': account.avatarUrl,
+          'avatarDetails': account.avatarDetails,
+        });
+      }
+    }
+
+    // 2. Migrate sessions in small batches so a transaction never grows too
+    //    large. Badges are evaluated per session against running totals,
+    //    mirroring processQuizCompletion.
+    const int batchSize = 25;
+    final sessions = account.sessions;
+    for (var start = 0; start < sessions.length; start += batchSize) {
+      final end = (start + batchSize) > sessions.length
+          ? sessions.length
+          : start + batchSize;
+      final chunk = sessions.sublist(start, end);
+
+      await _db.runTransaction((tx) async {
+        final userSnap = await tx.get(userRef);
+        final data = userSnap.data() ?? <String, dynamic>{};
+
+        int score = data['score'] as int? ?? 0;
+        int caPoints = data['computerArchitecturePoints'] as int? ?? 0;
+        int cnPoints = data['computerNetworkingPoints'] as int? ?? 0;
+        int sePoints = data['softwareEngineeringPoints'] as int? ?? 0;
+        int questionsCorrect = data['questionsCorrect'] as int? ?? 0;
+        int questionsAnswered = data['questionsAnswered'] as int? ?? 0;
+        int caAnswered = data['caAnswered'] as int? ?? 0;
+        int caCorrect = data['caCorrect'] as int? ?? 0;
+        int cnAnswered = data['cnAnswered'] as int? ?? 0;
+        int cnCorrect = data['cnCorrect'] as int? ?? 0;
+        int seAnswered = data['seAnswered'] as int? ?? 0;
+        int seCorrect = data['seCorrect'] as int? ?? 0;
+        int streakNumber = data['streakNumber'] as int? ?? 0;
+        final badges = List<String>.from(data['badges'] ?? <String>[]);
+
+        int coinsDelta = 0;
+        int shieldDelta = 0;
+        int skipDelta = 0;
+        int pauseDelta = 0;
+        int noDeductionsDelta = 0;
+
+        for (final s in chunk) {
+          final historyRef = userRef
+              .collection('rankHistory')
+              .doc('guest_${s.sessionId}');
+          final historySnap = await tx.get(historyRef);
+          if (historySnap.exists) continue; // already migrated
+
+          score += s.score;
+          questionsCorrect += s.correctAnswers;
+          questionsAnswered += s.totalQuestions;
+          streakNumber += 1;
+
+          if (s.category == 'Computer Architecture') {
+            caPoints += s.score;
+            caAnswered += s.totalQuestions;
+            caCorrect += s.correctAnswers;
+          } else if (s.category == 'Computer Networking') {
+            cnPoints += s.score;
+            cnAnswered += s.totalQuestions;
+            cnCorrect += s.correctAnswers;
+          } else if (s.category == 'Software Engineering') {
+            sePoints += s.score;
+            seAnswered += s.totalQuestions;
+            seCorrect += s.correctAnswers;
+          }
+
+          coinsDelta += s.coinsEarned;
+          shieldDelta += s.shieldChange;
+          skipDelta += s.skipChange;
+          pauseDelta += s.pauseTimerChange;
+          noDeductionsDelta += s.noDeductionsChange;
+
+          for (final badge in allBadges) {
+            if (badges.contains(badge.id)) continue;
+            final unlocked = badge.checkUnlock(
+              score: score,
+              computerArchitecturePoints: caPoints,
+              computerNetworkingPoints: cnPoints,
+              softwareEngineeringPoints: sePoints,
+              questionsCorrect: questionsCorrect,
+              questionsAnswered: questionsAnswered,
+              streakNumber: streakNumber,
+              latestCorrect: s.correctAnswers,
+              isTimed: s.isTimed,
+            );
+            if (unlocked) {
+              badges.add(badge.id);
+              newlyUnlocked.add(badge.id);
+            }
+          }
+
+          tx.set(historyRef, {
+            'rank': s.rank,
+            'category': s.category,
+            'percentage': s.percentage,
+            'timestamp': FieldValue.serverTimestamp(),
+            'guestSessionId': s.sessionId,
+          });
+          sessionsMigrated++;
+        }
+
+        tx.update(userRef, {
+          'score': score,
+          'questionsCorrect': questionsCorrect,
+          'questionsAnswered': questionsAnswered,
+          'streakNumber': streakNumber,
+          'computerArchitecturePoints': caPoints,
+          'caAnswered': caAnswered,
+          'caCorrect': caCorrect,
+          'computerNetworkingPoints': cnPoints,
+          'cnAnswered': cnAnswered,
+          'cnCorrect': cnCorrect,
+          'softwareEngineeringPoints': sePoints,
+          'seAnswered': seAnswered,
+          'seCorrect': seCorrect,
+          'badges': badges,
+          'quizCoins': FieldValue.increment(coinsDelta),
+          'shieldCount': FieldValue.increment(shieldDelta),
+          'skipCount': FieldValue.increment(skipDelta),
+          'pauseTimerCount': FieldValue.increment(pauseDelta),
+          'noDeductionsCount': FieldValue.increment(noDeductionsDelta),
+        });
+      });
+    }
+
+    // 3. Apply purchases exactly once via migration event documents.
+    if (account.purchases.isNotEmpty) {
+      await _db.runTransaction((tx) async {
+        int coins = 0;
+        int shield = 0;
+        int skip = 0;
+        int pause = 0;
+        int noDeductions = 0;
+
+        for (final p in account.purchases) {
+          final evRef = userRef
+              .collection('migrationEvents')
+              .doc('purchase_${p.eventId}');
+          final evSnap = await tx.get(evRef);
+          if (evSnap.exists) continue;
+
+          coins -= p.price;
+          switch (p.itemId) {
+            case 'shield':
+              shield++;
+              break;
+            case 'skip_question':
+              skip++;
+              break;
+            case 'pause_timer':
+              pause++;
+              break;
+            case 'no_deductions':
+              noDeductions++;
+              break;
+          }
+          tx.set(evRef, {
+            'itemId': p.itemId,
+            'price': p.price,
+            'timestamp': FieldValue.serverTimestamp(),
+          });
+        }
+
+        tx.update(userRef, {
+          'quizCoins': FieldValue.increment(coins),
+          'shieldCount': FieldValue.increment(shield),
+          'skipCount': FieldValue.increment(skip),
+          'pauseTimerCount': FieldValue.increment(pause),
+          'noDeductionsCount': FieldValue.increment(noDeductions),
+        });
+      });
+    }
+
+    // 4. Finalize selected badges and public profile from the final state.
+    final finalSnap = await userRef.get();
+    final finalData = finalSnap.data() ?? <String, dynamic>{};
+    final unlocked = List<String>.from(finalData['badges'] ?? <String>[]);
+    final remoteSelected = List<String>.from(
+      finalData['selectedBadges'] ?? <String>[],
+    );
+    var selected = remoteSelected
+        .where(unlocked.contains)
+        .take(GuestAccount.maxSelectedBadges)
+        .toList();
+    if (selected.isEmpty) {
+      selected = account.selectedBadges
+          .where(unlocked.contains)
+          .take(GuestAccount.maxSelectedBadges)
+          .toList();
+    }
+
+    await _db.runTransaction((tx) async {
+      tx.update(userRef, {'selectedBadges': selected});
+      tx.set(
+        publicRef,
+        _publicProfileData(
+          displayName:
+              (finalData['displayName'] as String?) ?? account.displayName,
+          score: finalData['score'] as int? ?? 0,
+          computerArchitecturePoints:
+              finalData['computerArchitecturePoints'] as int? ?? 0,
+          computerNetworkingPoints:
+              finalData['computerNetworkingPoints'] as int? ?? 0,
+          softwareEngineeringPoints:
+              finalData['softwareEngineeringPoints'] as int? ?? 0,
+          streakNumber: finalData['streakNumber'] as int? ?? 0,
+          badges: unlocked,
+          selectedBadges: selected,
+          avatarUrl: (finalData['avatarUrl'] as String?) ?? '',
+        ),
+        SetOptions(merge: true),
+      );
+    });
+
+    return GuestMergeResult(
+      sessionsMigrated: sessionsMigrated,
+      newlyUnlockedBadges: newlyUnlocked,
+    );
+  }
+
   // Get percentage of users who own a specific badge
   Future<double> getBadgeOwnershipPercentage(String badgeId) async {
     try {
@@ -787,4 +1049,15 @@ class DatabaseService {
       return 0.0;
     }
   }
+}
+
+/// Result of an idempotent guest→Firestore merge.
+class GuestMergeResult {
+  final int sessionsMigrated;
+  final List<String> newlyUnlockedBadges;
+
+  const GuestMergeResult({
+    required this.sessionsMigrated,
+    required this.newlyUnlockedBadges,
+  });
 }

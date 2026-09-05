@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:uuid/uuid.dart';
-import '../models/guest_user.dart';
-import '../services/local_progress_service.dart';
+import '../services/guest_account_store.dart';
 import '../widgets/home/particle_background.dart';
 import 'auth_screen.dart';
 
@@ -30,14 +28,7 @@ class _GuestNameScreenState extends State<GuestNameScreen> {
 
     try {
       final username = _usernameController.text.trim();
-      final uuid = const Uuid().v4();
-      final guest = GuestUser(
-        id: uuid,
-        username: username,
-        createdAt: DateTime.now(),
-      );
-
-      await LocalProgressService.saveGuestUser(guest);
+      final guest = await GuestAccountStore.instance.create(username: username);
       if (mounted) {
         if (widget.onSetupComplete != null) {
           widget.onSetupComplete!();

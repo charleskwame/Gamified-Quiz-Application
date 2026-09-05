@@ -1,60 +1,52 @@
 import '../services/local_progress_service.dart';
 import '../services/database_service.dart';
+import '../services/guest_account_store.dart';
 
 class SyncService {
   static final DatabaseService _dbService = DatabaseService();
 
-  /// Pushes all locally accumulated guest progress to the remote database
-  /// for the newly signed up user and clears the local database cache.
-  static Future<void> syncGuestProgressToRemote(String uid) async {
-    try {
-      final progressList = await LocalProgressService.getAllProgress();
-      if (progressList.isEmpty) return;
+  /// Migrates the local guest account into Firestore for [uid] additively and
+  /// exactly once, then clears local guest data only after the merge is
+  /// confirmed. Safe to call for new users, returning users, and both
+  /// Google-linking paths.
+  static Future<void> mergeGuestAccountToRemote(
+    String uid, {
+    String? email,
+    String? fallbackName,
+  }) async {
+    final account = await LocalProgressService.loadAccount();
 
-      for (final p in progressList) {
-        await _dbService.processQuizCompletion(
-          uid: uid,
-          category: p.category,
-          scoreIncrement: p.score,
-          correctIncrement: p.correctAnswers,
-          answeredIncrement: p.totalQuestions,
-          isTimed: p.isTimed,
-          // Since it's synced progress from a guest, we do not add/modify shields or skips
-          // unless they were acquired by the guest during play. Defaulting to 0.
-          coinsEarned: 0,
+    if (account == null) {
+      // No local guest data: ensure a remote profile exists for this user.
+      final exists = await _dbService.userDocExists(uid);
+      if (!exists) {
+        await _dbService.initializeUserStats(
+          uid,
+          fallbackName ?? _nameFromEmail(email),
+          email ?? '',
         );
-
-        // Record a rank history entry for each synced game if appropriate
-        final percentage = p.totalQuestions > 0
-            ? (p.correctAnswers / p.totalQuestions) * 100
-            : 0.0;
-        final String rankLetter;
-        if (percentage >= 90) {
-          rankLetter = 'S';
-        } else if (percentage >= 80) {
-          rankLetter = 'A';
-        } else if (percentage >= 70) {
-          rankLetter = 'B';
-        } else if (percentage >= 60) {
-          rankLetter = 'C';
-        } else if (percentage >= 50) {
-          rankLetter = 'D';
-        } else {
-          rankLetter = 'E';
-        }
-
-        await _dbService.recordRankHistoryEntry(
-          uid: uid,
-          rank: rankLetter,
-          category: p.category,
-          percentage: percentage,
+      } else {
+        await _dbService.ensurePublicProfileExists(
+          uid,
+          fallbackDisplayName: fallbackName ?? _nameFromEmail(email),
         );
       }
-
-      // Sync completed successfully. Clear local cache.
-      await LocalProgressService.clearProgress();
-    } catch (e) {
-      // Log or handle sync failures
+      return;
     }
+
+    // Merge. On success (no exception) clear the local account.
+    await _dbService.mergeGuestAccount(
+      uid: uid,
+      account: account,
+      email: email,
+    );
+
+    await GuestAccountStore.instance.clear();
+  }
+
+  static String _nameFromEmail(String? email) {
+    if (email == null || email.isEmpty) return 'Scholar';
+    final local = email.split('@').first;
+    return local.isEmpty ? 'Scholar' : local;
   }
 }

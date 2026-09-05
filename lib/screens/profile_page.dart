@@ -21,7 +21,8 @@ import 'settings_screen.dart';
 import 'bug_report_screen.dart';
 import 'evaluation_screen.dart';
 import '../services/local_progress_service.dart';
-import '../models/guest_user.dart';
+import '../services/guest_account_store.dart';
+import '../models/guest_account.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -38,34 +39,40 @@ class _ProfilePageState extends State<ProfilePage> {
     final user = _authService.currentUser;
 
     if (user == null) {
-      return FutureBuilder<List<dynamic>>(
-        future: Future.wait([
-          LocalProgressService.loadGuestUser(),
-          LocalProgressService.getAggregatedStats(),
-        ]),
+      return FutureBuilder<GuestAccount?>(
+        future: GuestAccountStore.instance.load(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             );
           }
-          final guest = snapshot.data?[0] as GuestUser?;
-          final stats = snapshot.data?[1] as GuestStats?;
+          final account = snapshot.data;
+          final stats = account != null
+              ? GuestStats.fromAccount(account)
+              : GuestStats.empty();
 
-          final guestName = guest?.username ?? 'Guest User';
-          final streakNumber = stats?.streakNumber ?? 0;
-          final totalScore = stats?.score ?? 0;
+          final guestName =
+              account?.displayName ?? account?.username ?? 'Guest User';
+          final streakNumber = stats.streakNumber;
+          final totalScore = stats.score;
 
-          return _buildScaffold(
-            context: context,
-            user: null,
-            displayName: guestName,
-            email: 'Sign in to sync progress',
-            streakNumber: streakNumber,
-            unlockedBadgeIds: [],
-            selectedBadges: [],
-            avatarUrl: null,
-            totalScore: totalScore,
+          return ListenableBuilder(
+            listenable: GuestAccountStore.instance,
+            builder: (context, _) {
+              final a = GuestAccountStore.instance.account ?? account;
+              return _buildScaffold(
+                context: context,
+                user: null,
+                displayName: guestName,
+                email: 'Link Google to save your progress',
+                streakNumber: streakNumber,
+                unlockedBadgeIds: a?.badges ?? const [],
+                selectedBadges: a?.selectedBadges ?? const [],
+                avatarUrl: a?.avatarUrl,
+                totalScore: totalScore,
+              );
+            },
           );
         },
       );
@@ -189,21 +196,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
                   const SizedBox(height: 12),
 
-                  if (user == null) ...[
-                    _StaggeredFadeSlide(
-                      index: 3,
-                      child: Text(
-                        'Sign in or create an account to start earning badges!',
-                        style: TextStyle(
-                          color: const Color(0xFF003F91).withValues(alpha: 0.5),
-                          fontStyle: FontStyle.italic,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-
                   _StaggeredFadeSlide(
                     index: 4,
                     child: GridView.builder(
@@ -228,48 +220,48 @@ class _ProfilePageState extends State<ProfilePage> {
                   const SizedBox(height: 32),
 
                   // ── Ranking History Section ──
-                  if (user != null) ...[
-                    _StaggeredFadeSlide(
-                      index: 5,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Ranking History',
-                            style: TextStyle(
-                              color: Color(0xFF003F91),
-                              fontSize: 22,
-                              fontWeight: FontWeight.w900,
-                            ),
+                  _StaggeredFadeSlide(
+                    index: 5,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Ranking History',
+                          style: TextStyle(
+                            color: Color(0xFF003F91),
+                            fontSize: 22,
+                            fontWeight: FontWeight.w900,
                           ),
-                          TextButton.icon(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const AnalyticsScreen(),
-                                ),
-                              );
-                            },
-                            label: const Text('View Analytics'),
-                            icon: const Icon(
-                              Icons.arrow_forward_rounded,
-                              size: 16,
-                            ),
-                            style: TextButton.styleFrom(
-                              foregroundColor: const Color(0xFF003F91),
-                            ),
+                        ),
+                        TextButton.icon(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const AnalyticsScreen(),
+                              ),
+                            );
+                          },
+                          label: const Text('View Analytics'),
+                          icon: const Icon(
+                            Icons.arrow_forward_rounded,
+                            size: 16,
                           ),
-                        ],
-                      ),
+                          style: TextButton.styleFrom(
+                            foregroundColor: const Color(0xFF003F91),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 12),
-                    _StaggeredFadeSlide(
-                      index: 6,
-                      child: _buildRankingHistory(user.uid),
-                    ),
-                    const SizedBox(height: 32),
-                  ],
+                  ),
+                  const SizedBox(height: 12),
+                  _StaggeredFadeSlide(
+                    index: 6,
+                    child: user != null
+                        ? _buildRankingHistory(user.uid)
+                        : _buildGuestRankingHistory(),
+                  ),
+                  const SizedBox(height: 32),
 
                   // ── Login button for guests ──
                   if (user == null)
@@ -818,28 +810,27 @@ class _ProfilePageState extends State<ProfilePage> {
             fontWeight: FontWeight.w900,
           ),
         ),
-        if (user != null)
-          Container(
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(14)),
-            child: TextButton.icon(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => EarnedBadgesScreen(
-                      unlockedBadgeIds: unlockedBadgeIds,
-                      initialSelectedBadges: selectedBadges,
-                    ),
+        Container(
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(14)),
+          child: TextButton.icon(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EarnedBadgesScreen(
+                    unlockedBadgeIds: unlockedBadgeIds,
+                    initialSelectedBadges: selectedBadges,
                   ),
-                );
-              },
-              label: const Text('See all'),
-              icon: const Icon(Icons.arrow_forward_rounded, size: 16),
-              style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFF003F91),
-              ),
+                ),
+              );
+            },
+            label: const Text('See all'),
+            icon: const Icon(Icons.arrow_forward_rounded, size: 16),
+            style: TextButton.styleFrom(
+              foregroundColor: const Color(0xFF003F91),
             ),
           ),
+        ),
       ],
     );
   }
@@ -850,6 +841,174 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget _buildRankingHistory(String uid) {
     return _RankingHistoryList(uid: uid);
+  }
+
+  /// Local rank history for guests, derived from their session ledger.
+  Widget _buildGuestRankingHistory() {
+    final account = GuestAccountStore.instance.account;
+    final sessions = account?.sessions ?? const <GuestSession>[];
+    if (sessions.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        decoration: BoxDecoration(
+          color: const Color(0xFFECF8F8),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: const Color(0xFF003F91).withValues(alpha: 0.08),
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              Icons.leaderboard_rounded,
+              size: 40,
+              color: const Color(0xFF003F91).withValues(alpha: 0.15),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'No rank history yet',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF003F91).withValues(alpha: 0.6),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Complete a quiz to see your rank!',
+              style: TextStyle(
+                fontSize: 12,
+                color: const Color(0xFF003F91).withValues(alpha: 0.35),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final newest = List<GuestSession>.from(sessions)
+      ..sort((a, b) => b.playedAt.compareTo(a.playedAt));
+    final visible = newest.take(5).toList();
+
+    return Column(
+      children: [
+        for (final s in visible)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: _buildGuestRankRow(
+              RankHistoryEntry(
+                id: s.sessionId,
+                rank: s.rank,
+                category: s.category,
+                percentage: s.percentage,
+                timestamp: s.playedAt,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildGuestRankRow(RankHistoryEntry entry) {
+    late final Color rankColor;
+    late final Color rankBgColor;
+    switch (entry.rank) {
+      case 'S':
+        rankColor = const Color(0xFFFFD700);
+        rankBgColor = const Color(0xFFFFD700).withValues(alpha: 0.15);
+        break;
+      case 'A':
+        rankColor = const Color(0xFF4ADE80);
+        rankBgColor = const Color(0xFF4ADE80).withValues(alpha: 0.15);
+        break;
+      case 'B':
+        rankColor = const Color(0xFF003F91);
+        rankBgColor = const Color(0xFF003F91).withValues(alpha: 0.15);
+        break;
+      case 'C':
+        rankColor = const Color(0xFFF59E0B);
+        rankBgColor = const Color(0xFFF59E0B).withValues(alpha: 0.15);
+        break;
+      case 'D':
+        rankColor = const Color(0xFF94A3B8);
+        rankBgColor = const Color(0xFF94A3B8).withValues(alpha: 0.15);
+        break;
+      default:
+        rankColor = const Color(0xFF9CA3AF);
+        rankBgColor = const Color(0xFF9CA3AF).withValues(alpha: 0.15);
+        break;
+    }
+    final dateStr = DateFormat('MMM d, yyyy, h:mm a').format(entry.timestamp);
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFECF8F8),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: const Color(0xFF003F91).withValues(alpha: 0.08),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: rankBgColor,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(6),
+              child: SvgPicture.asset(
+                'lib/assets/rank_icons/${entry.rank.toLowerCase()}-rank-medal.svg',
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  entry.category,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF003F91),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    Text(
+                      '${entry.percentage.round()}%',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: rankColor,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        dateStr,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: const Color(0xFF003F91).withValues(alpha: 0.4),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

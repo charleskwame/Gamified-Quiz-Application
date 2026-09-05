@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../services/database_service.dart';
 import '../widgets/home/particle_background.dart';
 import 'quiz_play_screen.dart';
@@ -84,8 +83,6 @@ class _ChallengeSelectScreenState extends State<ChallengeSelectScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
-
     return Scaffold(
       body: ParticleBackground(
         child: SafeArea(
@@ -170,9 +167,8 @@ class _ChallengeSelectScreenState extends State<ChallengeSelectScreen> {
 
                 const SizedBox(height: 24),
 
-                // ── Download Section ──
-                if (user != null)
-                  _StaggeredFadeSlide(index: 5, child: _buildDownloadSection()),
+                // ── Download Section (available to everyone) ──
+                _StaggeredFadeSlide(index: 5, child: _buildDownloadSection()),
               ],
             ),
           ),

@@ -9,6 +9,24 @@ service cloud.firestore {
       return signedIn() && request.auth.uid == userId;
     }
 
+    function isValidRankHistoryEntry() {
+      return request.resource.data.rank is string
+        && request.resource.data.category is string
+        && request.resource.data.percentage is number
+        && (request.resource.data.guestSessionId == null
+            || request.resource.data.guestSessionId is string);
+    }
+
+    function isValidMigrationEvent() {
+      return request.resource.data.keys().hasOnly([
+        'itemId',
+        'price',
+        'timestamp',
+      ])
+      && request.resource.data.itemId is string
+      && request.resource.data.price is int;
+    }
+
     function isValidPublicProfile() {
       return request.resource.data.keys().hasOnly([
         'displayName',
@@ -38,7 +56,17 @@ service cloud.firestore {
       allow create, read, update, delete: if isOwner(userId);
 
       match /rankHistory/{entryId} {
-        allow create, read, update, delete: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidRankHistoryEntry();
+        allow read: if isOwner(userId);
+        allow update: if isOwner(userId) && isValidRankHistoryEntry();
+        allow delete: if isOwner(userId);
+      }
+
+      match /migrationEvents/{eventId} {
+        allow create: if isOwner(userId) && isValidMigrationEvent();
+        allow read: if isOwner(userId);
+        // Migration events are immutable idempotency markers.
+        allow update, delete: if false;
       }
     }
 
