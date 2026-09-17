@@ -751,6 +751,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
           rank: rankLetter,
           category: widget.category,
           percentage: percentage,
+          correct: _correctAnswers,
         );
       } catch (e) {
         // Silently catch network failures or write problems in offline context

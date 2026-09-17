@@ -517,11 +517,13 @@ class DatabaseService {
     required String rank,
     required String category,
     required double percentage,
+    required int correct,
   }) async {
     await _db.collection('users').doc(uid).collection('rankHistory').add({
       'rank': rank,
       'category': category,
       'percentage': percentage,
+      'correct': correct,
       'timestamp': FieldValue.serverTimestamp(),
     });
   }
@@ -690,7 +692,9 @@ class DatabaseService {
     if (!existing.exists) {
       await initializeUserStats(
         uid,
-        account.displayName.isNotEmpty ? account.displayName : (email ?? 'Scholar'),
+        account.displayName.isNotEmpty
+            ? account.displayName
+            : (email ?? 'Scholar'),
         email ?? '',
       );
       if (account.avatarUrl.isNotEmpty) {

@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  UML 2.5.1 Use Case Model (XMI 2.5.1) — Gamified Quiz Application
+  Actors   : User (abstract), Guest User, Registered User
+  Note     : Guest User and Registered User generalize the abstract "User"
+             actor, so every use case associated with "User" is inherited by
+             both concrete actors. Guest-specific and registered-specific
+             use cases are associated with their respective actors directly.
+-->
+<xmi:XMI xmi:version="2.5.1"
+         xmlns:xmi="http://www.omg.org/spec/XMI/20131001"
+         xmlns:uml="http://www.omg.org/spec/UML/20131001">
+
+  <uml:Model xmi:type="uml:Model"
+             xmi:id="ucm_gamified_quiz"
+             name="Gamified Quiz Use Case Model">
+
+    <!-- ================================================================
+         ACTORS
+         ================================================================ -->
+
+    <packagedElement xmi:type="uml:Actor" xmi:id="actor_user" name="User" isAbstract="true"/>
+    
+    <packagedElement xmi:type="uml:Actor" xmi:id="actor_guest" name="Guest User">
+      <generalization xmi:type="uml:Generalization" xmi:id="gen_guest" general="actor_user"/>
+    </packagedElement>
+    
+    <packagedElement xmi:type="uml:Actor" xmi:id="actor_registered" name="Registered User">
+      <generalization xmi:type="uml:Generalization" xmi:id="gen_registered" general="actor_user"/>
+    </packagedElement>
+
+    <!-- ================================================================
+         USE CASES — shared (available to both actors via "User")
+         ================================================================ -->
+
+    <packagedElement xmi:type="uml:UseCase" xmi:id="uc_launch" name="Launch App"/>
+    <packagedElement xmi:type="uml:UseCase" xmi:id="uc_onboarding" name="Play Onboarding Tour"/>
+    <packagedElement xmi:type="uml:UseCase" xmi:id="uc_update" name="Check for App Update"/>
+    
+    <packagedElement xmi:type="uml:UseCase" xmi:id="uc_quiz" name="Play Quiz">
+      <extensionPoint xmi:type="uml:ExtensionPoint" xmi:id="ep_powerup" name="Power-up selected"/>
+      <extensionPoint xmi:type="uml:ExtensionPoint" xmi:id="ep_quiz_done" name="After quiz completion"/>
+      <include xmi:type="uml:Include" xmi:id="inc_subject" addition="uc_subject"/>
+      <include xmi:type="uml:Include" xmi:id="inc_mode" addition="uc_mode"/>
+    </packagedElement>
+    
+    <packagedElement xmi:type="uml:UseCase" xmi:id="uc_subject" name="Select Subject"/>
+    <packagedElement xmi:type="uml:UseCase" xmi:id="uc_mode" name="Choose Quiz Mode"/>
+    
+    <packagedElement xmi:type="uml:UseCase" xmi:id="uc_powerup" name="Use Power-ups">
+      <extend xmi:type="uml:Extend" xmi:id="ext_powerup" extendedCase="uc_quiz" extensionLocation="ep_powerup"/>
+    </packagedElement>
+    
+    <packagedElement xmi:type="uml:UseCase" xmi:id="uc_ai" name="View AI Session Review">
+      <extend xmi:type="uml:Extend" xmi:id="ext_ai" extendedCase="uc_quiz" extensionLocation="ep_quiz_done"/>
+    </packagedElement>
+    
+    <packagedElement xmi:type="uml:UseCase" xmi:id="uc_save_local" name="Save Progress Locally">
+      <extend xmi:type="uml:Extend" xmi:id="ext_save_local" extendedCase="uc_quiz" extensionLocation="ep_quiz_done"/>
+    </packagedElement>
+    
+    <packagedElement xmi:type="uml:UseCase" xmi:id="uc_save_cloud" name="Sync Progress to Cloud">
+      <extend xmi:type="uml:Extend" xmi:id="ext_save_cloud" extendedCase="uc_quiz" extensionLocation="ep_quiz_done"/>
+    </packagedElement>
+    
+    <packagedElement xmi:type="uml:UseCase" xmi:id="uc_shop" name="Buy Power-ups">
+      <include xmi:type="uml:Include" xmi:id="inc_coins" addition="uc_coins"/>
+    </packagedElement>
+    
+    <packagedElement xmi:type="uml:UseCase" xmi:id="uc_coins" name="Spend Coins"/>
+    <packagedElement xmi:type="uml:UseCase" xmi:id="uc_rankings" name="View Leaderboard"/>
+    
+    <packagedElement xmi:type="uml:UseCase" xmi:id="uc_profile" name="Manage Profile">
+      <include xmi:type="uml:Include" xmi:id="inc_avatar" addition="uc_avatar"/>
+      <include xmi:type="uml:Include" xmi:id="inc_edit_name" addition="uc_edit_name"/>
+      <include xmi:type="uml:Include" xmi:id="inc_badges" addition="uc_badges"/>
+      <include xmi:type="uml:Include" xmi:id="inc_analytics" addition="uc_analytics"/>
+    </packagedElement>
+    
+    <packagedElement xmi:type="uml:UseCase" xmi:id="uc_avatar" name="Customize Avatar"/>
+    <packagedElement xmi:type="uml:UseCase" xmi:id="uc_edit_name" name="Edit Display Name"/>
+    <packagedElement xmi:type="uml:UseCase" xmi:id="uc_badges" name="View and Equip Badges"/>
+    <packagedElement xmi:type="uml:UseCase" xmi:id="uc_analytics" name="View Analytics and Rank History"/>
+    <packagedElement xmi:type="uml:UseCase" xmi:id="uc_settings" name="Configure Settings"/>
+
+    <!-- ================================================================
+         USE CASES — Guest User only
+         ================================================================ -->
+
+    <packagedElement xmi:type="uml:UseCase" xmi:id="uc_create_guest" name="Create Guest Profile"/>
+    <packagedElement xmi:type="uml:UseCase" xmi:id="uc_continue_guest" name="Continue as Guest"/>
+    
+    <packagedElement xmi:type="uml:UseCase" xmi:id="uc_upgrade" name="Upgrade Account (Sign In with Google)">
+      <include xmi:type="uml:Include" xmi:id="inc_merge" addition="uc_merge"/>
+    </packagedElement>
+    
+    <packagedElement xmi:type="uml:UseCase" xmi:id="uc_merge" name="Merge Guest Progress"/>
+    <packagedElement xmi:type="uml:UseCase" xmi:id="uc_delete_guest_data" name="Delete Guest Data"/>
+
+    <!-- ================================================================
+         USE CASES — Registered User only
+         ================================================================ -->
+
+    <packagedElement xmi:type="uml:UseCase" xmi:id="uc_signin" name="Sign In with Google">
+      <extensionPoint xmi:type="uml:ExtensionPoint" xmi:id="ep_conflict" name="Account conflict detected"/>
+    </packagedElement>
+    
+    <packagedElement xmi:type="uml:UseCase" xmi:id="uc_link" name="Link Google Account (Email/Password)">
+      <extend xmi:type="uml:Extend" xmi:id="ext_link" extendedCase="uc_signin" extensionLocation="ep_conflict"/>
+    </packagedElement>
+    
+    <packagedElement xmi:type="uml:UseCase" xmi:id="uc_logout" name="Log Out"/>
+    <packagedElement xmi:type="uml:UseCase" xmi:id="uc_bug" name="Submit Bug Report"/>
+    <packagedElement xmi:type="uml:UseCase" xmi:id="uc_eval" name="Complete Evaluation Survey"/>
+    <packagedElement xmi:type="uml:UseCase" xmi:id="uc_delete_account" name="Delete Account"/>
+
+    <!-- ================================================================
+         ACTOR ↔ USE CASE ASSOCIATIONS
+         ================================================================ -->
+
+    <!-- Shared associations -->
+    <packagedElement xmi:type="uml:Association" xmi:id="a_user_launch" name="User_LaunchApp">
+      <ownedEnd xmi:type="uml:Property" xmi:id="a_user_launch_end1" type="actor_user" association="a_user_launch"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="a_user_launch_end2" type="uc_launch" association="a_user_launch"/>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Association" xmi:id="a_user_onboarding" name="User_Onboarding">
+      <ownedEnd xmi:type="uml:Property" xmi:id="a_user_onboarding_end1" type="actor_user" association="a_user_onboarding"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="a_user_onboarding_end2" type="uc_onboarding" association="a_user_onboarding"/>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Association" xmi:id="a_user_update" name="User_CheckUpdate">
+      <ownedEnd xmi:type="uml:Property" xmi:id="a_user_update_end1" type="actor_user" association="a_user_update"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="a_user_update_end2" type="uc_update" association="a_user_update"/>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Association" xmi:id="a_user_quiz" name="User_PlayQuiz">
+      <ownedEnd xmi:type="uml:Property" xmi:id="a_user_quiz_end1" type="actor_user" association="a_user_quiz"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="a_user_quiz_end2" type="uc_quiz" association="a_user_quiz"/>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Association" xmi:id="a_user_shop" name="User_BuyPowerups">
+      <ownedEnd xmi:type="uml:Property" xmi:id="a_user_shop_end1" type="actor_user" association="a_user_shop"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="a_user_shop_end2" type="uc_shop" association="a_user_shop"/>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Association" xmi:id="a_user_rankings" name="User_ViewLeaderboard">
+      <ownedEnd xmi:type="uml:Property" xmi:id="a_user_rankings_end1" type="actor_user" association="a_user_rankings"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="a_user_rankings_end2" type="uc_rankings" association="a_user_rankings"/>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Association" xmi:id="a_user_profile" name="User_ManageProfile">
+      <ownedEnd xmi:type="uml:Property" xmi:id="a_user_profile_end1" type="actor_user" association="a_user_profile"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="a_user_profile_end2" type="uc_profile" association="a_user_profile"/>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Association" xmi:id="a_user_settings" name="User_ConfigureSettings">
+      <ownedEnd xmi:type="uml:Property" xmi:id="a_user_settings_end1" type="actor_user" association="a_user_settings"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="a_user_settings_end2" type="uc_settings" association="a_user_settings"/>
+    </packagedElement>
+
+    <!-- Guest User associations -->
+    <packagedElement xmi:type="uml:Association" xmi:id="a_guest_create" name="Guest_CreateProfile">
+      <ownedEnd xmi:type="uml:Property" xmi:id="a_guest_create_end1" type="actor_guest" association="a_guest_create"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="a_guest_create_end2" type="uc_create_guest" association="a_guest_create"/>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Association" xmi:id="a_guest_continue" name="Guest_ContinueAsGuest">
+      <ownedEnd xmi:type="uml:Property" xmi:id="a_guest_continue_end1" type="actor_guest" association="a_guest_continue"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="a_guest_continue_end2" type="uc_continue_guest" association="a_guest_continue"/>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Association" xmi:id="a_guest_upgrade" name="Guest_UpgradeAccount">
+      <ownedEnd xmi:type="uml:Property" xmi:id="a_guest_upgrade_end1" type="actor_guest" association="a_guest_upgrade"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="a_guest_upgrade_end2" type="uc_upgrade" association="a_guest_upgrade"/>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Association" xmi:id="a_guest_delete_data" name="Guest_DeleteGuestData">
+      <ownedEnd xmi:type="uml:Property" xmi:id="a_guest_delete_data_end1" type="actor_guest" association="a_guest_delete_data"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="a_guest_delete_data_end2" type="uc_delete_guest_data" association="a_guest_delete_data"/>
+    </packagedElement>
+
+    <!-- Registered User associations -->
+    <packagedElement xmi:type="uml:Association" xmi:id="a_reg_signin" name="Registered_SignInWithGoogle">
+      <ownedEnd xmi:type="uml:Property" xmi:id="a_reg_signin_end1" type="actor_registered" association="a_reg_signin"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="a_reg_signin_end2" type="uc_signin" association="a_reg_signin"/>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Association" xmi:id="a_reg_logout" name="Registered_LogOut">
+      <ownedEnd xmi:type="uml:Property" xmi:id="a_reg_logout_end1" type="actor_registered" association="a_reg_logout"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="a_reg_logout_end2" type="uc_logout" association="a_reg_logout"/>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Association" xmi:id="a_reg_bug" name="Registered_SubmitBugReport">
+      <ownedEnd xmi:type="uml:Property" xmi:id="a_reg_bug_end1" type="actor_registered" association="a_reg_bug"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="a_reg_bug_end2" type="uc_bug" association="a_reg_bug"/>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Association" xmi:id="a_reg_eval" name="Registered_CompleteEvaluation">
+      <ownedEnd xmi:type="uml:Property" xmi:id="a_reg_eval_end1" type="actor_registered" association="a_reg_eval"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="a_reg_eval_end2" type="uc_eval" association="a_reg_eval"/>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Association" xmi:id="a_reg_delete" name="Registered_DeleteAccount">
+      <ownedEnd xmi:type="uml:Property" xmi:id="a_reg_delete_end1" type="actor_registered" association="a_reg_delete"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="a_reg_delete_end2" type="uc_delete_account" association="a_reg_delete"/>
+    </packagedElement>
+
+  </uml:Model>
+</xmi:XMI>
