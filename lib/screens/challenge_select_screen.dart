@@ -128,7 +128,7 @@ class _ChallengeSelectScreenState extends State<ChallengeSelectScreen> {
                   child: _ModeCard(
                     title: 'Timed Challenge',
                     description:
-                        '15 seconds per question. Think fast, test your reflexes under pressure!',
+                        '20 seconds per question. Think fast, test your reflexes under pressure!',
                     icon: Icons.timer_rounded,
                     cardColor: const Color(0xFFFF101F),
                     glowColor: const Color(0xFFFF101F),

@@ -24,22 +24,27 @@ class QuizEngine {
   /// Base points awarded for a correct answer in normal mode.
   static const int normalCorrectPoints = 2;
 
-  /// Base points awarded for a correct answer in timed mode.
-  static const int timedCorrectPoints = 3;
+  /// Base points awarded for a correct answer in timed (challenge) mode.
+  static const int timedCorrectPoints = 5;
 
-  /// Points deducted for a single wrong answer.
-  static const int wrongAnswerPenalty = 1;
+  /// Seconds allowed per question in timed (challenge) mode.
+  static const int timedQuestionSeconds = 20;
 
-  /// Additional penalty for answering wrong on a timed-mode question (timeout or wrong).
+  /// Points deducted for a wrong answer in normal mode.
+  /// Normal mode is penalty-free, so this is always zero.
+  static const int normalWrongPenalty = 0;
+
+  /// Flat points deducted for a wrong answer or timeout in timed mode.
+  /// The penalty no longer compounds on consecutive incorrect answers.
   static const int timedWrongPenalty = 2;
 
   /// Calculates points earned for a correct answer in normal mode.
   static int normalScoreIncrement() => normalCorrectPoints;
 
   /// Calculates points earned for a correct answer in timed mode.
-  /// Streak bonus is additive: 1st = +3, 2nd = +4, 3rd = +5, etc.
+  /// Flat award — no streak bonus is applied.
   static int timedScoreIncrement(int consecutiveCorrect) {
-    return timedCorrectPoints + (consecutiveCorrect - 1);
+    return timedCorrectPoints;
   }
 
   /// Returns the streak bonus text for display, or null if no bonus.
@@ -52,20 +57,20 @@ class QuizEngine {
   // ─── Penalties ────────────────────────────────────────────────────────────
 
   /// Calculates total penalty for an incorrect answer.
-  /// [consecutiveIncorrect] is the count of consecutive wrongs *including* this one.
-  /// Consecutive penalties compound: 1st wrong = -1, 2nd = -2, 3rd = -3, etc.
-  /// Timed mode doubles the base penalty.
+  /// - Normal mode is penalty-free: always returns 0.
+  /// - Timed (challenge) mode applies a flat [timedWrongPenalty] (-2) that does
+  ///   not compound on consecutive wrong answers. [consecutiveIncorrect] is kept
+  ///   for call-site compatibility and no longer affects the amount.
   static int incorrectPenalty(
     int consecutiveIncorrect, {
     bool isTimed = false,
   }) {
-    final base = consecutiveIncorrect; // 1st = 1, 2nd = 2, 3rd = 3...
-    return isTimed ? base * timedWrongPenalty : base * wrongAnswerPenalty;
+    return isTimed ? timedWrongPenalty : normalWrongPenalty;
   }
 
-  /// Calculates penalty for a timeout in timed mode.
+  /// Calculates penalty for a timeout in timed mode. Flat [timedWrongPenalty].
   static int timeoutPenalty(int consecutiveIncorrect) {
-    return incorrectPenalty(consecutiveIncorrect, isTimed: true);
+    return timedWrongPenalty;
   }
 
   // ─── Session XP Cap ───────────────────────────────────────────────────────

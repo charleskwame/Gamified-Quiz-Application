@@ -18,7 +18,6 @@ import '../widgets/quiz/quiz_error_view.dart';
 import '../widgets/quiz/quiz_results_view.dart';
 import '../widgets/quiz/quiz_level_up_screen.dart';
 import '../widgets/quiz/quiz_badge_celebration.dart';
-import '../widgets/quiz/quiz_streak_badge.dart';
 import '../widgets/quiz/quiz_game_option.dart';
 import '../widgets/quiz/quiz_score_popup.dart';
 import '../widgets/quiz/quiz_circular_timer.dart';
@@ -53,7 +52,6 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
   int _consecutiveIncorrect = 0;
   int _consecutiveCorrect = 0;
   AnimationController? _progressAnimationController;
-  AnimationController? _flameAnimationController;
   AnimationController? _shieldAnimationController;
   AnimationController? _skipAnimationController;
   AnimationController? _pauseAnimationController;
@@ -85,7 +83,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
 
   // Timer fields
   Timer? _timer;
-  int _timeLeft = 15;
+  int _timeLeft = QuizEngine.timedQuestionSeconds;
 
   Timer? _autoSkipTimer;
   int _autoSkipCountdown = 0;
@@ -138,10 +136,6 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
     _confettiController = ConfettiController(
       duration: const Duration(seconds: 2),
     );
-    _flameAnimationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 800),
-    )..repeat(reverse: true);
     _shieldAnimationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
@@ -169,7 +163,6 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
     _timer?.cancel();
     _autoSkipTimer?.cancel();
     _progressAnimationController?.dispose();
-    _flameAnimationController?.dispose();
     _shieldAnimationController?.dispose();
     _skipAnimationController?.dispose();
     _pauseAnimationController?.dispose();
@@ -393,7 +386,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
     if (_progressAnimationController == null) {
       _progressAnimationController = AnimationController(
         vsync: this,
-        duration: const Duration(seconds: 15),
+        duration: const Duration(seconds: QuizEngine.timedQuestionSeconds),
       );
       _progressAnimationController!.addStatusListener((status) {
         if (status == AnimationStatus.completed) {
@@ -405,7 +398,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
     }
 
     setState(() {
-      _timeLeft = 15;
+      _timeLeft = QuizEngine.timedQuestionSeconds;
       _timerPaused = false;
     });
 
@@ -421,7 +414,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
             (_progressAnimationController!.duration!.inSeconds *
                     (1.0 - _progressAnimationController!.value))
                 .round()
-                .clamp(0, 15);
+                .clamp(0, QuizEngine.timedQuestionSeconds);
       });
     });
   }
@@ -458,6 +451,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
         _lastScoreIncrement = 0;
       });
     } else {
+      // Flat timeout penalty in challenge mode. Users below Level 2 are exempt.
       final penalty = (_userStartingLevel >= 2)
           ? QuizEngine.timeoutPenalty(_consecutiveIncorrect)
           : 0;
@@ -561,11 +555,12 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
           _lastScoreIncrement = 0;
           _showScorePopup = false;
         } else {
-          // Apply immediate penalty for wrong answer (compounds with consecutive wrongs)
-          final penalty = (_userStartingLevel >= 2)
+          // Penalties apply only in challenge (timed) mode — normal mode is
+          // penalty-free. Challenge mode uses a flat -2 per wrong answer.
+          final penalty = (widget.isTimed && _userStartingLevel >= 2)
               ? QuizEngine.incorrectPenalty(
                   _consecutiveIncorrect,
-                  isTimed: widget.isTimed,
+                  isTimed: true,
                 )
               : 0;
           final deduction = penalty.clamp(0, _score);
@@ -1003,7 +998,6 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
 
     // ─── Quiz Question View ──────────────────────────────────────────────────
     final question = _questions[_currentIndex];
-    final bool showStreakBadge = widget.isTimed && _consecutiveCorrect >= 2;
     final bool showShield =
         !widget.isOffline && _shieldAnimationController != null;
     final bool showSkip = !widget.isOffline && _skipAnimationController != null;
@@ -1042,12 +1036,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
           children: [
             SafeArea(
               child: SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(
-                  20,
-                  8,
-                  20,
-                  showStreakBadge ? 176 : 20,
-                ),
+                padding: EdgeInsets.fromLTRB(20, 8, 20, 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -1064,6 +1053,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
                               animationController:
                                   _progressAnimationController!,
                               timeLeft: _timeLeft,
+                              totalSeconds: QuizEngine.timedQuestionSeconds,
                             ),
                           ),
                       ],
@@ -1194,18 +1184,6 @@ class _QuizPlayScreenState extends State<QuizPlayScreen>
                 ),
               ),
 
-            // Streak multiplier badge
-            if (showStreakBadge)
-              Positioned(
-                right: 8,
-                bottom: MediaQuery.of(context).padding.bottom + 8,
-                child: IgnorePointer(
-                  child: QuizStreakBadge(
-                    animationController: _flameAnimationController!,
-                    consecutiveCorrect: _consecutiveCorrect,
-                  ),
-                ),
-              ),
           ],
         ),
       ),

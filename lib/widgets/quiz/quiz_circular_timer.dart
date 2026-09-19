@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 
 /// A circular countdown timer with color transitions and pulse animation
 /// when time is running low.
+///
+/// [totalSeconds] matches the challenge-mode question limit
+/// (QuizEngine.timedQuestionSeconds) and is supplied by the player screen.
 class QuizCircularTimer extends StatelessWidget {
   final AnimationController animationController;
   final int timeLeft;
@@ -12,7 +15,7 @@ class QuizCircularTimer extends StatelessWidget {
     super.key,
     required this.animationController,
     required this.timeLeft,
-    this.totalSeconds = 15,
+    this.totalSeconds = 20,
   });
 
   @override

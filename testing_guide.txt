@@ -145,39 +145,30 @@ Goal: Verify question flow, timers, transitions, scoring logic, and progression 
       * Once tapped, options are locked (cannot tap another choice).
       * The tapped option highlights: Green if correct; Red if incorrect (with the 
         correct option highlighted in Green).
-      * A score popup indicates points gained or lost (e.g. green "+2 XP" or red "-4 XP").
+      * A score popup indicates points gained or lost (e.g. green "+5 XP" in 
+        challenge mode or red "-2 XP"; normal mode only ever shows green "+2 XP").
 
 [ ] Normal Challenge Scoring
-    - Rules: No timer exists.
-    - Correct Answer: Score increments by a base of +2 XP.
-    - Incorrect Answer:
-      * Level 1 User: No penalty points deducted.
-      * Level >=2 User: Penalty point deductions are applied. Points deducted 
-        compound on consecutive incorrect answers:
-        - 1st consecutive incorrect = -1 XP
-        - 2nd consecutive incorrect = -2 XP
-        - 3rd consecutive incorrect = -3 XP ... and so on.
-    - Verification: Play a normal quiz, answer incorrectly, and check that 
-      the deductions match the math above (and score never drops below 0).
+    - Rules: No timer exists. Penalties are disabled in normal mode.
+    - Correct Answer: Score increments by +2 XP.
+    - Incorrect Answer: No penalty points deducted for ANY level (score unchanged).
+    - Verification: Play a normal quiz, answer incorrectly (repeatedly), and 
+      confirm the score never decreases and no red deduction popup appears. 
+      The results screen must not show a "pts deducted" row.
 
 [ ] Timed Challenge Scoring & Timers
-    - Rules: 15-second limit per question.
+    - Rules: 20-second limit per question.
     - Circular Timer Check: Visual timer ring shrinks and color shifts (from green/blue 
       to orange/red) as time runs out.
-    - Correct Answer (Streak Bonus): Score increments by +3 base points plus streak 
-      additive bonus:
-      * 1st correct: +3 XP
-      * 2nd consecutive correct: +4 XP (includes +1 streak bonus)
-      * 3rd consecutive correct: +5 XP (includes +2 streak bonus)
-      * Formula: `3 + (consecutiveCorrect - 1)`
+    - Correct Answer: Flat +5 XP for every correct answer. There is NO streak 
+      bonus — the 2nd, 3rd, and later correct answers also award exactly +5 XP, 
+      and the COMBO/streak flame badge no longer appears.
     - Incorrect Answer:
-      * Level >=2 User: Base penalty is doubled. Compounding penalty formula is:
-        - 1st consecutive incorrect = -2 XP
-        - 2nd consecutive incorrect = -4 XP
-        - 3rd consecutive incorrect = -6 XP
-        - Formula: `consecutiveIncorrect * 2`
-    - Timeout (No Answer Selected): Treated as incorrect. Triggers the same 
-      doubled penalties as incorrect answers.
+      * Level 1 User: No penalty points deducted.
+      * Level >=2 User: Flat penalty of -2 XP per wrong answer. The penalty does 
+        NOT compound (2nd and later consecutive wrong answers are also -2 XP).
+    - Timeout (No Answer Selected): Treated as incorrect and deducts the same 
+      flat -2 XP (Level >=2 users only).
 
 [ ] Session XP Cap (Capping Rules)
     - Formula: The maximum score that can be earned in a single quiz session is capped 
@@ -247,6 +238,8 @@ Goal: Verify functional limits, visual animations, and state persistence of life
       * The indicator pulses, shows "ON", and 1 item is consumed on activation.
       * Wrong answers AND timeouts NO LONGER deduct score for the rest of the 
         quiz (answers still count as incorrect for stats/rankings).
+      * Note: normal mode never deducts points, so this item only has a visible 
+        effect in the Timed Challenge.
       * The consumed item is persisted: inventory decrements after the quiz 
         finishes (e.g. the count in the Shop matches).
       * Tapping again while ON does nothing (stays active for the whole quiz).
